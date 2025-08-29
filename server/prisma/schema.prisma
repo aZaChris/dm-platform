@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  name           String?
+  password       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  ownedCampaigns Campaign[]       @relation("CampaignOwner")
+  memberships    CampaignMember[]
+  characters     Character[]
+}
+
+model Campaign {
+  id         String           @id @default(cuid())
+  name       String
+  ownerId    String
+  owner      User             @relation("CampaignOwner", fields: [ownerId], references: [id])
+  members    CampaignMember[]
+  characters Character[]
+  journals   JournalEntry[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model CampaignMember {
+  id         String   @id @default(cuid())
+  campaignId String
+  userId     String
+  role       Role
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([campaignId, userId])
+}
+
+model Character {
+  id         String   @id @default(cuid())
+  campaignId String
+  ownerId    String
+  name       String
+  dataJson   Json
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  owner      User     @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model JournalEntry {
+  id          String   @id @default(cuid())
+  campaignId  String
+  title       String
+  content     String
+  tags        String[]
+  attachments Json?
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  DM
+  PLAYER
+}
