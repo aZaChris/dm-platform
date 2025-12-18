@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DM Platform - Socket.io Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        input, button { margin: 5px; padding: 8px; }
+        button { background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 3px; max-height: 300px; overflow-y: auto; }
+        .message { margin: 5px 0; padding: 5px; background: #e9ecef; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+17:53:47] Connesso al server!
+[17:54:03] API Error: Failed to fetch
+[17:54:03] Errore nel caricamento combattimenti: Failed to fetchv
+        <div class="section">
+            <h3>1. Connessione</h3>
+            <input type="text" id="token" placeholder="JWT Token" style="width: 400px;">
+            <button onclick="connect()">Connetti</button>
+            <button onclick="disconnect()">Disconnetti</button>
+            <div id="connectionStatus">Non connesso</div>
+        </div>
+
+        <div class="section">
+            <h3>2. Join Campagna</h3>
+            <input type="text" id="campaignId" placeholder="Campaign ID">
+            <input type="text" id="userEmail" placeholder="Email utente">
+            <input type="text" id="userName" placeholder="Nome utente">
+            <button onclick="joinCampaign()">Join Campagna</button>
+            <button onclick="leaveCampaign()">Leave Campagna</button>
+        </div>
+
+        <div class="section">
+            <h3>3. Chat</h3>
+            <input type="text" id="chatMessage" placeholder="Messaggio" style="width: 300px;">
+            <select id="chatType">
+                <option value="all">All</option>
+                <option value="dm">DM</option>
+                <option value="party">Party</option>
+            </select>
+            <button onclick="sendMessage()">Invia</button>
+            <button onclick="startTyping()">Typing...</button>
+            <button onclick="stopTyping()">Stop Typing</button>
+        </div>
+
+        <div class="section">
+            <h3>4. Log Eventi</h3>
+            <button onclick="clearLog()">Pulisci Log</button>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentCampaignId = null;
+        let currentUser = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(messageDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                log('Inserisci un JWT token!', 'error');
+                return;
+            }
+
+            try {
+                socket = io('http://localhost:3000', {
+                    auth: { token: token }
+                });
+
+                socket.on('connect', () => {
+                    log('Connesso al server!', 'success');
+                    document.getElementById('connectionStatus').textContent = 'Connesso';
+                    document.getElementById('connectionStatus').style.color = 'green';
+                });
+
+                socket.on('disconnect', () => {
+                    log('Disconnesso dal server', 'error');
+                    document.getElementById('connectionStatus').textContent = 'Disconnesso';
+                    document.getElementById('connectionStatus').style.color = 'red';
+                });
+
+                socket.on('connect_error', (error) => {
+                    log(`Errore connessione: ${error.message}`, 'error');
+                });
+
+                // Eventi campagna
+                socket.on('user_joined', (user) => {
+                    log(`👋 ${user.name || user.email} è entrato nella campagna`, 'success');
+                });
+
+                socket.on('user_left', (data) => {
+                    log(`👋 User ${data.userId} ha lasciato la campagna`, 'error');
+                });
+
+                // Eventi chat
+                socket.on('chat_message', (msg) => {
+                    const typeLabel = msg.type === 'all' ? '📢' : msg.type === 'dm' ? '🔒' : '⚔️';
+                    log(`${typeLabel} ${msg.user.name || msg.user.email}: ${msg.message}`, 'info');
+                });
+
+                socket.on('user_typing', (data) => {
+                    const status = data.isTyping ? 'sta scrivendo...' : 'ha smesso di scrivere';
+                    log(`⌨️ ${data.user.name || data.user.email} ${status}`, 'info');
+                });
+
+            } catch (error) {
+                log(`Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                currentCampaignId = null;
+                currentUser = null;
+                log('Disconnesso manualmente', 'info');
+            }
+        }
+
+        function joinCampaign() {
+            if (!socket) {
+                log('Connetti prima al server!', 'error');
+                return;
+            }
+
+            const campaignId = document.getElementById('campaignId').value;
+            const email = document.getElementById('userEmail').value;
+            const name = document.getElementById('userName').value;
+
+            if (!campaignId || !email) {
+                log('Inserisci Campaign ID e Email!', 'error');
+                return;
+            }
+
+            // Estrai userId dal token (semplificato)
+            const token = document.getElementById('token').value;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userId = payload.sub;
+
+            currentUser = { userId, email, name };
+            currentCampaignId = campaignId;
+
+            socket.emit('join_campaign', {
+                campaignId: campaignId,
+                user: currentUser
+            }, (response) => {
+                if (response.success) {
+                    log(`✅ ${response.message}`, 'success');
+                    if (response.users) {
+                        log(`👥 Utenti nella campagna: ${response.users.length}`, 'info');
+                    }
+                } else {
+                    log(`❌ Errore: ${response.error}`, 'error');
+                }
+            });
+        }
+
+        function leaveCampaign() {
+            if (!socket || !currentCampaignId) {
+                log('Non sei in una campagna!', 'error');
+                return;
+            }
+
+            socket.emit('leave_campaign', { campaignId: currentCampaignId }, (response) => {
+                if (response.success) {
+                    log(`✅ ${response.message}`, 'success');
+                    currentCampaignId = null;
+                } else {
+                    log(`❌ Errore: ${response.error}`, 'error');
+                }
+            });
+        }
+
+        function sendMessage() {
+            if (!socket || !currentCampaignId) {
+                log('Connetti e join una campagna prima!', 'error');
+                return;
+            }
+
+            const message = document.getElementById('chatMessage').value;
+            const type = document.getElementById('chatType').value;
+
+            if (!message.trim()) {
+                log('Inserisci un messaggio!', 'error');
+                return;
+            }
+
+            socket.emit('chat_message', {
+                campaignId: currentCampaignId,
+                message: message,
+                type: type
+            }, (response) => {
+                if (response.success) {
+                    document.getElementById('chatMessage').value = '';
+                } else {
+                    log(`❌ Errore invio: ${response.error}`, 'error');
+                }
+            });
+        }
+
+        function startTyping() {
+            if (!socket || !currentCampaignId) return;
+            socket.emit('typing', { campaignId: currentCampaignId, isTyping: true });
+        }
+
+        function stopTyping() {
+            if (!socket || !currentCampaignId) return;
+            socket.emit('typing', { campaignId: currentCampaignId, isTyping: false });
+        }
+
+        // Auto-typing quando si scrive nel campo messaggio
+        document.getElementById('chatMessage').addEventListener('input', () => {
+            if (socket && currentCampaignId) {
+                socket.emit('typing', { campaignId: currentCampaignId, isTyping: true });
+                clearTimeout(window.typingTimeout);
+                window.typingTimeout = setTimeout(() => {
+                    socket.emit('typing', { campaignId: currentCampaignId, isTyping: false });
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

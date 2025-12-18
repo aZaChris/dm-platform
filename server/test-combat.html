@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DM Platform - Combat Tracker Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        input, button, select { margin: 5px; padding: 8px; }
+        button { background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 3px; max-height: 300px; overflow-y: auto; }
+        .message { margin: 5px 0; padding: 5px; background: #e9ecef; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+        .combat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .participant-list { max-height: 400px; overflow-y: auto; }
+        .participant-item { 
+            padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px;
+            background: #f8f9fa;
+        }
+        .participant-item.current { 
+            background: #d4edda; border-color: #28a745; 
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+        }
+        .participant-item.dead { 
+            background: #f8d7da; border-color: #dc3545; opacity: 0.6;
+        }
+        .initiative-order { font-weight: bold; color: #007bff; }
+        .hp-bar { 
+            width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden;
+            margin: 5px 0;
+        }
+        .hp-fill { 
+            height: 100%; background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        .hp-fill.low { background: linear-gradient(90deg, #ffc107, #fd7e14); }
+        .hp-fill.critical { background: linear-gradient(90deg, #dc3545, #e83e8c); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DM Platform - Combat Tracker Test</h1>
+        
+        <div class="section">
+            <h3>1. Login DM</h3>
+            <input type="email" id="loginEmail" placeholder="Email" value="admin@dm.com" style="width: 200px; margin: 5px;">
+            <input type="password" id="loginPassword" placeholder="Password" value="admin123" style="width: 200px; margin: 5px;">
+            <button onclick="login()" style="margin: 5px;">Login</button>
+            <div id="loginResult" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="section">
+            <h3>2. Connessione</h3>
+            <input type="text" id="token" placeholder="JWT Token" style="width: 400px;">
+            <button onclick="connect()">Connetti</button>
+            <button onclick="disconnect()">Disconnetti</button>
+            <div id="connectionStatus">Non connesso</div>
+        </div>
+
+        <div class="section">
+            <h3>3. Campagna</h3>
+            <input type="text" id="campaignName" placeholder="Nome Campagna" style="width: 200px;">
+            <input type="text" id="campaignDescription" placeholder="Descrizione" style="width: 200px;">
+            <button onclick="createCampaign()">Crea Campagna</button>
+            <div id="campaignResult" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="section">
+            <h3>4. Combattimenti</h3>
+            <input type="text" id="campaignId" placeholder="Campaign ID">
+            <button onclick="getCombats()">Lista Combattimenti</button>
+            <div id="combatsList"></div>
+        </div>
+
+        <div class="section">
+            <h3>5. Crea Combattimento</h3>
+            <input type="text" id="combatName" placeholder="Nome Combattimento">
+            <button onclick="createCombat()">Crea Combattimento</button>
+            <div id="combatId"></div>
+        </div>
+
+        <div class="combat-grid">
+            <div class="section">
+                <h3>6. Aggiungi Partecipanti</h3>
+                <input type="text" id="participantName" placeholder="Nome">
+                <select id="participantType">
+                    <option value="character">Character</option>
+                    <option value="monster">Monster</option>
+                    <option value="npc">NPC</option>
+                </select>
+                <input type="number" id="initiative" placeholder="Iniziativa">
+                <input type="number" id="hp" placeholder="HP">
+                <input type="number" id="maxHp" placeholder="Max HP">
+                <input type="number" id="ac" placeholder="AC">
+                <button onclick="addParticipant()">Aggiungi</button>
+            </div>
+
+            <div class="section">
+                <h3>7. Gestione Combattimento</h3>
+                <button onclick="startCombat()" class="success">Avvia Combattimento</button>
+                <button onclick="nextTurn()" class="success">Prossimo Turno</button>
+                <button onclick="endCombat()" class="danger">Termina Combattimento</button>
+                <div id="combatStatus"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>8. Lista Partecipanti</h3>
+            <div id="participantsList" class="participant-list"></div>
+        </div>
+
+        <div class="section">
+            <h3>9. Log Eventi</h3>
+            <button onclick="clearLog()">Pulisci Log</button>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentCombatId = null;
+        let currentCombat = null;
+        let participants = [];
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(messageDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                if (data.access_token) {
+                    document.getElementById('token').value = data.access_token;
+                    document.getElementById('loginResult').innerHTML = '<span style="color: green;">✅ Login successful!</span>';
+                    log('Login successful!', 'success');
+                } else {
+                    document.getElementById('loginResult').innerHTML = '<span style="color: red;">❌ Login failed</span>';
+                    log('Login failed', 'error');
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = '<span style="color: red;">❌ Error: ' + error.message + '</span>';
+                log('Login error: ' + error.message, 'error');
+            }
+        }
+
+        async function createCampaign() {
+            const name = document.getElementById('campaignName').value;
+            const description = document.getElementById('campaignDescription').value;
+            
+            if (!name) {
+                log('Inserisci il nome della campagna!', 'error');
+                return;
+            }
+
+            try {
+                const campaign = await apiCall('/campaigns', 'POST', { name, description });
+                document.getElementById('campaignResult').innerHTML = `
+                    <span style="color: green;">✅ Campagna creata!</span><br>
+                    <strong>ID: ${campaign.id}</strong><br>
+                    <button onclick="document.getElementById('campaignId').value='${campaign.id}'" style="margin-top: 5px;">Usa questo ID</button>
+                `;
+                log(`✅ Campagna creata: ${campaign.name} (ID: ${campaign.id})`, 'success');
+            } catch (error) {
+                document.getElementById('campaignResult').innerHTML = '<span style="color: red;">❌ Errore: ' + error.message + '</span>';
+                log(`Errore nella creazione campagna: ${error.message}`, 'error');
+            }
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                log('Inserisci un JWT token!', 'error');
+                return;
+            }
+
+            try {
+                socket = io('http://localhost:3000', {
+                    auth: { token: token }
+                });
+
+                socket.on('connect', () => {
+                    log('Connesso al server!', 'success');
+                    document.getElementById('connectionStatus').textContent = 'Connesso';
+                    document.getElementById('connectionStatus').style.color = 'green';
+                });
+
+                socket.on('disconnect', () => {
+                    log('Disconnesso dal server', 'error');
+                    document.getElementById('connectionStatus').textContent = 'Disconnesso';
+                    document.getElementById('connectionStatus').style.color = 'red';
+                });
+
+                socket.on('connect_error', (error) => {
+                    log(`Errore connessione: ${error.message}`, 'error');
+                });
+
+                // Combat events
+                socket.on('combat_update', (data) => {
+                    log(`⚔️ Combat Update: ${data.action} by ${data.user.name || data.user.email}`, 'info');
+                    if (data.combatId === currentCombatId) {
+                        refreshCombat();
+                    }
+                });
+
+                socket.on('combat_turn_change', (data) => {
+                    log(`🔄 Turn Change: Turn ${data.currentTurn}, Round ${data.round} by ${data.user.name || data.user.email}`, 'success');
+                    if (data.combatId === currentCombatId) {
+                        refreshCombat();
+                    }
+                });
+
+            } catch (error) {
+                log(`Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                currentCombatId = null;
+                currentCombat = null;
+                participants = [];
+                log('Disconnesso manualmente', 'info');
+            }
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const token = document.getElementById('token').value;
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : undefined
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000${endpoint}`, options);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+                
+                return data;
+            } catch (error) {
+                log(`API Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function getCombats() {
+            const campaignId = document.getElementById('campaignId').value;
+            if (!campaignId) {
+                log('Inserisci Campaign ID!', 'error');
+                return;
+            }
+
+            try {
+                const combats = await apiCall(`/combat/campaign/${campaignId}`);
+                const combatsDiv = document.getElementById('combatsList');
+                combatsDiv.innerHTML = '<h4>Combattimenti:</h4>';
+                
+                if (combats.length === 0) {
+                    combatsDiv.innerHTML += '<p>Nessun combattimento trovato</p>';
+                } else {
+                    combats.forEach(combat => {
+                        combatsDiv.innerHTML += `
+                            <div style="padding: 10px; border: 1px solid #ddd; margin: 5px 0; border-radius: 3px;">
+                                <strong>${combat.name}</strong> (ID: ${combat.id})<br>
+                                Stato: ${combat.isActive ? '🟢 Attivo' : '🔴 Inattivo'}<br>
+                                ${combat.isActive ? `Turno: ${combat.currentTurn}, Round: ${combat.round}` : ''}<br>
+                                Partecipanti: ${combat.participants.length}<br>
+                                <button onclick="loadCombat('${combat.id}')">Carica</button>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                log(`Errore nel caricamento combattimenti: ${error.message}`, 'error');
+            }
+        }
+
+        async function createCombat() {
+            const campaignId = document.getElementById('campaignId').value;
+            const name = document.getElementById('combatName').value;
+
+            if (!campaignId || !name) {
+                log('Inserisci Campaign ID e Nome!', 'error');
+                return;
+            }
+
+            try {
+                const combat = await apiCall('/combat', 'POST', { campaignId, name });
+                currentCombatId = combat.id;
+                currentCombat = combat;
+                participants = combat.participants;
+                
+                document.getElementById('combatId').innerHTML = `<strong>Combat ID: ${combat.id}</strong>`;
+                log(`✅ Combattimento creato: ${combat.name}`, 'success');
+                refreshParticipantsList();
+            } catch (error) {
+                log(`Errore nella creazione combattimento: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadCombat(combatId) {
+            try {
+                const combat = await apiCall(`/combat/${combatId}`);
+                currentCombatId = combat.id;
+                currentCombat = combat;
+                participants = combat.participants;
+                
+                document.getElementById('combatId').innerHTML = `<strong>Combat ID: ${combat.id}</strong>`;
+                log(`✅ Combattimento caricato: ${combat.name}`, 'success');
+                refreshParticipantsList();
+                updateCombatStatus();
+            } catch (error) {
+                log(`Errore nel caricamento combattimento: ${error.message}`, 'error');
+            }
+        }
+
+        async function addParticipant() {
+            if (!currentCombatId) {
+                log('Crea o carica un combattimento prima!', 'error');
+                return;
+            }
+
+            const name = document.getElementById('participantName').value;
+            const type = document.getElementById('participantType').value;
+            const initiative = parseInt(document.getElementById('initiative').value);
+            const hp = parseInt(document.getElementById('hp').value) || null;
+            const maxHp = parseInt(document.getElementById('maxHp').value) || null;
+            const ac = parseInt(document.getElementById('ac').value) || null;
+
+            if (!name || isNaN(initiative)) {
+                log('Inserisci Nome e Iniziativa!', 'error');
+                return;
+            }
+
+            try {
+                const participant = await apiCall(`/combat/${currentCombatId}/participants`, 'POST', {
+                    name, type, initiative, hp, maxHp, ac
+                });
+                
+                participants.push(participant);
+                refreshParticipantsList();
+                log(`✅ Partecipante aggiunto: ${name} (Iniziativa: ${initiative})`, 'success');
+                
+                // Clear form
+                document.getElementById('participantName').value = '';
+                document.getElementById('initiative').value = '';
+                document.getElementById('hp').value = '';
+                document.getElementById('maxHp').value = '';
+                document.getElementById('ac').value = '';
+            } catch (error) {
+                log(`Errore nell'aggiunta partecipante: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateParticipant(participantId, data) {
+            try {
+                await apiCall(`/combat/participants/${participantId}`, 'PUT', data);
+                await refreshCombat();
+                log(`✅ Partecipante aggiornato`, 'success');
+            } catch (error) {
+                log(`Errore nell'aggiornamento partecipante: ${error.message}`, 'error');
+            }
+        }
+
+        async function removeParticipant(participantId) {
+            if (!confirm('Sei sicuro di voler rimuovere questo partecipante?')) return;
+
+            try {
+                await apiCall(`/combat/participants/${participantId}`, 'DELETE');
+                participants = participants.filter(p => p.id !== participantId);
+                refreshParticipantsList();
+                log(`✅ Partecipante rimosso`, 'success');
+            } catch (error) {
+                log(`Errore nella rimozione partecipante: ${error.message}`, 'error');
+            }
+        }
+
+        async function startCombat() {
+            if (!currentCombatId) {
+                log('Crea o carica un combattimento prima!', 'error');
+                return;
+            }
+
+            try {
+                const combat = await apiCall(`/combat/${currentCombatId}/start`, 'POST');
+                currentCombat = combat;
+                participants = combat.participants;
+                refreshParticipantsList();
+                updateCombatStatus();
+                log(`⚔️ Combattimento avviato! Turno 1, Round 1`, 'success');
+            } catch (error) {
+                log(`Errore nell'avvio combattimento: ${error.message}`, 'error');
+            }
+        }
+
+        async function nextTurn() {
+            if (!currentCombatId) {
+                log('Crea o carica un combattimento prima!', 'error');
+                return;
+            }
+
+            try {
+                const combat = await apiCall(`/combat/${currentCombatId}/next-turn`, 'POST');
+                currentCombat = combat;
+                participants = combat.participants;
+                refreshParticipantsList();
+                updateCombatStatus();
+                log(`🔄 Turno ${combat.currentTurn}, Round ${combat.round}`, 'success');
+            } catch (error) {
+                log(`Errore nel cambio turno: ${error.message}`, 'error');
+            }
+        }
+
+        async function endCombat() {
+            if (!currentCombatId) {
+                log('Crea o carica un combattimento prima!', 'error');
+                return;
+            }
+
+            if (!confirm('Sei sicuro di voler terminare il combattimento?')) return;
+
+            try {
+                await apiCall(`/combat/${currentCombatId}/end`, 'POST');
+                currentCombat.isActive = false;
+                currentCombat.currentTurn = 0;
+                currentCombat.round = 1;
+                refreshParticipantsList();
+                updateCombatStatus();
+                log(`🏁 Combattimento terminato`, 'success');
+            } catch (error) {
+                log(`Errore nella terminazione combattimento: ${error.message}`, 'error');
+            }
+        }
+
+        async function refreshCombat() {
+            if (!currentCombatId) return;
+            
+            try {
+                const combat = await apiCall(`/combat/${currentCombatId}`);
+                currentCombat = combat;
+                participants = combat.participants;
+                refreshParticipantsList();
+                updateCombatStatus();
+            } catch (error) {
+                log(`Errore nel refresh combattimento: ${error.message}`, 'error');
+            }
+        }
+
+        function refreshParticipantsList() {
+            const listDiv = document.getElementById('participantsList');
+            if (participants.length === 0) {
+                listDiv.innerHTML = '<p>Nessun partecipante</p>';
+                return;
+            }
+
+            // Sort by order (initiative order)
+            const sortedParticipants = [...participants].sort((a, b) => a.order - b.order);
+
+            listDiv.innerHTML = '<h4>Partecipanti (ordine iniziativa):</h4>';
+            sortedParticipants.forEach((participant, index) => {
+                const isCurrentTurn = currentCombat && currentCombat.isActive && 
+                                    currentCombat.currentTurn === index + 1;
+                const isDead = participant.hp !== null && participant.hp <= 0;
+                
+                const hpPercentage = participant.maxHp && participant.hp !== null ? 
+                    (participant.hp / participant.maxHp) * 100 : 0;
+                
+                let hpClass = '';
+                if (hpPercentage <= 25) hpClass = 'critical';
+                else if (hpPercentage <= 50) hpClass = 'low';
+
+                listDiv.innerHTML += `
+                    <div class="participant-item ${isCurrentTurn ? 'current' : ''} ${isDead ? 'dead' : ''}">
+                        <div class="initiative-order">#${participant.order} - ${participant.name}</div>
+                        <div>Tipo: ${participant.type}</div>
+                        <div>Iniziativa: ${participant.initiative}</div>
+                        ${participant.hp !== null ? `<div>HP: ${participant.hp}/${participant.maxHp || '?'}</div>` : ''}
+                        ${participant.ac !== null ? `<div>AC: ${participant.ac}</div>` : ''}
+                        ${participant.maxHp && participant.hp !== null ? `
+                            <div class="hp-bar">
+                                <div class="hp-fill ${hpClass}" style="width: ${hpPercentage}%"></div>
+                            </div>
+                        ` : ''}
+                        <div style="margin-top: 5px;">
+                            ${participant.hp !== null ? `
+                                <input type="number" placeholder="HP" style="width: 60px;" 
+                                       value="${participant.hp}" onchange="updateParticipant('${participant.id}', {hp: parseInt(this.value)})">
+                            ` : ''}
+                            <button onclick="removeParticipant('${participant.id}')" class="danger" style="padding: 2px 5px; font-size: 12px;">Rimuovi</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateCombatStatus() {
+            const statusDiv = document.getElementById('combatStatus');
+            if (!currentCombat) {
+                statusDiv.innerHTML = '';
+                return;
+            }
+
+            statusDiv.innerHTML = `
+                <div style="padding: 10px; background: ${currentCombat.isActive ? '#d4edda' : '#f8d7da'}; border-radius: 3px;">
+                    <strong>${currentCombat.name}</strong><br>
+                    Stato: ${currentCombat.isActive ? '🟢 Attivo' : '🔴 Inattivo'}<br>
+                    ${currentCombat.isActive ? `Turno: ${currentCombat.currentTurn}, Round: ${currentCombat.round}` : ''}<br>
+                    Partecipanti: ${participants.length}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
