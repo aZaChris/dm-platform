@@ -64,18 +64,24 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('join_campaign')
   async handleJoinCampaign(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { campaignId: string; user: UserPresence }
+    @MessageBody() data: { campaignId: string; user?: UserPresence }
   ) {
-    const { campaignId, user } = data;
+    const { campaignId } = data;
     const userId = client.handshake.auth.userId;
+    const socketUser = client.handshake.auth.user || {};
 
-    if (!userId || userId !== user.userId) {
+    if (!userId) {
       return { error: 'Unauthorized' };
     }
 
+    // Prefer payload user if it matches, otherwise fall back to socket auth
+    const user: UserPresence = (data.user && data.user.userId === userId)
+      ? data.user
+      : { userId, email: socketUser.email, name: socketUser.name };
+
     // Join the campaign room
     await client.join(campaignId);
-    console.log(`User ${user.email} joined campaign room ${campaignId}`);
+    console.log(`User ${user.email || user.userId} joined campaign room ${campaignId}`);
     
     // Track user in campaign
     if (!this.campaignUsers.has(campaignId)) {

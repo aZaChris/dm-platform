@@ -53,23 +53,33 @@
       if (!this.socket) return;
       if (this.currentCampaignId) this.socket.emit('leave_campaign', { campaignId: this.currentCampaignId });
       this.currentCampaignId = campaignId;
-      this.socket.emit('join_campaign', { campaignId });
+      const user = (window.auth && window.auth.currentUser) ? {
+        userId: window.auth.currentUser.id,
+        email: window.auth.currentUser.email,
+        name: window.auth.currentUser.username || window.auth.currentUser.name,
+      } : undefined;
+      this.socket.emit('join_campaign', { campaignId, user });
       this.clearChat();
     }
 
     bindUI() {
-      // Inject chat UI into campaigns section footer
-      document.addEventListener('DOMContentLoaded', ()=> this.ensureChatUI());
+      // Inject chat UI into campaigns section footer; handle late script load
+      const ready = () => this.ensureChatUI();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', ready);
+      } else {
+        ready();
+      }
     }
 
     ensureChatUI() {
-      const section = document.getElementById('campaigns-section');
-      if (!section) return;
+      const container = document.getElementById('campaign-page-chat-container') || document.getElementById('campaigns-section');
+      if (!container) return;
       let chat = document.getElementById('campaign-chat');
-      if (chat) return;
-      chat = document.createElement('div');
-      chat.id = 'campaign-chat';
-      chat.innerHTML = `
+      if (!chat) {
+        chat = document.createElement('div');
+        chat.id = 'campaign-chat';
+        chat.innerHTML = `
         <div style="margin-top:16px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
             <div style="font-weight:600">Campaign Chat</div>
@@ -82,11 +92,15 @@
           </div>
         </div>
       `;
-      section.appendChild(chat);
-      document.getElementById('chat-send')?.addEventListener('click', ()=> this.sendChat());
-      const input = document.getElementById('chat-input');
-      input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter') this.sendChat(); });
-      input?.addEventListener('input', ()=> this.socket?.emit('typing', { campaignId: this.currentCampaignId }));
+        container.appendChild(chat);
+        document.getElementById('chat-send')?.addEventListener('click', ()=> this.sendChat());
+        const input = document.getElementById('chat-input');
+        input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter') this.sendChat(); });
+        input?.addEventListener('input', ()=> this.socket?.emit('typing', { campaignId: this.currentCampaignId }));
+      } else if (chat.parentElement !== container) {
+        // se esiste già ma non è dentro il container della pagina campagna, lo spostiamo
+        container.appendChild(chat);
+      }
     }
 
     sendChat() {

@@ -21,7 +21,7 @@ let JournalService = class JournalService {
         this.realtime = realtime;
     }
     async ensureAccess(userId, campaignId) {
-        const camp = await this.prisma.campaign.findUnique({ where: { id: campaignId }, select: { ownerId: true } });
+        const camp = await this.prisma.campaign.findUnique({ where: { id: campaignId }, select: { ownerId: true, id: true } });
         if (!camp)
             throw new common_1.NotFoundException('Campaign not found');
         const isOwner = camp.ownerId === userId;
@@ -46,7 +46,12 @@ let JournalService = class JournalService {
         });
     }
     async create(userId, body) {
-        await this.ensureAccess(userId, body.campaignId);
+        const campAccess = await this.ensureAccess(userId, body.campaignId);
+        if (!campAccess.isOwner) {
+            const can = await this.prisma.campaignMember.findFirst({ where: { campaignId: body.campaignId, userId, OR: [{ role: 'DM' }, { canManageJournal: true }] } });
+            if (!can)
+                throw new common_1.ForbiddenException('Not allowed to create journal entries');
+        }
         if (!body.title?.trim())
             throw new common_1.BadRequestException('Title required');
         const entry = await this.prisma.journalEntry.create({
@@ -77,8 +82,11 @@ let JournalService = class JournalService {
         if (!entry)
             throw new common_1.NotFoundException('Entry not found');
         const { isOwner } = await this.ensureAccess(userId, entry.campaignId);
-        if (!isOwner && entry.authorId !== userId)
-            throw new common_1.ForbiddenException('Not allowed');
+        if (!isOwner && entry.authorId !== userId) {
+            const can = await this.prisma.campaignMember.findFirst({ where: { campaignId: entry.campaignId, userId, OR: [{ role: 'DM' }, { canManageJournal: true }] } });
+            if (!can)
+                throw new common_1.ForbiddenException('Not allowed');
+        }
         const updated = await this.prisma.journalEntry.update({
             where: { id },
             data: {
@@ -99,8 +107,11 @@ let JournalService = class JournalService {
         if (!entry)
             throw new common_1.NotFoundException('Entry not found');
         const { isOwner } = await this.ensureAccess(userId, entry.campaignId);
-        if (!isOwner && entry.authorId !== userId)
-            throw new common_1.ForbiddenException('Not allowed');
+        if (!isOwner && entry.authorId !== userId) {
+            const can = await this.prisma.campaignMember.findFirst({ where: { campaignId: entry.campaignId, userId, OR: [{ role: 'DM' }, { canManageJournal: true }] } });
+            if (!can)
+                throw new common_1.ForbiddenException('Not allowed');
+        }
         await this.prisma.journalEntry.delete({ where: { id } });
         try {
             this.realtime.server?.in(entry.campaignId).emit('journal_entry_deleted', { campaignId: entry.campaignId, entryId: id });

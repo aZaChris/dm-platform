@@ -45,13 +45,17 @@ let RealtimeGateway = class RealtimeGateway {
         }
     }
     async handleJoinCampaign(client, data) {
-        const { campaignId, user } = data;
+        const { campaignId } = data;
         const userId = client.handshake.auth.userId;
-        if (!userId || userId !== user.userId) {
+        const socketUser = client.handshake.auth.user || {};
+        if (!userId) {
             return { error: 'Unauthorized' };
         }
+        const user = (data.user && data.user.userId === userId)
+            ? data.user
+            : { userId, email: socketUser.email, name: socketUser.name };
         await client.join(campaignId);
-        console.log(`User ${user.email} joined campaign room ${campaignId}`);
+        console.log(`User ${user.email || user.userId} joined campaign room ${campaignId}`);
         if (!this.campaignUsers.has(campaignId)) {
             this.campaignUsers.set(campaignId, new Set());
         }

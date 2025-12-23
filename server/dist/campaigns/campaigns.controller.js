@@ -36,6 +36,9 @@ let CampaignsController = class CampaignsController {
     async listMembers(req, id) {
         return this.campaigns.listMembers(req.user.userId, id);
     }
+    async getPermissions(req, id) {
+        return this.campaigns.getMemberPermissions(req.user.userId, id);
+    }
     async addMember(req, id, body) {
         return this.campaigns.addMemberAsDM(req.user.userId, id, body.email, body.role ?? 'PLAYER');
     }
@@ -44,6 +47,9 @@ let CampaignsController = class CampaignsController {
     }
     async updateMemberRole(req, id, userId, body) {
         return this.campaigns.updateMemberRole(req.user.userId, id, userId, body.role);
+    }
+    async updateMemberPermissions(req, id, userId, body) {
+        return this.campaigns.updateMemberPermissions(req.user.userId, id, userId, body);
     }
     async createInvite(req, id, body) {
         return this.campaigns.createInvitation(req.user.userId, id, body.email, body.role ?? 'PLAYER');
@@ -99,6 +105,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CampaignsController.prototype, "listMembers", null);
 __decorate([
+    (0, common_1.Get)(':id/permissions'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], CampaignsController.prototype, "getPermissions", null);
+__decorate([
     (0, common_1.Post)(':id/members'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Param)('id')),
@@ -126,6 +140,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], CampaignsController.prototype, "updateMemberRole", null);
+__decorate([
+    (0, common_1.Put)(':id/members/:userId/permissions'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('userId')),
+    __param(3, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:returntype", Promise)
+], CampaignsController.prototype, "updateMemberPermissions", null);
 __decorate([
     (0, common_1.Post)(':id/invitations'),
     __param(0, (0, common_1.Req)()),

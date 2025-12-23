@@ -177,10 +177,22 @@ let CombatService = class CombatService {
         if (!participant) {
             throw new common_1.ForbiddenException('Non hai i permessi per modificare questo partecipante');
         }
-        return this.prisma.combatParticipant.update({
+        const updated = await this.prisma.combatParticipant.update({
             where: { id: participantId },
             data
         });
+        try {
+            const combat = await this.prisma.combat.findUnique({ where: { id: updated.combatId } });
+            if (combat) {
+                this.realtime.server?.in(combat.campaignId).emit('combat_participant_updated', {
+                    campaignId: combat.campaignId,
+                    combatId: updated.combatId,
+                    participant: updated,
+                });
+            }
+        }
+        catch (_) { }
+        return updated;
     }
     async removeParticipant(userId, participantId) {
         const participant = await this.prisma.combatParticipant.findFirst({
@@ -199,9 +211,21 @@ let CombatService = class CombatService {
         if (!participant) {
             throw new common_1.ForbiddenException('Non hai i permessi per rimuovere questo partecipante');
         }
-        return this.prisma.combatParticipant.delete({
+        const removed = await this.prisma.combatParticipant.delete({
             where: { id: participantId }
         });
+        try {
+            const combat = await this.prisma.combat.findUnique({ where: { id: removed.combatId } });
+            if (combat) {
+                this.realtime.server?.in(combat.campaignId).emit('combat_participant_removed', {
+                    campaignId: combat.campaignId,
+                    combatId: removed.combatId,
+                    participantId: removed.id,
+                });
+            }
+        }
+        catch (_) { }
+        return removed;
     }
     async startCombat(userId, combatId) {
         const combat = await this.prisma.combat.findFirst({
@@ -310,7 +334,7 @@ let CombatService = class CombatService {
                 campaign: {
                     OR: [
                         { ownerId: userId },
-                        { members: { some: { userId, role: 'DM' } } }
+                        { members: { some: { userId, OR: [{ role: 'DM' }, { canManageCombat: true }] } } }
                     ]
                 }
             }

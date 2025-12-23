@@ -17,6 +17,15 @@ export class CampaignsService {
     return this.prisma.campaign.findMany({
       where: { OR: [{ ownerId: userId }, { members: { some: { userId } } }] },
       orderBy: { createdAt: 'desc' },
+      include: {
+        members: {
+          select: {
+            userId: true,
+            role: true,
+            user: { select: { id: true, email: true, name: true } },
+          },
+        },
+      },
     });
   }
 
@@ -64,7 +73,26 @@ export class CampaignsService {
       name: campaign.name 
     });
     
-    await this.prisma.campaign.delete({ where: { id: campaignId } });
+    // Clean related data before deleting campaign (foreign keys)
+    const combats = await this.prisma.combat.findMany({
+      where: { campaignId },
+      select: { id: true },
+    });
+    const combatIds = combats.map(c => c.id);
+
+    await this.prisma.$transaction([
+      combatIds.length
+        ? this.prisma.combatParticipant.deleteMany({ where: { combatId: { in: combatIds } } })
+        : this.prisma.$executeRaw`SELECT 1`, // no-op when nothing to delete
+      this.prisma.combat.deleteMany({ where: { campaignId } }),
+      this.prisma.journalEntry.deleteMany({ where: { campaignId } }),
+      this.prisma.invitation.deleteMany({ where: { campaignId } }),
+      this.prisma.character.deleteMany({ where: { campaignId } }),
+      this.prisma.monster.deleteMany({ where: { campaignId } }),
+      this.prisma.campaignMember.deleteMany({ where: { campaignId } }),
+      this.prisma.campaign.delete({ where: { id: campaignId } }),
+    ]);
+
     return { ok: true };
   }
 

@@ -3,6 +3,7 @@ class CampaignsModule {
     constructor() {
         this.section = document.getElementById('campaigns-section');
         this.grid = document.getElementById('campaigns-grid');
+        this.detail = null;
         this.createBtn = document.getElementById('create-campaign-btn');
         this.bindEvents();
         this.refresh();
@@ -27,14 +28,32 @@ class CampaignsModule {
     }
 
     renderList(campaigns) {
+        this.campaigns = campaigns;
         if (!campaigns || campaigns.length === 0) {
             this.grid.innerHTML = '<div class="empty">No campaigns yet. Create one!</div>';
             return;
         }
         this.grid.innerHTML = campaigns.map(c => this.renderCard(c)).join('');
-        // attach per-card actions
+        // attach card-level actions
+        this.grid.querySelectorAll('.campaign-card').forEach(card => {
+            const id = card.getAttribute('data-id');
+            if (!id) return;
+            const open = () => this.openCampaignPage(id);
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                open();
+            });
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    open();
+                }
+            });
+        });
+        // attach button actions inside cards
         this.grid.querySelectorAll('[data-action="delete"]').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const id = e.currentTarget.getAttribute('data-id');
                 if (!id) return;
                 if (!confirm('Delete this campaign?')) return;
@@ -47,10 +66,22 @@ class CampaignsModule {
                 }
             });
         });
-        this.grid.querySelectorAll('[data-action="details"]').forEach(btn => btn.addEventListener('click', (e) => this.openDetails(e.currentTarget.getAttribute('data-id'))));
-        this.grid.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => this.setCurrent(e.currentTarget.getAttribute('data-id'))));
-        this.grid.querySelectorAll('[data-action="combat"]').forEach(btn => btn.addEventListener('click', (e) => this.openCombat(e.currentTarget.getAttribute('data-id'))));
+        this.grid.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.setCurrent(e.currentTarget.getAttribute('data-id'));
+        }));
+        this.grid.querySelectorAll('[data-action="join-campaign"]').forEach(btn => btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.currentTarget.getAttribute('data-id');
+            if (!id) return;
+            this.openCampaignPage(id);
+        }));
+        this.grid.querySelectorAll('[data-action="combat"]').forEach(btn => btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openCombat(e.currentTarget.getAttribute('data-id'));
+        }));
         this.grid.querySelectorAll('[data-action="invite"]').forEach(btn => btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             const id = e.currentTarget.getAttribute('data-id');
             try {
                 const p = await api.getCampaignPermissions(id);
@@ -64,27 +95,155 @@ class CampaignsModule {
 
     renderCard(c) {
         const createdAt = c.createdAt ? new Date(c.createdAt).toLocaleString() : '';
+        const members = Array.isArray(c.members) ? c.members : [];
+        const count = members.length;
         return `
-            <div class="campaign-card">
-                <div class="campaign-card-header">
-                    <h3>${this.escape(c.name)}</h3>
-                    <div class="actions" style="display:flex;gap:6px">
-                        <button class="btn btn-outline" data-action="details" data-id="${c.id}"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-outline" data-action="delete" data-id="${c.id}"><i class="fas fa-trash"></i></button>
-                    </div>
+            <div class="campaign-card" data-id="${c.id}" tabindex="0" role="button" aria-label="Open campaign ${this.escape(c.name)}">
+                <div class="campaign-card__banner"></div>
+                <div class="campaign-card__content">
+                    <div class="campaign-card__title">${this.escape(c.name)}</div>
+                    <div class="campaign-card__meta">Created: ${createdAt}</div>
+                    <div class="campaign-card__meta">Players: ${count}</div>
                 </div>
-                <div class="campaign-card-body">
-                    <div class="meta">Created: ${createdAt}</div>
-                    <div class="meta">ID: ${c.id}</div>
-                    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-                        <button class="btn btn-primary" data-action="set-current" data-id="${c.id}">Set Current</button>
-                        <button class="btn btn-outline" data-action="combat" data-id="${c.id}">Open Combat</button>
-                        <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${c.id}').then(()=>app.showMessage('ID copied','success'))">Copy ID</button>
-                        <button class="btn btn-outline" data-action="invite" data-id="${c.id}">Invite Link</button>
-                    </div>
+                <div class="campaign-card__footer">
+                    <button class="btn btn-primary" data-action="set-current" data-id="${c.id}">Set Current</button>
+                    <button class="btn btn-outline" data-action="join-campaign" data-id="${c.id}">Join Campaign</button>
+                    <button class="btn btn-outline" data-action="combat" data-id="${c.id}">Open Combat</button>
+                    <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${c.id}').then(()=>app.showMessage('ID copied','success'))">Copy ID</button>
+                    <button class="btn btn-outline" data-action="invite" data-id="${c.id}">Invite Link</button>
+                    <button class="btn btn-outline" data-action="delete" data-id="${c.id}"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         `;
+    }
+
+    async openCampaignPage(id) {
+        try {
+            this.setCurrent(id);
+            try { window.realtime?.joinCampaign?.(id); } catch (_) {}
+            const res = await api.getCampaign(id);
+            const campaign = res.success ? res.data : (this.campaigns || []).find(c => c.id === id);
+            const membersRes = await api.listCampaignMembers(id);
+            const members = membersRes.success ? membersRes.data : [];
+
+            if (!this.detail) {
+                this.detail = document.createElement('div');
+                this.detail.id = 'campaign-detail';
+                this.detail.className = 'campaign-detail';
+                this.section.appendChild(this.detail);
+            }
+
+            this.grid.classList.add('hidden');
+            this.detail.classList.remove('hidden');
+
+            const names = members.map(m => this.escape(m.user?.name || m.user?.email || m.userId)).join(', ');
+
+            this.detail.innerHTML = `
+                <div class="campaign-detail__header">
+                    <button class="btn btn-outline" id="cd-back">&larr; Back to campaigns</button>
+                    <div>
+                        <h2>${this.escape(campaign?.name || 'Campaign')}</h2>
+                        <div class="campaign-detail__meta">ID: ${id}</div>
+                        <div class="campaign-detail__meta">Players: ${members.length}</div>
+                    </div>
+                </div>
+                <div class="campaign-detail__body">
+                    <div class="campaign-detail__section">
+                        <h3>Participants</h3>
+                        <p>${names || 'No participants yet.'}</p>
+                    </div>
+                    <div class="campaign-detail__section">
+                        <h3>Dice Roller (frontend only)</h3>
+                        <div id="dice-roller" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+                            ${[4,6,8,10,12,20].map(s => `<button class="btn btn-outline" data-die="d${s}">d${s}</button>`).join('')}
+                        </div>
+                        <div id="dice-result" style="font-size:14px;color:#111827;">Click a die to roll.</div>
+                    </div>
+                    <div class="campaign-detail__section">
+                        <h3>Campaign Chat</h3>
+                        <div id="campaign-page-chat-container"></div>
+                    </div>
+                </div>
+                <div class="campaign-detail__footer">
+                    <button class="btn btn-primary" data-action="set-current" data-id="${id}">Set Current</button>
+                    <button class="btn btn-outline" data-action="join-campaign" data-id="${id}">Join Campaign</button>
+                    <button class="btn btn-outline" data-action="combat" data-id="${id}">Open Combat</button>
+                    <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${id}').then(()=>app.showMessage('ID copied','success'))">Copy ID</button>
+                    <button class="btn btn-outline" data-action="invite" data-id="${id}">Invite Link</button>
+                    <button class="btn btn-outline" data-action="delete" data-id="${id}"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+
+            // assicura che la chat venga montata dentro la pagina campagna
+            try { window.realtime?.ensureChatUI?.(); } catch (_) {}
+
+            document.getElementById('cd-back')?.addEventListener('click', () => {
+                this.detail.classList.add('hidden');
+                this.grid.classList.remove('hidden');
+                this.refresh();
+            });
+
+            // Wire dice roller (frontend only)
+            const diceRoot = this.detail.querySelector('#dice-roller');
+            const diceResult = this.detail.querySelector('#dice-result');
+            if (diceRoot && diceResult) {
+                diceRoot.querySelectorAll('[data-die]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const die = btn.getAttribute('data-die') || 'd20';
+                        const size = parseInt(die.replace('d',''), 10) || 20;
+                        const roll = 1 + Math.floor(Math.random() * size);
+                        diceResult.textContent = `You rolled ${die}: ${roll}`;
+                    });
+                });
+            }
+
+            // Re-wire footer buttons using existing handlers
+            this.detail.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const cid = e.currentTarget.getAttribute('data-id');
+                if (!cid) return;
+                if (!confirm('Delete this campaign?')) return;
+                try {
+                    await api.deleteCampaign(cid);
+                    app.showMessage('Campaign deleted', 'success');
+                    this.detail.classList.add('hidden');
+                    this.grid.classList.remove('hidden');
+                    this.refresh();
+                } catch (err) {
+                    app.showMessage(err.message || 'Failed to delete', 'error');
+                }
+            }));
+            this.detail.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setCurrent(id);
+            }));
+            this.detail.querySelectorAll('[data-action="join-campaign"]').forEach(btn => btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                try {
+                    window.realtime?.joinCampaign?.(id);
+                    app.showMessage('Joined campaign', 'success');
+                } catch (_) {
+                    app.showMessage('Unable to join campaign', 'error');
+                }
+            }));
+            this.detail.querySelectorAll('[data-action="combat"]').forEach(btn => btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openCombat(id);
+            }));
+            this.detail.querySelectorAll('[data-action="invite"]').forEach(btn => btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    const p = await api.getCampaignPermissions(id);
+                    const perms = p.success ? p.data : { role: 'PLAYER' };
+                    const canInvite = perms.role === 'OWNER' || !!perms.canInvite;
+                    if (!canInvite) { app.showMessage('Non hai i permessi per gestire inviti in questa campagna','error'); return; }
+                    this.openInvitations(id);
+                } catch (_) { app.showMessage('Impossibile verificare i permessi','error'); }
+            }));
+        } catch (err) {
+            console.warn('Failed to open campaign page', err);
+            app.showMessage('Failed to open campaign', 'error');
+        }
     }
 
     openCreateCampaignModal() {

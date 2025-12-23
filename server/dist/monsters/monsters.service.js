@@ -25,9 +25,11 @@ let MonstersService = class MonstersService {
             if (!camp)
                 throw new common_1.NotFoundException('Campaign not found');
             const isOwner = camp.ownerId === userId;
-            const isMember = await this.prisma.campaignMember.findFirst({ where: { campaignId: opts.campaignId, userId } });
-            if (!isOwner && !isMember)
-                throw new common_1.ForbiddenException('Not allowed');
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: opts.campaignId, userId }, select: { canManageMonsters: true } });
+                if (!member)
+                    throw new common_1.ForbiddenException('Not allowed');
+            }
             return this.prisma.monster.findMany({ where: { campaignId: opts.campaignId }, orderBy: { createdAt: 'desc' } });
         }
         return this.prisma.monster.findMany({ where: { ownerId: userId, campaignId: null }, orderBy: { createdAt: 'desc' } });
@@ -41,9 +43,11 @@ let MonstersService = class MonstersService {
             if (!camp)
                 throw new common_1.NotFoundException('Campaign not found');
             const isOwner = camp.ownerId === userId;
-            const isMember = await this.prisma.campaignMember.findFirst({ where: { campaignId: body.campaignId, userId } });
-            if (!isOwner && !isMember)
-                throw new common_1.ForbiddenException('Not allowed');
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: body.campaignId, userId }, select: { canManageMonsters: true } });
+                if (!member?.canManageMonsters)
+                    throw new common_1.ForbiddenException('Not allowed');
+            }
             campaignId = body.campaignId;
         }
         return this.prisma.monster.create({
@@ -78,8 +82,11 @@ let MonstersService = class MonstersService {
         if (monster.campaignId) {
             const camp = await this.prisma.campaign.findUnique({ where: { id: monster.campaignId }, select: { ownerId: true } });
             const isOwner = camp?.ownerId === userId;
-            if (!isOwner)
-                throw new common_1.ForbiddenException('Only DM can edit campaign monsters');
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: monster.campaignId, userId }, select: { canManageMonsters: true } });
+                if (!member?.canManageMonsters)
+                    throw new common_1.ForbiddenException('Only DM or permitted members can edit campaign monsters');
+            }
         }
         else if (monster.ownerId !== userId) {
             throw new common_1.ForbiddenException('Not allowed');
@@ -99,8 +106,11 @@ let MonstersService = class MonstersService {
         if (monster.campaignId) {
             const camp = await this.prisma.campaign.findUnique({ where: { id: monster.campaignId }, select: { ownerId: true } });
             const isOwner = camp?.ownerId === userId;
-            if (!isOwner)
-                throw new common_1.ForbiddenException('Only DM can delete campaign monsters');
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: monster.campaignId, userId }, select: { canManageMonsters: true } });
+                if (!member?.canManageMonsters)
+                    throw new common_1.ForbiddenException('Only DM or permitted members can delete campaign monsters');
+            }
         }
         else if (monster.ownerId !== userId) {
             throw new common_1.ForbiddenException('Not allowed');

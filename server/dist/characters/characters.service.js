@@ -37,14 +37,14 @@ let CharactersService = class CharactersService {
         });
     }
     async create(userId, campaignId, name, dataJson) {
-        await this.isCampaignOwner(userId, campaignId).catch(async (e) => {
-            const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
-            if (!campaign)
-                throw e;
-            const isMember = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId } });
-            if (!isMember && campaign.ownerId !== userId)
+        const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        if (campaign.ownerId !== userId) {
+            const member = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId }, select: { canManageCharacters: true } });
+            if (!member?.canManageCharacters)
                 throw new common_1.ForbiddenException('Not allowed');
-        });
+        }
         if (!name || !name.trim())
             throw new common_1.BadRequestException('Name is required');
         return this.prisma.character.create({
@@ -55,18 +55,30 @@ let CharactersService = class CharactersService {
         const character = await this.prisma.character.findUnique({ where: { id } });
         if (!character)
             throw new common_1.NotFoundException('Character not found');
-        const isDm = await this.isCampaignOwner(userId, character.campaignId);
-        if (character.ownerId !== userId && !isDm)
-            throw new common_1.ForbiddenException('Not allowed');
+        if (character.ownerId !== userId) {
+            const campaign = await this.prisma.campaign.findUnique({ where: { id: character.campaignId }, select: { ownerId: true } });
+            const isOwner = campaign?.ownerId === userId;
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: character.campaignId, userId }, select: { canManageCharacters: true } });
+                if (!member?.canManageCharacters)
+                    throw new common_1.ForbiddenException('Not allowed');
+            }
+        }
         return character;
     }
     async update(userId, id, updates) {
         const character = await this.prisma.character.findUnique({ where: { id } });
         if (!character)
             throw new common_1.NotFoundException('Character not found');
-        const isDm = await this.isCampaignOwner(userId, character.campaignId);
-        if (character.ownerId !== userId && !isDm)
-            throw new common_1.ForbiddenException('Not allowed');
+        if (character.ownerId !== userId) {
+            const campaign = await this.prisma.campaign.findUnique({ where: { id: character.campaignId }, select: { ownerId: true } });
+            const isOwner = campaign?.ownerId === userId;
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: character.campaignId, userId }, select: { canManageCharacters: true } });
+                if (!member?.canManageCharacters)
+                    throw new common_1.ForbiddenException('Not allowed');
+            }
+        }
         return this.prisma.character.update({
             where: { id },
             data: {
@@ -79,9 +91,15 @@ let CharactersService = class CharactersService {
         const character = await this.prisma.character.findUnique({ where: { id } });
         if (!character)
             throw new common_1.NotFoundException('Character not found');
-        const isDm = await this.isCampaignOwner(userId, character.campaignId);
-        if (character.ownerId !== userId && !isDm)
-            throw new common_1.ForbiddenException('Not allowed');
+        if (character.ownerId !== userId) {
+            const campaign = await this.prisma.campaign.findUnique({ where: { id: character.campaignId }, select: { ownerId: true } });
+            const isOwner = campaign?.ownerId === userId;
+            if (!isOwner) {
+                const member = await this.prisma.campaignMember.findFirst({ where: { campaignId: character.campaignId, userId }, select: { canManageCharacters: true } });
+                if (!member?.canManageCharacters)
+                    throw new common_1.ForbiddenException('Not allowed');
+            }
+        }
         await this.prisma.character.delete({ where: { id } });
         return { ok: true };
     }

@@ -31,6 +31,15 @@ let CampaignsService = class CampaignsService {
         return this.prisma.campaign.findMany({
             where: { OR: [{ ownerId: userId }, { members: { some: { userId } } }] },
             orderBy: { createdAt: 'desc' },
+            include: {
+                members: {
+                    select: {
+                        userId: true,
+                        role: true,
+                        user: { select: { id: true, email: true, name: true } },
+                    },
+                },
+            },
         });
     }
     async create(userId, name) {
@@ -73,7 +82,23 @@ let CampaignsService = class CampaignsService {
             campaignId: campaignId,
             name: campaign.name
         });
-        await this.prisma.campaign.delete({ where: { id: campaignId } });
+        const combats = await this.prisma.combat.findMany({
+            where: { campaignId },
+            select: { id: true },
+        });
+        const combatIds = combats.map(c => c.id);
+        await this.prisma.$transaction([
+            combatIds.length
+                ? this.prisma.combatParticipant.deleteMany({ where: { combatId: { in: combatIds } } })
+                : this.prisma.$executeRaw `SELECT 1`,
+            this.prisma.combat.deleteMany({ where: { campaignId } }),
+            this.prisma.journalEntry.deleteMany({ where: { campaignId } }),
+            this.prisma.invitation.deleteMany({ where: { campaignId } }),
+            this.prisma.character.deleteMany({ where: { campaignId } }),
+            this.prisma.monster.deleteMany({ where: { campaignId } }),
+            this.prisma.campaignMember.deleteMany({ where: { campaignId } }),
+            this.prisma.campaign.delete({ where: { id: campaignId } }),
+        ]);
         return { ok: true };
     }
     async listMembers(userId, campaignId) {
@@ -131,8 +156,11 @@ let CampaignsService = class CampaignsService {
         const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
         if (!campaign)
             throw new common_1.NotFoundException('Campaign not found');
-        if (campaign.ownerId !== ownerId)
-            throw new common_1.ForbiddenException('Only owner can invite');
+        if (campaign.ownerId !== ownerId) {
+            const member = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId: ownerId, role: 'DM' } });
+            if (!member)
+                throw new common_1.ForbiddenException('Not allowed to invite');
+        }
         if (role === 'DM')
             throw new common_1.BadRequestException('DM invites are not allowed');
         const token = generateToken(48);
@@ -147,8 +175,11 @@ let CampaignsService = class CampaignsService {
         const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
         if (!campaign)
             throw new common_1.NotFoundException('Campaign not found');
-        if (campaign.ownerId !== ownerId)
-            throw new common_1.ForbiddenException('Only owner can list');
+        if (campaign.ownerId !== ownerId) {
+            const member = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId: ownerId, role: 'DM' } });
+            if (!member)
+                throw new common_1.ForbiddenException('Not allowed to list invitations');
+        }
         return this.prisma.invitation.findMany({ where: { campaignId }, orderBy: { createdAt: 'desc' } });
     }
     async acceptInvitation(userId, token) {
@@ -186,14 +217,70 @@ let CampaignsService = class CampaignsService {
         const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
         if (!campaign)
             throw new common_1.NotFoundException('Campaign not found');
-        if (campaign.ownerId !== ownerId)
-            throw new common_1.ForbiddenException('Only owner can revoke');
+        if (campaign.ownerId !== ownerId) {
+            const member = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId: ownerId, role: 'DM' } });
+            if (!member)
+                throw new common_1.ForbiddenException('Not allowed to revoke');
+        }
         const inv = await this.prisma.invitation.findFirst({ where: { campaignId, token } });
         if (!inv)
             throw new common_1.NotFoundException('Invitation not found');
         await this.prisma.invitation.delete({ where: { token } });
         this.realtime.server?.in(campaignId).emit('campaign_invitation_updated', { campaignId });
         return { ok: true };
+    }
+    async getMemberPermissions(userId, campaignId) {
+        const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        if (campaign.ownerId === userId) {
+            return { role: 'OWNER', canInvite: true, canManageJournal: true, canManageCombat: true, canManageCharacters: true, canManageMonsters: true };
+        }
+        const membership = await this.prisma.campaignMember.findFirst({
+            where: { campaignId, userId },
+            select: {
+                role: true,
+                canInvite: true,
+                canManageJournal: true,
+                canManageCombat: true,
+                canManageCharacters: true,
+                canManageMonsters: true,
+            },
+        });
+        if (!membership)
+            throw new common_1.ForbiddenException('Not a member');
+        return {
+            role: membership.role,
+            canInvite: membership.canInvite || membership.role === 'DM',
+            canManageJournal: membership.canManageJournal || membership.role === 'DM',
+            canManageCombat: membership.canManageCombat || membership.role === 'DM',
+            canManageCharacters: membership.canManageCharacters || membership.role === 'DM',
+            canManageMonsters: membership.canManageMonsters || membership.role === 'DM',
+        };
+    }
+    async updateMemberPermissions(ownerId, campaignId, memberUserId, perms) {
+        const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+        if (!campaign)
+            throw new common_1.NotFoundException('Campaign not found');
+        if (campaign.ownerId !== ownerId)
+            throw new common_1.ForbiddenException('Only owner can update permissions');
+        if (memberUserId === ownerId)
+            throw new common_1.BadRequestException('Owner permissions are implicit');
+        const membership = await this.prisma.campaignMember.findFirst({ where: { campaignId, userId: memberUserId }, select: { id: true, role: true } });
+        if (!membership)
+            throw new common_1.NotFoundException('Membership not found');
+        const updated = await this.prisma.campaignMember.update({
+            where: { id: membership.id },
+            data: {
+                canInvite: perms.canInvite ?? undefined,
+                canManageJournal: perms.canManageJournal ?? undefined,
+                canManageCombat: perms.canManageCombat ?? undefined,
+                canManageCharacters: perms.canManageCharacters ?? undefined,
+                canManageMonsters: perms.canManageMonsters ?? undefined,
+            },
+        });
+        this.realtime.server?.in(campaignId).emit('campaign_member_permissions_updated', { campaignId, userId: memberUserId });
+        return updated;
     }
 };
 exports.CampaignsService = CampaignsService;

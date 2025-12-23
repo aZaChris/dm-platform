@@ -18,7 +18,7 @@ export declare class RealtimeGateway implements OnGatewayConnection, OnGatewayDi
     handleDisconnect(client: Socket): void;
     handleJoinCampaign(client: Socket, data: {
         campaignId: string;
-        user: UserPresence;
+        user?: UserPresence;
     }): Promise<{
         error: string;
         success?: undefined;
