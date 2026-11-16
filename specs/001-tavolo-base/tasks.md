@@ -55,7 +55,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 - [X] T009 [P] [US1] Creare `app/src/pages/Login.tsx` con registrazione (campo nome visibile + email + password) e accesso, e il reindirizzamento in `App.tsx` se non c'è sessione
 - [X] T010 [P] [US1] Creare `app/src/pages/Join.tsx`: chiama `join_campaign` col token dell'URL, poi porta a `#/tavolo/<id>`; messaggio chiaro su `invite_invalid`
 - [X] T011 [US1] Creare `app/src/pages/Campaigns.tsx`: elenco delle proprie campagne con ruolo, creazione (`create_campaign`), e per il DM il pulsante "Crea invito" che inserisce in `invites` e mostra il link `#/invito/<token>` da copiare
-- [ ] T012 [US1] Applicare la migrazione (`npx supabase db push --remote`) ed eseguire gli scenari 1-3 del quickstart
+- [X] T012 [US1] Applicare la migrazione (`npx supabase db push --remote`) ed eseguire gli scenari 1-3 del quickstart
 
 **Checkpoint**: due persone si ritrovano nella stessa campagna con ruoli diversi.
 
@@ -67,10 +67,10 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Independent Test**: scenari 4, 5 e 11 del quickstart.
 
-- [ ] T013 [US2] Creare `supabase/migrations/0003_mappa.sql` con la tabella `maps` con RLS, il bucket privato `maps` (5 MB, solo jpeg/png/webp), le policy di Storage basate su `is_member`/`is_dm` sul primo segmento del percorso, e le tabelle `maps` in `supabase_realtime`
-- [ ] T014 [P] [US2] Creare `app/src/hooks/useTable.ts` (parte mappa): select di `maps`, `createSignedUrl` e abbonamento Postgres Changes su `maps` filtrato per `campaign_id`
-- [ ] T015 [P] [US2] Creare `app/src/components/MapCanvas.tsx` con `react-konva`: immagine di sfondo, griglia a celle da 50 px (costante) e pannello adattato alla finestra
-- [ ] T016 [US2] Creare `app/src/pages/Table.tsx` che compone `useTable` + `MapCanvas` e `app/src/components/DmPanel.tsx` con upload dell'immagine (solo se ruolo DM): carica su Storage, `upsert` su `maps`, errori chiari per formato/peso (FR-012)
+- [X] T013 [US2] Creare `supabase/migrations/0003_mappa.sql` con la tabella `maps` con RLS, il bucket privato `maps` (5 MB, solo jpeg/png/webp), le policy di Storage basate su `is_member`/`is_dm` sul primo segmento del percorso, e le tabelle `maps` in `supabase_realtime`
+- [X] T014 [P] [US2] Creare `app/src/hooks/useTable.ts` (parte mappa): select di `maps`, `createSignedUrl` e abbonamento Postgres Changes su `maps` filtrato per `campaign_id`
+- [X] T015 [P] [US2] Creare `app/src/components/MapCanvas.tsx` con `react-konva`: immagine di sfondo, griglia a celle da 50 px (costante) e pannello adattato alla finestra
+- [X] T016 [US2] Creare `app/src/pages/Table.tsx` che compone `useTable` + `MapCanvas` e `app/src/components/DmPanel.tsx` con upload dell'immagine (solo se ruolo DM): carica su Storage, `upsert` su `maps`, errori chiari per formato/peso (FR-012)
 - [ ] T017 [US2] Applicare la migrazione ed eseguire gli scenari 4, 5 e 11 del quickstart
 
 **Checkpoint**: il DM carica una mappa e un Player già connesso la vede comparire.

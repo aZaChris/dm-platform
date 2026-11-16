@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import { Login } from './pages/Login'
 import { Join } from './pages/Join'
 import { Campaigns } from './pages/Campaigns'
+import { Table } from './pages/Table'
 
 // ponytail: routing a hash scritto a mano; se le schermate crescono, passare a react-router.
 function useHash() {
@@ -27,10 +28,13 @@ export function App() {
   }, [])
 
   if (session === undefined) return <p>Caricamento…</p>
-  if (!session) return <Login />
+  if (!session) return <main className="page"><Login /></main>
 
   const [, route, param] = hash.split('/')
-  if (route === 'invito') return <Join token={param} />
-  if (route === 'tavolo') return <p>Tavolo {param} (da implementare)</p>
-  return <Campaigns userId={session.user.id} />
+  if (route === 'tavolo') return <Table campaignId={param} userId={session.user.id} />
+  return (
+    <main className="page">
+      {route === 'invito' ? <Join token={param} /> : <Campaigns userId={session.user.id} />}
+    </main>
+  )
 }
