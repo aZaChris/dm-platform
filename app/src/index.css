@@ -1,0 +1,8 @@
+:root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+body { margin: 0; padding: 1rem; max-width: 40rem; margin-inline: auto; }
+form, .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+form { flex-direction: column; align-items: stretch; max-width: 20rem; }
+.row { margin: .5rem 0; }
+.error { color: #c0392b; }
+input { padding: .4rem; }
+button { padding: .4rem .8rem; cursor: pointer; }

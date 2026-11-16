@@ -9,8 +9,8 @@
 
 ## Setup
 
-1. Applica lo schema: `npx supabase link --project-ref <ref>` poi `npx supabase db push`
-   (oppure incolla `supabase/migrations/0001_tavolo_base.sql` nell'SQL editor).
+1. Applica lo schema: `npx supabase link --project-ref <ref>` poi `npx supabase db push --remote`
+   (oppure incolla in ordine i file di `supabase/migrations/` nell'SQL editor).
 2. `cd app && npm install && npm run dev`, apri l'URL indicato.
 3. Controllo automatico: `npm test` (aggancio alla griglia e limiti mappa).
 

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { Login } from './pages/Login'
+import { Join } from './pages/Join'
+import { Campaigns } from './pages/Campaigns'
 
 // ponytail: routing a hash scritto a mano; se le schermate crescono, passare a react-router.
 function useHash() {
@@ -11,10 +14,6 @@ function useHash() {
     return () => removeEventListener('hashchange', on)
   }, [])
   return hash
-}
-
-function Segnaposto({ nome }: { nome: string }) {
-  return <p>{nome} (da implementare)</p>
 }
 
 export function App() {
@@ -28,10 +27,10 @@ export function App() {
   }, [])
 
   if (session === undefined) return <p>Caricamento…</p>
-  if (!session) return <Segnaposto nome="Login" />
+  if (!session) return <Login />
 
   const [, route, param] = hash.split('/')
-  if (route === 'invito') return <Segnaposto nome={`Invito ${param}`} />
-  if (route === 'tavolo') return <Segnaposto nome={`Tavolo ${param}`} />
-  return <Segnaposto nome="Campagne" />
+  if (route === 'invito') return <Join token={param} />
+  if (route === 'tavolo') return <p>Tavolo {param} (da implementare)</p>
+  return <Campaigns userId={session.user.id} />
 }

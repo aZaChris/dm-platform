@@ -90,7 +90,10 @@ app/
         └── DmPanel.tsx      # upload mappa, crea token, invito, rimuovi player
 supabase/
 └── migrations/
-    └── 0001_tavolo_base.sql # tabelle, RLS, funzioni, bucket, publication
+    ├── 0001_tavolo_base.sql # campagne, membri, helper di ruolo, RLS
+    ├── 0002_inviti.sql      # inviti, create_campaign, join_campaign
+    ├── 0003_mappa.sql       # mappa, bucket Storage, publication
+    └── 0004_token.sql       # token, RLS, publication
 ```
 
 **Structure Decision**: cartella `app/` per il frontend e `supabase/` per lo schema, così i due

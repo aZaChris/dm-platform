@@ -19,8 +19,8 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 - **[P]**: parallelizzabile (file diversi, nessuna dipendenza da task incompleti)
 - **[Story]**: storia utente di riferimento
-- Il file `supabase/migrations/0001_tavolo_base.sql` cresce fase per fase: i task che lo toccano
-  **non** sono mai [P] tra loro.
+- Le migrazioni già applicate non si modificano (la CLI non le riesegue): ogni fase aggiunge un
+  file nuovo in `supabase/migrations/` (`0002_inviti`, `0003_mappa`, `0004_token`).
 
 ## Phase 1: Setup
 
@@ -39,7 +39,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 **Purpose**: schema di base e progetto Supabase pronto.
 
 - [X] T006 Creare `supabase/migrations/0001_tavolo_base.sql` con: enum `role` (`dm`,`player`), tabelle `campaigns` e `campaign_members` (vincoli di `data-model.md`), funzioni `is_member(uuid)` e `is_dm(uuid)` come `security definer`, RLS attiva con le policy di `campaigns` e `campaign_members` dalla matrice permessi
-- [ ] T007 **Manuale (Christian)**: nel progetto Supabase disattivare "Confirm email", poi `npx supabase link` e `npx supabase db push`; copiare URL e chiave anon in `app/.env.local`
+- [X] T007 **Manuale (Christian)**: nel progetto Supabase disattivare "Confirm email", poi `npx supabase link` e `npx supabase db push`; copiare URL e chiave anon in `app/.env.local`
 
 **Checkpoint**: lo schema base è online e `npm run dev` in `app/` parte.
 
@@ -51,11 +51,11 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Independent Test**: scenari 1-3 del quickstart (due account, invito usato una volta sola).
 
-- [ ] T008 [US1] Aggiungere a `supabase/migrations/0001_tavolo_base.sql` la tabella `invites` con RLS (solo DM) e le funzioni `create_campaign(p_name)` e `join_campaign(p_token)` come da `contracts/db-api.md` (uso singolo atomico con `UPDATE ... RETURNING`, idempotente se già membro, `display_name` da metadati o email)
-- [ ] T009 [P] [US1] Creare `app/src/pages/Login.tsx` con registrazione (campo nome visibile + email + password) e accesso, e il reindirizzamento in `App.tsx` se non c'è sessione
-- [ ] T010 [P] [US1] Creare `app/src/pages/Join.tsx`: chiama `join_campaign` col token dell'URL, poi porta a `#/tavolo/<id>`; messaggio chiaro su `invite_invalid`
-- [ ] T011 [US1] Creare `app/src/pages/Campaigns.tsx`: elenco delle proprie campagne con ruolo, creazione (`create_campaign`), e per il DM il pulsante "Crea invito" che inserisce in `invites` e mostra il link `#/invito/<token>` da copiare
-- [ ] T012 [US1] Applicare la migrazione (`npx supabase db push`) ed eseguire gli scenari 1-3 del quickstart
+- [X] T008 [US1] Creare `supabase/migrations/0002_inviti.sql` con la tabella `invites` con RLS (solo DM) e le funzioni `create_campaign(p_name)` e `join_campaign(p_token)` come da `contracts/db-api.md` (uso singolo atomico con `UPDATE ... RETURNING`, idempotente se già membro, `display_name` da metadati o email)
+- [X] T009 [P] [US1] Creare `app/src/pages/Login.tsx` con registrazione (campo nome visibile + email + password) e accesso, e il reindirizzamento in `App.tsx` se non c'è sessione
+- [X] T010 [P] [US1] Creare `app/src/pages/Join.tsx`: chiama `join_campaign` col token dell'URL, poi porta a `#/tavolo/<id>`; messaggio chiaro su `invite_invalid`
+- [X] T011 [US1] Creare `app/src/pages/Campaigns.tsx`: elenco delle proprie campagne con ruolo, creazione (`create_campaign`), e per il DM il pulsante "Crea invito" che inserisce in `invites` e mostra il link `#/invito/<token>` da copiare
+- [ ] T012 [US1] Applicare la migrazione (`npx supabase db push --remote`) ed eseguire gli scenari 1-3 del quickstart
 
 **Checkpoint**: due persone si ritrovano nella stessa campagna con ruoli diversi.
 
@@ -67,7 +67,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Independent Test**: scenari 4, 5 e 11 del quickstart.
 
-- [ ] T013 [US2] Aggiungere alla migrazione la tabella `maps` con RLS, il bucket privato `maps` (5 MB, solo jpeg/png/webp), le policy di Storage basate su `is_member`/`is_dm` sul primo segmento del percorso, e le tabelle `maps` in `supabase_realtime`
+- [ ] T013 [US2] Creare `supabase/migrations/0003_mappa.sql` con la tabella `maps` con RLS, il bucket privato `maps` (5 MB, solo jpeg/png/webp), le policy di Storage basate su `is_member`/`is_dm` sul primo segmento del percorso, e le tabelle `maps` in `supabase_realtime`
 - [ ] T014 [P] [US2] Creare `app/src/hooks/useTable.ts` (parte mappa): select di `maps`, `createSignedUrl` e abbonamento Postgres Changes su `maps` filtrato per `campaign_id`
 - [ ] T015 [P] [US2] Creare `app/src/components/MapCanvas.tsx` con `react-konva`: immagine di sfondo, griglia a celle da 50 px (costante) e pannello adattato alla finestra
 - [ ] T016 [US2] Creare `app/src/pages/Table.tsx` che compone `useTable` + `MapCanvas` e `app/src/components/DmPanel.tsx` con upload dell'immagine (solo se ruolo DM): carica su Storage, `upsert` su `maps`, errori chiari per formato/peso (FR-012)
@@ -83,7 +83,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Independent Test**: scenari 6-9 del quickstart.
 
-- [ ] T018 [US3] Aggiungere alla migrazione la tabella `tokens` (check `col >= 0 and row >= 0`, `REPLICA IDENTITY FULL`, RLS con update per DM o `owner_id = auth.uid()` con `WITH CHECK` identico) e `tokens` in `supabase_realtime`
+- [ ] T018 [US3] Creare `supabase/migrations/0004_token.sql` con la tabella `tokens` (check `col >= 0 and row >= 0`, `REPLICA IDENTITY FULL`, RLS con update per DM o `owner_id = auth.uid()` con `WITH CHECK` identico) e `tokens` in `supabase_realtime`
 - [ ] T019 [P] [US3] Creare `app/src/lib/grid.ts` con `snapToCell(x, y, cellPx)` e `clampToMap(col, row, mapCols, mapRows)`, e `app/src/lib/grid.test.ts` (Vitest) con casi su bordi, centro cella e fuori mappa
 - [ ] T020 [P] [US3] Estendere `app/src/hooks/useTable.ts` con select dei `tokens`, abbonamento INSERT/UPDATE/DELETE filtrato per `campaign_id`, aggiornamento per `id` (idempotente) e funzione `moveToken(id, col, row)` che scrive solo su `dragend`
 - [ ] T021 [US3] Estendere `app/src/components/MapCanvas.tsx` con i token come cerchi colorati con iniziali; `draggable` solo se DM o `owner_id` coincide con l'utente; all'`dragend` usa `snapToCell` + `clampToMap` e chiama `moveToken`
@@ -111,7 +111,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 - US1: T008 prima di T011/T012; T009 e T010 in parallelo (file diversi).
 - US2: T013 prima di T016; T014 e T015 in parallelo.
 - US3: T018 prima di tutto; T019 e T020 in parallelo; T021 dopo T019+T020; T022 dopo T020.
-- T006, T008, T013, T018 modificano lo stesso file SQL: sempre in sequenza.
+- Le migrazioni 0002, 0003, 0004 si applicano in ordine di numero.
 
 ### Esempi di parallelismo
 
