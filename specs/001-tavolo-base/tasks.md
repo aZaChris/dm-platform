@@ -71,7 +71,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 - [X] T014 [P] [US2] Creare `app/src/hooks/useTable.ts` (parte mappa): select di `maps`, `createSignedUrl` e abbonamento Postgres Changes su `maps` filtrato per `campaign_id`
 - [X] T015 [P] [US2] Creare `app/src/components/MapCanvas.tsx` con `react-konva`: immagine di sfondo, griglia a celle da 50 px (costante) e pannello adattato alla finestra
 - [X] T016 [US2] Creare `app/src/pages/Table.tsx` che compone `useTable` + `MapCanvas` e `app/src/components/DmPanel.tsx` con upload dell'immagine (solo se ruolo DM): carica su Storage, `upsert` su `maps`, errori chiari per formato/peso (FR-012)
-- [ ] T017 [US2] Applicare la migrazione ed eseguire gli scenari 4, 5 e 11 del quickstart
+- [X] T017 [US2] Applicare la migrazione ed eseguire gli scenari 4, 5 e 11 del quickstart
 
 **Checkpoint**: il DM carica una mappa e un Player già connesso la vede comparire.
 
@@ -83,11 +83,11 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Independent Test**: scenari 6-9 del quickstart.
 
-- [ ] T018 [US3] Creare `supabase/migrations/0004_token.sql` con la tabella `tokens` (check `col >= 0 and row >= 0`, `REPLICA IDENTITY FULL`, RLS con update per DM o `owner_id = auth.uid()` con `WITH CHECK` identico) e `tokens` in `supabase_realtime`
-- [ ] T019 [P] [US3] Creare `app/src/lib/grid.ts` con `snapToCell(x, y, cellPx)` e `clampToMap(col, row, mapCols, mapRows)`, e `app/src/lib/grid.test.ts` (Vitest) con casi su bordi, centro cella e fuori mappa
-- [ ] T020 [P] [US3] Estendere `app/src/hooks/useTable.ts` con select dei `tokens`, abbonamento INSERT/UPDATE/DELETE filtrato per `campaign_id`, aggiornamento per `id` (idempotente) e funzione `moveToken(id, col, row)` che scrive solo su `dragend`
-- [ ] T021 [US3] Estendere `app/src/components/MapCanvas.tsx` con i token come cerchi colorati con iniziali; `draggable` solo se DM o `owner_id` coincide con l'utente; all'`dragend` usa `snapToCell` + `clampToMap` e chiama `moveToken`
-- [ ] T022 [US3] Estendere `app/src/components/DmPanel.tsx`: creare token (nome, colore, assegnatario scelto tra i membri o "mio"), rinominare, eliminare
+- [X] T018 [US3] Creare `supabase/migrations/0004_token.sql` con la tabella `tokens` (check `col >= 0 and row >= 0`, `REPLICA IDENTITY FULL`, RLS con update per DM o `owner_id = auth.uid()` con `WITH CHECK` identico) e `tokens` in `supabase_realtime`
+- [X] T019 [P] [US3] Creare `app/src/lib/grid.ts` con `snapToCell(x, y, cellPx)` e `clampToMap(col, row, mapCols, mapRows)`, e `app/src/lib/grid.test.ts` (Vitest) con casi su bordi, centro cella e fuori mappa
+- [X] T020 [P] [US3] Estendere `app/src/hooks/useTable.ts` con select dei `tokens`, abbonamento INSERT/UPDATE/DELETE filtrato per `campaign_id`, aggiornamento per `id` (idempotente) e funzione `moveToken(id, col, row)` che scrive solo su `dragend`
+- [X] T021 [US3] Estendere `app/src/components/MapCanvas.tsx` con i token come cerchi colorati con iniziali; `draggable` solo se DM o `owner_id` coincide con l'utente; all'`dragend` usa `snapToCell` + `clampToMap` e chiama `moveToken`
+- [X] T022 [US3] Estendere `app/src/components/DmPanel.tsx`: creare token (nome, colore, assegnatario scelto tra i membri o "mio"), rinominare, eliminare
 - [ ] T023 [US3] Eseguire `npm test` e gli scenari 6-9 del quickstart (incluso il tentativo diretto in console di spostare un token non proprio)
 
 **Checkpoint**: tavolo funzionante end-to-end.

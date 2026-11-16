@@ -3,7 +3,7 @@ import { MapCanvas } from '../components/MapCanvas'
 import { DmPanel } from '../components/DmPanel'
 
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
-  const { role, mapUrl, mapPath } = useTable(campaignId, userId)
+  const { role, mapUrl, mapPath, tokens, members, moveToken, errore } = useTable(campaignId, userId)
 
   if (role === undefined) return <p>Caricamento…</p>
   if (role === null) {
@@ -20,8 +20,13 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
       <div className="row">
         <a href="#/">← Campagne</a> <span>({role === 'dm' ? 'DM' : 'Player'})</span>
       </div>
-      {role === 'dm' && <DmPanel campaignId={campaignId} mapPath={mapPath} />}
-      {mapUrl ? <MapCanvas url={mapUrl} /> : <p>Nessuna mappa{role === 'dm' ? ': caricane una.' : ' ancora.'}</p>}
+      {role === 'dm' && <DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} />}
+      {errore && <p className="error">{errore}</p>}
+      {mapUrl ? (
+        <MapCanvas url={mapUrl} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} />
+      ) : (
+        <p>Nessuna mappa{role === 'dm' ? ': caricane una.' : ' ancora.'}</p>
+      )}
     </>
   )
 }

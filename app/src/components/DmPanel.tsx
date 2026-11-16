@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import type { Member, Token } from '../hooks/useTable'
 
 const TIPI = ['image/jpeg', 'image/png', 'image/webp']
 const MAX = 5 * 1024 * 1024
 
-export function DmPanel({ campaignId, mapPath }: { campaignId: string; mapPath: string | null }) {
+type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[] }
+
+export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
   const [errore, setErrore] = useState('')
   const [carico, setCarico] = useState(false)
+  const [nome, setNome] = useState('')
+  const [colore, setColore] = useState('#c0392b')
+  const [owner, setOwner] = useState('')
 
   async function caricaMappa(file: File) {
     setErrore('')
@@ -29,19 +35,74 @@ export function DmPanel({ campaignId, mapPath }: { campaignId: string; mapPath: 
     if (mapPath) await supabase.storage.from('maps').remove([mapPath]) // ripulisce la vecchia, se fallisce pazienza
   }
 
+  // Il token compare a tutti via Realtime; il DM lo trascina poi dove serve.
+  async function creaToken(e: React.FormEvent) {
+    e.preventDefault()
+    setErrore('')
+    const { error } = await supabase
+      .from('tokens')
+      .insert({ campaign_id: campaignId, name: nome, color: colore, col: 0, row: 0, owner_id: owner || null })
+    if (error) setErrore(error.message)
+    else setNome('')
+  }
+
+  async function aggiorna(id: string, campi: Partial<Pick<Token, 'name' | 'owner_id'>>) {
+    const { error } = await supabase.from('tokens').update(campi).eq('id', id)
+    if (error) setErrore(error.message)
+  }
+
+  async function elimina(id: string) {
+    const { error } = await supabase.from('tokens').delete().eq('id', id)
+    if (error) setErrore(error.message)
+  }
+
+  const giocatori = members.filter((m) => m.role === 'player')
+
   return (
-    <div className="row">
-      <label>
-        {mapPath ? 'Sostituisci mappa' : 'Carica mappa'}:{' '}
-        <input
-          type="file"
-          accept={TIPI.join(',')}
-          disabled={carico}
-          onChange={(e) => e.target.files?.[0] && caricaMappa(e.target.files[0])}
-        />
-      </label>
-      {carico && <span>Caricamento…</span>}
-      {errore && <span className="error">{errore}</span>}
+    <div>
+      <div className="row">
+        <label>
+          {mapPath ? 'Sostituisci mappa' : 'Carica mappa'}:{' '}
+          <input
+            type="file"
+            accept={TIPI.join(',')}
+            disabled={carico}
+            onChange={(e) => e.target.files?.[0] && caricaMappa(e.target.files[0])}
+          />
+        </label>
+        {carico && <span>Caricamento…</span>}
+      </div>
+
+      <form className="row" onSubmit={creaToken} style={{ flexDirection: 'row', maxWidth: 'none' }}>
+        <input placeholder="Nome token" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} required />
+        <input type="color" value={colore} onChange={(e) => setColore(e.target.value)} />
+        <select value={owner} onChange={(e) => setOwner(e.target.value)}>
+          <option value="">Mio (DM)</option>
+          {giocatori.map((m) => (
+            <option key={m.user_id} value={m.user_id}>
+              {m.display_name}
+            </option>
+          ))}
+        </select>
+        <button>Crea token</button>
+      </form>
+
+      {tokens.map((t) => (
+        <div className="row" key={t.id}>
+          <span style={{ color: t.color }}>●</span>
+          <input defaultValue={t.name} maxLength={40} onBlur={(e) => e.target.value && e.target.value !== t.name && aggiorna(t.id, { name: e.target.value })} />
+          <select value={t.owner_id ?? ''} onChange={(e) => aggiorna(t.id, { owner_id: e.target.value || null })}>
+            <option value="">Mio (DM)</option>
+            {giocatori.map((m) => (
+              <option key={m.user_id} value={m.user_id}>
+                {m.display_name}
+              </option>
+            ))}
+          </select>
+          <button onClick={() => elimina(t.id)}>Elimina</button>
+        </div>
+      ))}
+      {errore && <p className="error">{errore}</p>}
     </div>
   )
 }

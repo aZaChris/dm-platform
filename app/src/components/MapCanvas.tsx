@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Stage, Layer, Image as KImage, Line } from 'react-konva'
-import { CELL_PX } from '../lib/grid'
+import { Stage, Layer, Image as KImage, Line, Group, Circle, Text } from 'react-konva'
+import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
+import type { Token } from '../hooks/useTable'
 
-export function MapCanvas({ url }: { url: string }) {
+type Props = {
+  url: string
+  tokens: Token[]
+  userId: string
+  isDm: boolean
+  onMove: (id: string, col: number, row: number) => void
+}
+
+export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [vista, setVista] = useState({ w: innerWidth - 32, h: innerHeight * 0.75 })
 
@@ -21,9 +30,12 @@ export function MapCanvas({ url }: { url: string }) {
   if (!img) return <p>Carico la mappa…</p>
 
   const scala = Math.min(vista.w / img.width, vista.h / img.height)
+  const cols = Math.ceil(img.width / CELL_PX)
+  const rows = Math.ceil(img.height / CELL_PX)
   const linee: number[][] = []
   for (let x = 0; x <= img.width; x += CELL_PX) linee.push([x, 0, x, img.height])
   for (let y = 0; y <= img.height; y += CELL_PX) linee.push([0, y, img.width, y])
+  const raggio = CELL_PX * 0.4
 
   return (
     <Stage width={img.width * scala} height={img.height * scala}>
@@ -31,6 +43,35 @@ export function MapCanvas({ url }: { url: string }) {
         <KImage image={img} listening={false} />
         {linee.map((p, i) => (
           <Line key={i} points={p} stroke="rgba(0,0,0,0.35)" strokeWidth={1 / scala} listening={false} />
+        ))}
+        {tokens.map((t) => (
+          <Group
+            key={t.id}
+            x={t.col * CELL_PX + CELL_PX / 2}
+            y={t.row * CELL_PX + CELL_PX / 2}
+            draggable={isDm || t.owner_id === userId}
+            onDragEnd={(e) => {
+              const g = e.target
+              const { col, row } = snapToCell(g.x(), g.y())
+              const c = clampToMap(col, row, cols, rows)
+              // Aggancia subito il nodo alla cella, senza aspettare il ritorno dal server.
+              g.position({ x: c.col * CELL_PX + CELL_PX / 2, y: c.row * CELL_PX + CELL_PX / 2 })
+              if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
+            }}
+          >
+            <Circle radius={raggio} fill={t.color} stroke="#fff" strokeWidth={2} />
+            <Text
+              text={t.name.slice(0, 2).toUpperCase()}
+              fill="#fff"
+              fontStyle="bold"
+              fontSize={raggio}
+              width={raggio * 2}
+              x={-raggio}
+              y={-raggio / 2}
+              align="center"
+              listening={false}
+            />
+          </Group>
         ))}
       </Layer>
     </Stage>
