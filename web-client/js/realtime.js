@@ -75,38 +75,41 @@
     ensureChatUI() {
       const container = document.getElementById('campaign-page-chat-container') || document.getElementById('campaigns-section');
       if (!container) return;
-      let chat = document.getElementById('campaign-chat');
-      if (!chat) {
-        chat = document.createElement('div');
-        chat.id = 'campaign-chat';
-        chat.innerHTML = `
-        <div style="margin-top:16px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
-            <div style="font-weight:600">Campaign Chat</div>
-            <div id="presence" style="font-size:12px;color:#666"></div>
-          </div>
-          <div id="chat-log" style="height:220px;overflow:auto;padding:10px"></div>
-          <div style="display:flex;gap:8px;padding:8px;border-top:1px solid #e5e7eb">
-            <input id="chat-input" type="text" placeholder="Type a message..." style="flex:1;padding:10px;border:1px solid #e1e5e9;border-radius:8px" />
-            <button id="chat-send" class="btn">Send</button>
-          </div>
-        </div>
-      `;
-        container.appendChild(chat);
-        document.getElementById('chat-send')?.addEventListener('click', ()=> this.sendChat());
-        const input = document.getElementById('chat-input');
-        input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter') this.sendChat(); });
-        input?.addEventListener('input', ()=> this.socket?.emit('typing', { campaignId: this.currentCampaignId }));
-      } else if (chat.parentElement !== container) {
-        // se esiste già ma non è dentro il container della pagina campagna, lo spostiamo
+      const chat = document.getElementById('campaign-chat');
+      if (!chat) return;
+      if (chat.parentElement !== container) {
         container.appendChild(chat);
       }
+      if (chat.dataset && chat.dataset.bound === '1') return;
+      // bind eventi una sola volta
+      const sendBtn = document.getElementById('chat-send');
+      const input = document.getElementById('chat-input');
+      sendBtn?.addEventListener('click', ()=> this.sendChat());
+      input?.addEventListener('keydown', (e)=>{ if (e.key==='Enter') this.sendChat(); });
+      input?.addEventListener('input', ()=> this.socket?.emit('typing', { campaignId: this.currentCampaignId }));
+      if (chat.dataset) chat.dataset.bound = '1';
     }
 
     sendChat() {
       const input = document.getElementById('chat-input');
-      if (!input || !input.value.trim() || !this.socket || !this.currentCampaignId) return;
+      if (!input) {
+        console.warn('sendChat: chat-input not found');
+        return;
+      }
+      if (!input.value.trim()) {
+        console.warn('sendChat: input is empty');
+        return;
+      }
+      if (!this.socket) {
+        console.warn('sendChat: socket not available');
+        return;
+      }
+      if (!this.currentCampaignId) {
+        console.warn('sendChat: currentCampaignId not set');
+        return;
+      }
       const text = input.value.trim();
+      console.log('Sending chat message:', text, 'to campaign:', this.currentCampaignId);
       this.socket.emit('chat_message', { campaignId: this.currentCampaignId, text });
       input.value='';
     }

@@ -66,15 +66,15 @@ class CampaignsModule {
                 }
             });
         });
-        this.grid.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.setCurrent(e.currentTarget.getAttribute('data-id'));
-        }));
-        this.grid.querySelectorAll('[data-action="join-campaign"]').forEach(btn => btn.addEventListener('click', (e) => {
+        this.grid.querySelectorAll('[data-action="open-table"]').forEach(btn => btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = e.currentTarget.getAttribute('data-id');
             if (!id) return;
-            this.openCampaignPage(id);
+            window.location.href = `table.html?campaignId=${encodeURIComponent(id)}`;
+        }));
+        this.grid.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.setCurrent(e.currentTarget.getAttribute('data-id'));
         }));
         this.grid.querySelectorAll('[data-action="combat"]').forEach(btn => btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -106,8 +106,8 @@ class CampaignsModule {
                     <div class="campaign-card__meta">Players: ${count}</div>
                 </div>
                 <div class="campaign-card__footer">
-                    <button class="btn btn-primary" data-action="set-current" data-id="${c.id}">Set Current</button>
-                    <button class="btn btn-outline" data-action="join-campaign" data-id="${c.id}">Join Campaign</button>
+                    <button class="btn btn-primary" data-action="open-table" data-id="${c.id}">Open Table</button>
+                    <button class="btn btn-outline" data-action="set-current" data-id="${c.id}">Set Current</button>
                     <button class="btn btn-outline" data-action="combat" data-id="${c.id}">Open Combat</button>
                     <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${c.id}').then(()=>app.showMessage('ID copied','success'))">Copy ID</button>
                     <button class="btn btn-outline" data-action="invite" data-id="${c.id}">Invite Link</button>
@@ -153,6 +153,12 @@ class CampaignsModule {
                         <p>${names || 'No participants yet.'}</p>
                     </div>
                     <div class="campaign-detail__section">
+                        <h3>Battle Grid (tokens placeholder)</h3>
+                        <div class="campaign-battle-grid">
+                            ${Array.from({length: 25}).map((_,i)=>`<div class="grid-cell" data-cell="${i}"></div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="campaign-detail__section">
                         <h3>Dice Roller (frontend only)</h3>
                         <div id="dice-roller" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
                             ${[4,6,8,10,12,20].map(s => `<button class="btn btn-outline" data-die="d${s}">d${s}</button>`).join('')}
@@ -161,16 +167,22 @@ class CampaignsModule {
                     </div>
                     <div class="campaign-detail__section">
                         <h3>Campaign Chat</h3>
-                        <div id="campaign-page-chat-container"></div>
+                        <div id="campaign-page-chat-container">
+                            <div id="campaign-chat">
+                                <div style="margin-top:16px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff">
+                                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                                    <div style="font-weight:600">Campaign Chat</div>
+                                    <div id="presence" style="font-size:12px;color:#666"></div>
+                                  </div>
+                                  <div id="chat-log" style="height:220px;overflow:auto;padding:10px"></div>
+                                  <div style="display:flex;gap:8px;padding:8px;border-top:1px solid #e5e7eb">
+                                    <input id="chat-input" type="text" placeholder="Type a message..." style="flex:1;padding:10px;border:1px solid #e1e5e9;border-radius:8px" />
+                                    <button id="chat-send" class="btn">Send</button>
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="campaign-detail__footer">
-                    <button class="btn btn-primary" data-action="set-current" data-id="${id}">Set Current</button>
-                    <button class="btn btn-outline" data-action="join-campaign" data-id="${id}">Join Campaign</button>
-                    <button class="btn btn-outline" data-action="combat" data-id="${id}">Open Combat</button>
-                    <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${id}').then(()=>app.showMessage('ID copied','success'))">Copy ID</button>
-                    <button class="btn btn-outline" data-action="invite" data-id="${id}">Invite Link</button>
-                    <button class="btn btn-outline" data-action="delete" data-id="${id}"><i class="fas fa-trash"></i></button>
                 </div>
             `;
 
@@ -197,35 +209,7 @@ class CampaignsModule {
                 });
             }
 
-            // Re-wire footer buttons using existing handlers
-            this.detail.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const cid = e.currentTarget.getAttribute('data-id');
-                if (!cid) return;
-                if (!confirm('Delete this campaign?')) return;
-                try {
-                    await api.deleteCampaign(cid);
-                    app.showMessage('Campaign deleted', 'success');
-                    this.detail.classList.add('hidden');
-                    this.grid.classList.remove('hidden');
-                    this.refresh();
-                } catch (err) {
-                    app.showMessage(err.message || 'Failed to delete', 'error');
-                }
-            }));
-            this.detail.querySelectorAll('[data-action="set-current"]').forEach(btn => btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.setCurrent(id);
-            }));
-            this.detail.querySelectorAll('[data-action="join-campaign"]').forEach(btn => btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                try {
-                    window.realtime?.joinCampaign?.(id);
-                    app.showMessage('Joined campaign', 'success');
-                } catch (_) {
-                    app.showMessage('Unable to join campaign', 'error');
-                }
-            }));
+        // non usiamo più il dettaglio SPA in stile card: la table è una pagina dedicata (table.html)
             this.detail.querySelectorAll('[data-action="combat"]').forEach(btn => btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.openCombat(id);

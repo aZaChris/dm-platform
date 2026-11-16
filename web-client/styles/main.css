@@ -517,6 +517,56 @@ body {
     color: #666;
 }
 
+/* Campaign detail page layout */
+.campaign-detail {
+    margin-top: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12);
+}
+
+.campaign-detail__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+.campaign-detail__meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.campaign-detail__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 24px;
+}
+
+.campaign-detail__section {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+}
+
+.campaign-battle-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 40px);
+    grid-auto-rows: 40px;
+    gap: 6px;
+    justify-content: flex-start;
+}
+
+.campaign-battle-grid .grid-cell {
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    background: #f3f4f6;
+}
+
 /* Journal Entries */
 .journal-entries {
     display: flex;
