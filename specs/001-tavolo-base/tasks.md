@@ -26,11 +26,11 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Purpose**: ripartire da zero e avere un'app vuota che parte.
 
-- [ ] T001 Eliminare le cartelle e i file v1 `server/`, `mobile/`, `web-client/`, `docker-compose.yml`, `__dummy__.ipynb` con `git rm -r` (restano recuperabili dal tag `legacy-v1`)
-- [ ] T002 Creare l'app Vite + React + TypeScript in `app/` (`package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`, `src/main.tsx`) con solo `react`, `react-dom`, `@supabase/supabase-js`, `konva`, `react-konva`; dev: `vite`, `typescript`, `vitest`, `@vitejs/plugin-react`
-- [ ] T003 [P] Creare `.gitignore` in radice (`node_modules`, `dist`, `.env.local`) e `app/.env.example` con `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` vuote
-- [ ] T004 [P] Creare il client in `app/src/lib/supabase.ts` leggendo le due variabili d'ambiente
-- [ ] T005 Creare `app/src/App.tsx` con il routing a hash scritto a mano (`#/` campagne, `#/login`, `#/invito/:token`, `#/tavolo/:id`) e schermate segnaposto
+- [X] T001 Eliminare le cartelle e i file v1 `server/`, `mobile/`, `web-client/`, `docker-compose.yml`, `__dummy__.ipynb` con `git rm -r` (restano recuperabili dal tag `legacy-v1`)
+- [X] T002 Creare l'app Vite + React + TypeScript in `app/` (`package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`, `src/main.tsx`) con solo `react`, `react-dom`, `@supabase/supabase-js`, `konva`, `react-konva`; dev: `vite`, `typescript`, `vitest`, `@vitejs/plugin-react`
+- [X] T003 [P] Creare `.gitignore` in radice (`node_modules`, `dist`, `.env.local`) e `app/.env.example` con `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` vuote
+- [X] T004 [P] Creare il client in `app/src/lib/supabase.ts` leggendo le due variabili d'ambiente
+- [X] T005 Creare `app/src/App.tsx` con il routing a hash scritto a mano (`#/` campagne, `#/login`, `#/invito/:token`, `#/tavolo/:id`) e schermate segnaposto
 
 ---
 
@@ -38,7 +38,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 **Purpose**: schema di base e progetto Supabase pronto.
 
-- [ ] T006 Creare `supabase/migrations/0001_tavolo_base.sql` con: enum `role` (`dm`,`player`), tabelle `campaigns` e `campaign_members` (vincoli di `data-model.md`), funzioni `is_member(uuid)` e `is_dm(uuid)` come `security definer`, RLS attiva con le policy di `campaigns` e `campaign_members` dalla matrice permessi
+- [X] T006 Creare `supabase/migrations/0001_tavolo_base.sql` con: enum `role` (`dm`,`player`), tabelle `campaigns` e `campaign_members` (vincoli di `data-model.md`), funzioni `is_member(uuid)` e `is_dm(uuid)` come `security definer`, RLS attiva con le policy di `campaigns` e `campaign_members` dalla matrice permessi
 - [ ] T007 **Manuale (Christian)**: nel progetto Supabase disattivare "Confirm email", poi `npx supabase link` e `npx supabase db push`; copiare URL e chiave anon in `app/.env.local`
 
 **Checkpoint**: lo schema base è online e `npm run dev` in `app/` parte.
