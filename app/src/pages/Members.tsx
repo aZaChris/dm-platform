@@ -35,8 +35,9 @@ export function Members({ campaignId, userId }: { campaignId: string; userId: st
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Il tuo party</p>
-          <h1 className="display">Membri</h1>
+          <p className="eyebrow">Compagni di viaggio</p>
+          <h1 className="display">Il party</h1>
+          <p className="muted">Membri e ruoli della campagna.</p>
         </div>
         <a href={`#/tavolo/${campaignId}`}>← Torna al tavolo</a>
       </header>
@@ -53,6 +54,15 @@ export function Members({ campaignId, userId }: { campaignId: string; userId: st
           </article>
         ))}
       </div>
+
+      <section className="card narrow">
+        <h2>Cosa puoi fare</h2>
+        <p className="muted">
+          {role === 'dm'
+            ? 'Sei il DM: carichi la mappa, crei e sposti tutti i token, inviti e rimuovi i giocatori.'
+            : 'Sei un giocatore: vedi mappa, token e dadi, e sposti solo i token assegnati a te. I permessi li verifica il database.'}
+        </p>
+      </section>
 
       {role === 'dm' && (
         <section className="card narrow">

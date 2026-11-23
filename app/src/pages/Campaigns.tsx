@@ -21,8 +21,9 @@ export function Campaigns({ userId }: { userId: string }) {
     <>
       <header className="page-head">
         <div>
-          <p className="eyebrow">Le tue storie</p>
-          <h1 className="display">Campagne</h1>
+          <p className="eyebrow">La biblioteca delle avventure</p>
+          <h1 className="display">Le campagne</h1>
+          <p className="muted">Scegli una storia o prepara il prossimo capitolo.</p>
         </div>
       </header>
 

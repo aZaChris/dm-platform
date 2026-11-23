@@ -11,6 +11,7 @@ export function CampaignCard({ riga, children }: { riga: Riga; children?: React.
         <span className={`badge ${role === 'dm' ? 'dm' : ''}`}>{role === 'dm' ? 'Dungeon Master' : 'Giocatore'}</span>
       </div>
       <h3 className="campaign-name">{c.name}</h3>
+      <p className="muted small">{c.campaign_members[0]?.count ?? 1} {c.campaign_members[0]?.count === 1 ? 'membro' : 'membri'}</p>
       <div className="campaign-foot">
         {children}
         <a href={`#/tavolo/${c.id}`}>Apri tavolo →</a>

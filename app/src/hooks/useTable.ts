@@ -33,6 +33,8 @@ export function useTable(campaignId: string, userId: string) {
   const [tokens, setTokens] = useState<Token[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [errore, setErrore] = useState('')
+  const [nome, setNome] = useState('') // nome della campagna
+  const [eventi, setEventi] = useState<string[]>([]) // registro dei movimenti, solo di sessione
   const [rolls, setRolls] = useState<Roll[]>([]) // più recente per primo
   const [nuovoTiro, setNuovoTiro] = useState<Roll | null>(null) // quello da mostrare nell'overlay
 
@@ -68,6 +70,12 @@ export function useTable(campaignId: string, userId: string) {
       setRole((data.find((m) => m.user_id === userId)?.role as Role) ?? null)
     }
     caricaMembri()
+    supabase
+      .from('campaigns')
+      .select('name')
+      .eq('id', campaignId)
+      .maybeSingle()
+      .then(({ data }) => vivo && data && setNome(data.name))
 
     async function caricaTiri() {
       const { data } = await supabase
@@ -90,6 +98,10 @@ export function useTable(campaignId: string, userId: string) {
           setTokens((ts) => ts.filter((t) => t.id !== (p.old as Token).id))
         } else {
           const nuovo = p.new as Token
+          const prima = p.old as Partial<Token> // completo grazie a replica identity full
+          if (p.eventType === 'UPDATE' && (prima.col !== nuovo.col || prima.row !== nuovo.row)) {
+            setEventi((ev) => [`${nuovo.name} spostato in col ${nuovo.col + 1}, riga ${nuovo.row + 1}`, ...ev].slice(0, 8))
+          }
           setTokens((ts) => (ts.some((t) => t.id === nuovo.id) ? ts.map((t) => (t.id === nuovo.id ? nuovo : t)) : [...ts, nuovo]))
         }
       })
@@ -143,5 +155,5 @@ export function useTable(campaignId: string, userId: string) {
     [campaignId],
   )
 
-  return { role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
+  return { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
 }

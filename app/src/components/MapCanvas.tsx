@@ -4,6 +4,9 @@ import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
 import type { Token } from '../hooks/useTable'
 
 type Props = {
+  showGrid: boolean
+  selectedId: string | null
+  onDims: (cols: number, rows: number) => void
   url: string
   tokens: Token[]
   userId: string
@@ -11,14 +14,17 @@ type Props = {
   onMove: (id: string, col: number, row: number) => void
 }
 
-export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
+export function MapCanvas({ showGrid, selectedId, onDims, url, tokens, userId, isDm, onMove }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
 
   useEffect(() => {
     const i = new Image()
-    i.onload = () => setImg(i)
+    i.onload = () => {
+      setImg(i)
+      onDims(Math.ceil(i.width / CELL_PX), Math.ceil(i.height / CELL_PX))
+    }
     i.src = url
   }, [url])
 
@@ -45,7 +51,7 @@ export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
     <Stage width={img.width * scala} height={img.height * scala}>
       <Layer scaleX={scala} scaleY={scala}>
         <KImage image={img} listening={false} />
-        {linee.map((p, i) => (
+        {showGrid && linee.map((p, i) => (
           <Line key={i} points={p} stroke="rgba(0,0,0,0.35)" strokeWidth={1 / scala} listening={false} />
         ))}
         {tokens.map((t) => (
@@ -63,7 +69,7 @@ export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
               if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
             }}
           >
-            <Circle radius={raggio} fill={t.color} stroke="#fff" strokeWidth={2} />
+            <Circle radius={raggio} fill={t.color} stroke={t.id === selectedId ? '#dcb468' : '#fff'} strokeWidth={t.id === selectedId ? 5 : 2} />
             <Text
               text={t.name.slice(0, 2).toUpperCase()}
               fill="#fff"
