@@ -211,3 +211,8 @@ h1, h2, .hero-title { text-wrap: balance; }
 .token-row.on { border-color: var(--gold); } .token-row .muted { margin-left: auto; font-size: 12px; }
 .token-dot { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 12px; font-weight: 600; color: #fff; border: 2px solid #fff; flex: none; }
 .table-side .side-h { margin-top: 0; }
+.map-editor { display: grid; gap: .6rem; } .map-editor-row, .map-editor form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+.map-editor button[aria-pressed='true'] { color: var(--gold); border-color: rgb(220 180 104 / .5); }
+.map-editor .swatch { display: inline-block; width: .8em; height: .8em; border: 1px solid var(--line); vertical-align: -1px; }
+.map-editor label { display: grid; gap: .2rem; font-size: 12px; color: var(--muted); } .map-editor input[type='number'] { width: 5.5rem; }
+.map-editor button { padding: .4rem .7rem; font-size: 13px; }

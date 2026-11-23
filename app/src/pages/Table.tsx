@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTable } from '../hooks/useTable'
-import { MapCanvas } from '../components/MapCanvas'
+import { useCellMap } from '../hooks/useCellMap'
+import type { CellType, Patch } from '../lib/cells'
+import { MapCanvas, type Tool } from '../components/MapCanvas'
+import { MapEditor } from '../components/MapEditor'
 import { DmPanel } from '../components/DmPanel'
 import { DiceRoller } from '../components/DiceRoller'
 import { DiceOverlay } from '../components/DiceOverlay'
@@ -10,6 +13,10 @@ import { ULTIMA } from '../components/Shell'
 
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
   const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
+  const cm = useCellMap(campaignId)
+  const [editing, setEditing] = useState(false)
+  const [tool, setTool] = useState<Tool>('brush')
+  const [cellType, setCellType] = useState<CellType>('w')
   const [showGrid, setShowGrid] = useState(true)
   const [selezionato, setSelezionato] = useState<string | null>(null)
   const [dims, setDims] = useState<{ cols: number; rows: number } | null>(null)
@@ -42,10 +49,33 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
         </div>
         <span className={`badge ${role === 'dm' ? 'dm' : ''}`}>{role === 'dm' ? 'Dungeon Master' : 'Giocatore'}</span>
       </header>
-      {errore && <p className="error" role="alert">{errore}</p>}
+      {(errore || cm.errore) && <p className="error" role="alert">{errore || cm.errore}</p>}
       <div className="table-layout">
         <div className="table-main">
-          {mapUrl ? (
+          {role === 'dm' && (
+            <section className="card">
+              <MapEditor
+                map={cm.map}
+                hasImage={!!mapUrl}
+                editing={editing}
+                setEditing={setEditing}
+                tool={tool}
+                setTool={setTool}
+                cellType={cellType}
+                setCellType={setCellType}
+                canUndo={cm.canUndo}
+                canRedo={cm.canRedo}
+                onUndo={cm.undo}
+                onRedo={cm.redo}
+                onCreate={cm.create}
+                onClear={cm.clear}
+                onResize={cm.resize}
+                onSetActive={cm.setActive}
+                onRemove={cm.remove}
+              />
+            </section>
+          )}
+          {mapUrl || cm.map?.active ? (
             <section className="card map-card">
               <div className="map-toolbar">
                 <b>Mappa</b>
@@ -53,7 +83,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} onDims={(cols, rows) => setDims({ cols, rows })} />
+              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} onDims={(cols, rows) => setDims({ cols, rows })} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>
