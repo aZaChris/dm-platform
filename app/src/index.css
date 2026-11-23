@@ -139,10 +139,9 @@ h2 { font-size: 20px; }
 
 .hero { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; padding: 40px; margin-bottom: 2rem; display: grid; gap: .75rem; justify-items: start;
   background:
-    linear-gradient(90deg, var(--bg-side) 8%, rgb(13 26 31 / .55) 60%, rgb(13 26 31 / .2)),
-    radial-gradient(40rem 20rem at 85% 30%, rgb(220 180 104 / .22), transparent 70%),
-    radial-gradient(30rem 20rem at 100% 100%, rgb(143 211 184 / .14), transparent 70%),
-    var(--surface); /* ponytail: sfondo a gradiente; con una foto → url(/bg/tavolo.jpg) come primo livello dopo la sfumatura */ }
+    linear-gradient(90deg, var(--bg-side) 6%, rgb(13 26 31 / .72) 45%, rgb(13 26 31 / .25) 100%),
+    url(/bg/tavolo.jpg) 50% 58% / cover no-repeat,
+    var(--surface); /* la foto resta in trasparenza sotto la sfumatura: il testo a sinistra deve leggersi */ }
 .hero > * { margin: 0; max-width: 34rem; }
 .hero-title { font: 600 34px/1.15 var(--font-title); text-transform: uppercase; letter-spacing: .02em; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 2rem 0 1rem; } .section-head h2 { margin: 0; }
