@@ -11,6 +11,18 @@ export type Token = {
   row: number
   owner_id: string | null
 }
+export type Roll = {
+  id: string
+  campaign_id: string
+  user_id: string
+  display_name: string
+  label: string
+  face: number
+  modifier: number
+  total: number
+  dc: number | null
+  created_at: string
+}
 export type Member = { user_id: string; role: Role; display_name: string }
 
 // Carica ruolo, mappa, membri e token della campagna e resta abbonato ai cambi.
@@ -21,6 +33,8 @@ export function useTable(campaignId: string, userId: string) {
   const [tokens, setTokens] = useState<Token[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [errore, setErrore] = useState('')
+  const [rolls, setRolls] = useState<Roll[]>([]) // più recente per primo
+  const [nuovoTiro, setNuovoTiro] = useState<Roll | null>(null) // quello da mostrare nell'overlay
 
   const caricaToken = useCallback(async () => {
     const { data } = await supabase.from('tokens').select('*').eq('campaign_id', campaignId)
@@ -55,6 +69,16 @@ export function useTable(campaignId: string, userId: string) {
     }
     caricaMembri()
 
+    async function caricaTiri() {
+      const { data } = await supabase
+        .from('rolls')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (vivo && data) setRolls(data as Roll[])
+    }
+
     // Si carica quando l'abbonamento è attivo, così non si perdono modifiche in mezzo.
     const filtro = `campaign_id=eq.${campaignId}`
     const canale = supabase
@@ -69,6 +93,11 @@ export function useTable(campaignId: string, userId: string) {
           setTokens((ts) => (ts.some((t) => t.id === nuovo.id) ? ts.map((t) => (t.id === nuovo.id ? nuovo : t)) : [...ts, nuovo]))
         }
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'rolls', filter: filtro }, (p) => {
+        const tiro = p.new as Roll
+        setRolls((rs) => (rs.some((r) => r.id === tiro.id) ? rs : [tiro, ...rs].slice(0, 20)))
+        setNuovoTiro(tiro) // l'overlay compare a tutti, non solo a chi ha tirato
+      })
       // Gli eventi DELETE non si possono filtrare lato server: filtriamo qui.
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'campaign_members' }, (p) => {
         const vecchio = p.old as { campaign_id?: string; user_id?: string }
@@ -80,6 +109,7 @@ export function useTable(campaignId: string, userId: string) {
       .subscribe((stato) => {
         if (stato === 'SUBSCRIBED') {
           caricaMembri()
+          caricaTiri()
           caricaMappa()
           caricaToken()
         }
@@ -104,5 +134,14 @@ export function useTable(campaignId: string, userId: string) {
     [caricaToken],
   )
 
-  return { role, mapUrl, mapPath, tokens, members, moveToken, errore }
+  // Il tiro lo fa il database (roll_d20); il risultato torna a tutti via Realtime.
+  const tiraD20 = useCallback(
+    async (label: string, modifier: number, dc: number | null) => {
+      const { error } = await supabase.rpc('roll_d20', { p_campaign: campaignId, p_label: label, p_modifier: modifier, p_dc: dc })
+      if (error) setErrore(error.message)
+    },
+    [campaignId],
+  )
+
+  return { role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
 }
