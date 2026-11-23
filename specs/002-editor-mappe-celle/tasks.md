@@ -100,7 +100,7 @@ vederla); US3 e US4 sono P2 e US4 dipende dalla funzione di US3 (`resize_cell_ma
 - [ ] T023 Controllo di tastiera e tocco in `app/src/components/MapEditor.tsx` e `MapCanvas.tsx`: ogni controllo ha nome, `aria-pressed` sugli strumenti e sul tipo attivo, focus visibile; eseguire gli scenari 16-17 del quickstart (solo tastiera; dito su tablet senza far scorrere la pagina)
 - [X] T024 Eseguire `npm run build` da `app/` **con le variabili `VITE_` presenti** (un `.env.local` incompleto falsa la misura, vedi la knowledge base), annotare la dimensione gzip reale in `specs/002-editor-mappe-celle/quickstart.md` (scenario 18); se supera 500 KB, rivedere prima di proseguire
 - [X] T025 Registrare le decisioni (Scelta | Perché | Scartato) nella nota `Decisioni DM Platform.md` del vault Obsidian: mappa come stringa in una riga, `paint_cells` per unire i tratti, annulla solo nel client, flag `active` invece di cambiare `maps`, canale Realtime separato; aggiornare `README.md` con l'editor
-- [ ] T026 Deploy su Vercel (solo con il via di Christian) e ripetere sul dominio pubblico gli scenari 1, 5 e 12
+- [X] T026 Deploy su Vercel (solo con il via di Christian) e ripetere sul dominio pubblico gli scenari 1, 5 e 12
 
 ---
 
