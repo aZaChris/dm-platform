@@ -20,7 +20,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
       <div className="row">
         <a href="#/">← Campagne</a> <span>({role === 'dm' ? 'DM' : 'Player'})</span>
       </div>
-      {role === 'dm' && <DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} />}
+      {role === 'dm' && <DmPanel campaignId={campaignId} userId={userId} mapPath={mapPath} tokens={tokens} members={members} />}
       {errore && <p className="error">{errore}</p>}
       {mapUrl ? (
         <MapCanvas url={mapUrl} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} />

@@ -44,15 +44,16 @@ export function useTable(campaignId: string, userId: string) {
       setMapUrl(firmato?.signedUrl ?? null)
     }
 
-    supabase
-      .from('campaign_members')
-      .select('user_id, role, display_name')
-      .eq('campaign_id', campaignId)
-      .then(({ data }) => {
-        if (!vivo || !data) return
-        setMembers(data as Member[])
-        setRole((data.find((m) => m.user_id === userId)?.role as Role) ?? null)
-      })
+    async function caricaMembri() {
+      const { data } = await supabase
+        .from('campaign_members')
+        .select('user_id, role, display_name')
+        .eq('campaign_id', campaignId)
+      if (!vivo || !data) return
+      setMembers(data as Member[])
+      setRole((data.find((m) => m.user_id === userId)?.role as Role) ?? null)
+    }
+    caricaMembri()
 
     // Si carica quando l'abbonamento è attivo, così non si perdono modifiche in mezzo.
     const filtro = `campaign_id=eq.${campaignId}`
@@ -68,8 +69,17 @@ export function useTable(campaignId: string, userId: string) {
           setTokens((ts) => (ts.some((t) => t.id === nuovo.id) ? ts.map((t) => (t.id === nuovo.id ? nuovo : t)) : [...ts, nuovo]))
         }
       })
+      // Gli eventi DELETE non si possono filtrare lato server: filtriamo qui.
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'campaign_members' }, (p) => {
+        const vecchio = p.old as { campaign_id?: string; user_id?: string }
+        if (vecchio.campaign_id !== campaignId) return
+        if (vecchio.user_id === userId) window.location.hash = '#/' // rimosso dal DM
+        else caricaMembri()
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campaign_members', filter: filtro }, caricaMembri)
       .subscribe((stato) => {
         if (stato === 'SUBSCRIBED') {
+          caricaMembri()
           caricaMappa()
           caricaToken()
         }

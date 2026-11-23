@@ -88,7 +88,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 - [X] T020 [P] [US3] Estendere `app/src/hooks/useTable.ts` con select dei `tokens`, abbonamento INSERT/UPDATE/DELETE filtrato per `campaign_id`, aggiornamento per `id` (idempotente) e funzione `moveToken(id, col, row)` che scrive solo su `dragend`
 - [X] T021 [US3] Estendere `app/src/components/MapCanvas.tsx` con i token come cerchi colorati con iniziali; `draggable` solo se DM o `owner_id` coincide con l'utente; all'`dragend` usa `snapToCell` + `clampToMap` e chiama `moveToken`
 - [X] T022 [US3] Estendere `app/src/components/DmPanel.tsx`: creare token (nome, colore, assegnatario scelto tra i membri o "mio"), rinominare, eliminare
-- [ ] T023 [US3] Eseguire `npm test` e gli scenari 6-9 del quickstart (incluso il tentativo diretto in console di spostare un token non proprio)
+- [X] T023 [US3] Eseguire `npm test` e gli scenari 6-9 del quickstart (incluso il tentativo diretto in console di spostare un token non proprio)
 
 **Checkpoint**: tavolo funzionante end-to-end.
 
@@ -96,8 +96,8 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 ## Phase 6: Polish e requisiti trasversali
 
-- [ ] T024 Gestione membri nel `DmPanel.tsx`: elenco membri e pulsante "Rimuovi" (non su se stesso, FR-013); in `useTable.ts` abbonamento ai DELETE di `campaign_members` così chi viene rimosso torna a `#/` subito
-- [ ] T025 Eseguire gli scenari 10 e 12 del quickstart e annotare la dimensione gzip reale del bundle in `specs/001-tavolo-base/quickstart.md`; se supera 500 KB, rivedere le dipendenze prima di proseguire
+- [X] T024 Gestione membri nel `DmPanel.tsx`: elenco membri e pulsante "Rimuovi" (non su se stesso, FR-013); in `useTable.ts` abbonamento ai DELETE di `campaign_members` così chi viene rimosso torna a `#/` subito
+- [X] T025 Eseguire gli scenari 10 e 12 del quickstart e annotare la dimensione gzip reale del bundle in `specs/001-tavolo-base/quickstart.md`; se supera 500 KB, rivedere le dipendenze prima di proseguire
 - [ ] T026 (deploy fatto su https://dm-platform-steel.vercel.app, mancano gli scenari 2 e 7 sul dominio pubblico) Deploy su Vercel: progetto con root `app/`, variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`; ripetere gli scenari 2 e 7 sul dominio pubblico
 - [ ] T027 Registrare le decisioni (Scelta | Perché | Scartato) nella nota `Decisioni DM Platform.md` del vault Obsidian: token su Postgres Changes, posizione in celle, funzioni SQL per campagna e invito, aspetto token solo colore
 - [ ] T028 Aggiornare `README.md` in radice (è ancora quello della v1): cosa è il progetto, stack, come avviarlo, link a `specs/001-tavolo-base/quickstart.md`

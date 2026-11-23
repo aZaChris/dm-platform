@@ -33,3 +33,5 @@
 
 Per i punti 5 e 8 serve provare anche la chiamata diretta (console del browser di B con
 `supabase.from('tokens').update(...)`): se la RLS è corretta torna 0 righe modificate o un errore.
+
+Misura reale (T025, dopo T024): JS gzip **48,8 KB** (`index-*.js`, 148,7 KB non compresso), ben sotto i 500 KB.
