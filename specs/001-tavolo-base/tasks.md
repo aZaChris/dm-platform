@@ -98,7 +98,7 @@ US1 → US2 → US3 (serve un membro in una campagna per vedere la mappa, e la m
 
 - [X] T024 Gestione membri nel `DmPanel.tsx`: elenco membri e pulsante "Rimuovi" (non su se stesso, FR-013); in `useTable.ts` abbonamento ai DELETE di `campaign_members` così chi viene rimosso torna a `#/` subito
 - [X] T025 Eseguire gli scenari 10 e 12 del quickstart e annotare la dimensione gzip reale del bundle in `specs/001-tavolo-base/quickstart.md`; se supera 500 KB, rivedere le dipendenze prima di proseguire
-- [ ] T026 (deploy fatto su https://dm-platform-steel.vercel.app, mancano gli scenari 2 e 7 sul dominio pubblico) Deploy su Vercel: progetto con root `app/`, variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`; ripetere gli scenari 2 e 7 sul dominio pubblico
+- [X] T026 Deploy su Vercel (https://dm-platform-steel.vercel.app): progetto con root `app/`, variabili `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`; scenari 2 e 7 ripetuti sul dominio pubblico con due account reali
 - [X] T027 Registrare le decisioni (Scelta | Perché | Scartato) nella nota `Decisioni DM Platform.md` del vault Obsidian: token su Postgres Changes, posizione in celle, funzioni SQL per campagna e invito, aspetto token solo colore
 - [X] T028 Aggiornare `README.md` in radice (è ancora quello della v1): cosa è il progetto, stack, come avviarlo, link a `specs/001-tavolo-base/quickstart.md`
 
