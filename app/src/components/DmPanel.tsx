@@ -5,9 +5,9 @@ import type { Member, Token } from '../hooks/useTable'
 const TIPI = ['image/jpeg', 'image/png', 'image/webp']
 const MAX = 5 * 1024 * 1024
 
-type Props = { campaignId: string; userId: string; mapPath: string | null; tokens: Token[]; members: Member[] }
+type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[] }
 
-export function DmPanel({ campaignId, userId, mapPath, tokens, members }: Props) {
+export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
   const [errore, setErrore] = useState('')
   const [carico, setCarico] = useState(false)
   const [nome, setNome] = useState('')
@@ -52,21 +52,9 @@ export function DmPanel({ campaignId, userId, mapPath, tokens, members }: Props)
   }
 
   async function elimina(id: string) {
+    if (!confirm('Eliminare questo token?')) return
     const { error } = await supabase.from('tokens').delete().eq('id', id)
     if (error) setErrore(error.message)
-  }
-
-  // La RLS impedisce comunque al DM di rimuovere se stesso; qui nascondiamo il pulsante.
-  async function rimuovi(m: Member) {
-    if (!confirm(`Rimuovere ${m.display_name} dalla campagna?`)) return
-    const { data, error } = await supabase
-      .from('campaign_members')
-      .delete()
-      .eq('campaign_id', campaignId)
-      .eq('user_id', m.user_id)
-      .select('user_id')
-    if (error) setErrore(error.message)
-    else if (!data.length) setErrore('Non è stato possibile rimuovere il membro.')
   }
 
   const giocatori = members.filter((m) => m.role === 'player')
@@ -87,7 +75,7 @@ export function DmPanel({ campaignId, userId, mapPath, tokens, members }: Props)
       </div>
 
       <form className="row" onSubmit={creaToken} style={{ flexDirection: 'row', maxWidth: 'none' }}>
-        <input placeholder="Nome token" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} required />
+        <input name="token" autoComplete="off" aria-label="Nome del token" placeholder="Nome token…" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} required />
         <input type="color" value={colore} onChange={(e) => setColore(e.target.value)} />
         <select value={owner} onChange={(e) => setOwner(e.target.value)}>
           <option value="">Mio (DM)</option>
@@ -100,17 +88,9 @@ export function DmPanel({ campaignId, userId, mapPath, tokens, members }: Props)
         <button>Crea token</button>
       </form>
 
-      <h3>Membri</h3>
-      {members.map((m) => (
-        <div className="row" key={m.user_id}>
-          <span>
-            {m.display_name} ({m.role === 'dm' ? 'DM' : 'Player'})
-          </span>
-          {m.user_id !== userId && <button onClick={() => rimuovi(m)}>Rimuovi</button>}
-        </div>
-      ))}
+      <p><a href={`#/membri/${campaignId}`}>Gestisci membri →</a></p>
 
-      <h3>Token</h3>
+      <h2 className="side-h">Token</h2>
       {tokens.map((t) => (
         <div className="row" key={t.id}>
           <span style={{ color: t.color }}>●</span>
@@ -126,7 +106,7 @@ export function DmPanel({ campaignId, userId, mapPath, tokens, members }: Props)
           <button onClick={() => elimina(t.id)}>Elimina</button>
         </div>
       ))}
-      {errore && <p className="error">{errore}</p>}
+      {errore && <p className="error" role="alert">{errore}</p>}
     </div>
   )
 }

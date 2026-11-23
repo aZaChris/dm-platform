@@ -18,15 +18,19 @@ export function Login() {
   }
 
   return (
-    <>
+    <div className="card auth-card">
+      <p className="eyebrow">DM Platform</p>
       <h1>{registrati ? 'Registrati' : 'Accedi'}</h1>
       <form onSubmit={invia}>
         {registrati && (
-          <input placeholder="Nome visibile" value={name} onChange={(e) => setName(e.target.value)} required />
+          <input name="name" autoComplete="nickname" placeholder="Nome visibile…" value={name} onChange={(e) => setName(e.target.value)} required />
         )}
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="email" name="email" autoComplete="email" spellCheck={false} placeholder="tu@esempio.it" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <input
           type="password"
+          name="password"
+          autoComplete={registrati ? 'new-password' : 'current-password'}
+          aria-label="Password"
           placeholder="Password (min. 6 caratteri)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -34,13 +38,11 @@ export function Login() {
           required
         />
         <button>{registrati ? 'Crea account' : 'Entra'}</button>
-        {errore && <p className="error">{errore}</p>}
+        {errore && <p className="error" role="alert">{errore}</p>}
       </form>
-      <p>
-        <button onClick={() => setRegistrati(!registrati)}>
-          {registrati ? 'Ho già un account' : 'Non ho un account'}
-        </button>
-      </p>
-    </>
+      <button className="link-btn" onClick={() => setRegistrati(!registrati)}>
+        {registrati ? 'Ho già un account' : 'Non ho un account'}
+      </button>
+    </div>
   )
 }

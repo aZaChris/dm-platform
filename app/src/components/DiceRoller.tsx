@@ -19,12 +19,12 @@ export function DiceRoller({ rolls, onRoll }: Props) {
 
   return (
     <section className="dice-panel">
-      <h3>Dadi</h3>
+      <h2 className="side-h">Dadi</h2>
       <form onSubmit={tira}>
-        <input value={label} onChange={(e) => setLabel(e.target.value)} maxLength={60} aria-label="Nome della prova" />
+        <input name="prova" autoComplete="off" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={60} aria-label="Nome della prova" />
         <div className="row">
-          <input type="number" min={-20} max={20} value={mod} onChange={(e) => setMod(Number(e.target.value))} aria-label="Modificatore" style={{ width: '5rem' }} />
-          <input type="number" min={1} max={40} value={dc} onChange={(e) => setDc(e.target.value)} placeholder="CD" aria-label="Classe difficoltà" style={{ width: '5rem' }} />
+          <input name="modificatore" autoComplete="off" inputMode="numeric" type="number" min={-20} max={20} value={mod} onChange={(e) => setMod(Number(e.target.value))} aria-label="Modificatore" style={{ width: '5rem' }} />
+          <input name="cd" autoComplete="off" inputMode="numeric" type="number" min={1} max={40} value={dc} onChange={(e) => setDc(e.target.value)} placeholder="CD" aria-label="Classe difficoltà" style={{ width: '5rem' }} />
         </div>
         <button disabled={invio}>Tira d20</button>
       </form>

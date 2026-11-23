@@ -25,6 +25,12 @@ export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void
   }, [roll])
 
   useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    addEventListener('keydown', esc)
+    return () => removeEventListener('keydown', esc)
+  }, [onClose])
+
+  useEffect(() => {
     const chiudi = setTimeout(onClose, VISIBLE_MS)
     return () => clearTimeout(chiudi)
   }, [roll, onClose])
@@ -35,7 +41,7 @@ export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void
   const segno = roll.modifier >= 0 ? '+' : '−'
 
   return (
-    <div className="dice-veil" role="dialog" aria-live="polite" aria-label="Tiro di dado" onClick={onClose}>
+    <div className="dice-veil" role="dialog" aria-modal="true" aria-live="polite" aria-label="Tiro di dado" onClick={onClose}>
       <div className="dice-stage">
         <p className="eyebrow">
           {roll.display_name}
@@ -55,6 +61,7 @@ export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void
         <p className={`dice-total ${done ? 'in' : ''}`}>
           {roll.face} {segno} {Math.abs(roll.modifier)} = <strong>{roll.total}</strong>
         </p>
+        <button className="link-btn" onClick={onClose}>Chiudi (Esc)</button>
         {done && (
           <p className={`dice-verdict ${successo === null ? '' : successo ? 'ok' : 'ko'}`}>
             {crit ? 'Colpo critico' : fumble ? 'Fallimento critico' : successo === null ? '' : successo ? 'Successo' : 'Fallimento'}

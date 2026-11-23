@@ -4,6 +4,9 @@ import { supabase } from './lib/supabase'
 import { Login } from './pages/Login'
 import { Join } from './pages/Join'
 import { Campaigns } from './pages/Campaigns'
+import { Overview } from './pages/Overview'
+import { Members } from './pages/Members'
+import { Shell, type Route } from './components/Shell'
 import { Table } from './pages/Table'
 
 // ponytail: routing a hash scritto a mano; se le schermate crescono, passare a react-router.
@@ -28,13 +31,25 @@ export function App() {
   }, [])
 
   if (session === undefined) return <p>Caricamento…</p>
-  if (!session) return <main className="page"><Login /></main>
+  if (!session) return <main className="auth"><Login /></main>
 
   const [, route, param] = hash.split('/')
-  if (route === 'tavolo') return <Table campaignId={param} userId={session.user.id} />
-  return (
-    <main className="page">
-      {route === 'invito' ? <Join token={param} /> : <Campaigns userId={session.user.id} />}
-    </main>
-  )
+  const nome = (session.user.user_metadata?.name as string) || session.user.email || 'Giocatore'
+  let attiva: Route = 'home'
+  let pagina: React.ReactNode
+  if (route === 'tavolo') {
+    attiva = 'tavolo'
+    pagina = <Table key={param} campaignId={param} userId={session.user.id} />
+  } else if (route === 'membri') {
+    attiva = 'membri'
+    pagina = <Members key={param} campaignId={param} userId={session.user.id} />
+  } else if (route === 'campagne') {
+    attiva = 'campagne'
+    pagina = <Campaigns userId={session.user.id} />
+  } else if (route === 'invito') {
+    pagina = <Join token={param} />
+  } else {
+    pagina = <Overview userId={session.user.id} />
+  }
+  return <Shell route={attiva} nome={nome} corrente={attiva === 'tavolo' || attiva === 'membri' ? param : undefined}>{pagina}</Shell>
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Stage, Layer, Image as KImage, Line, Group, Circle, Text } from 'react-konva'
 import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
 import type { Token } from '../hooks/useTable'
@@ -13,7 +13,8 @@ type Props = {
 
 export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
-  const [vista, setVista] = useState({ w: innerWidth - 32, h: innerHeight * 0.75 })
+  const ref = useRef<HTMLDivElement>(null)
+  const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
 
   useEffect(() => {
     const i = new Image()
@@ -22,12 +23,14 @@ export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
   }, [url])
 
   useEffect(() => {
-    const on = () => setVista({ w: innerWidth - 32, h: innerHeight * 0.75 })
-    addEventListener('resize', on)
-    return () => removeEventListener('resize', on)
+    // Si adatta al contenitore (con la barra laterale la finestra non basta).
+    const el = ref.current!
+    const ro = new ResizeObserver(() => setVista({ w: el.clientWidth, h: innerHeight * 0.75 }))
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
-  if (!img) return <p>Carico la mappa…</p>
+  if (!img) return <div ref={ref}><p>Carico la mappa…</p></div>
 
   const scala = Math.min(vista.w / img.width, vista.h / img.height)
   const cols = Math.ceil(img.width / CELL_PX)
@@ -38,6 +41,7 @@ export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
   const raggio = CELL_PX * 0.4
 
   return (
+    <div ref={ref} className="map-wrap">
     <Stage width={img.width * scala} height={img.height * scala}>
       <Layer scaleX={scala} scaleY={scala}>
         <KImage image={img} listening={false} />
@@ -75,5 +79,6 @@ export function MapCanvas({ url, tokens, userId, isDm, onMove }: Props) {
         ))}
       </Layer>
     </Stage>
+    </div>
   )
 }

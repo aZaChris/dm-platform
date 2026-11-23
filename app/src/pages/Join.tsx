@@ -20,11 +20,11 @@ export function Join({ token }: { token: string }) {
 
   if (errore) {
     return (
-      <>
+      <section className="card narrow">
         <p className="error">{errore}</p>
-        <a href="#/">Torna alle campagne</a>
-      </>
+        <a href="#/campagne">Torna alle campagne</a>
+      </section>
     )
   }
-  return <p>Sto entrando nella campagna…</p>
+  return <p className="muted">Sto entrando nella campagna…</p>
 }
