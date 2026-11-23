@@ -30,6 +30,12 @@ export function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
+  // Chi non è loggato e apre la radice vede prima la presentazione; il login resta su #/accedi e sugli inviti.
+  const alla_radice = hash === '#/' || hash === '#' || hash === ''
+  useEffect(() => {
+    if (session === null && alla_radice) location.replace('/presentazione/')
+  }, [session, alla_radice])
+
   if (session === undefined) return <p>Caricamento…</p>
   if (!session) return <main className="auth"><Login /></main>
 

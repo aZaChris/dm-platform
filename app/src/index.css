@@ -137,10 +137,10 @@ h2 { font-size: 20px; }
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .page-head .display { margin-bottom: 0; }
 
-.hero { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; padding: 40px; margin-bottom: 2rem; display: grid; gap: .75rem; justify-items: start;
+.hero { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; padding: 48px 40px; margin-bottom: 2rem; display: grid; gap: .75rem; justify-items: start; align-content: center; min-height: clamp(320px, 46vw, 480px);
   background:
-    linear-gradient(90deg, var(--bg-side) 6%, rgb(13 26 31 / .72) 45%, rgb(13 26 31 / .25) 100%),
-    url(/bg/tavolo.jpg) 50% 58% / cover no-repeat,
+    linear-gradient(90deg, var(--bg-side) 4%, rgb(13 26 31 / .62) 42%, rgb(13 26 31 / .12) 100%),
+    url(/bg/tavolo.jpg) 50% 36% / cover no-repeat,
     var(--surface); /* la foto resta in trasparenza sotto la sfumatura: il testo a sinistra deve leggersi */ }
 .hero > * { margin: 0; max-width: 34rem; }
 .hero-title { font: 600 34px/1.15 var(--font-title); text-transform: uppercase; letter-spacing: .02em; }
