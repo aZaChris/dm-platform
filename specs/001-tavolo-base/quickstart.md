@@ -34,4 +34,5 @@
 Per i punti 5 e 8 serve provare anche la chiamata diretta (console del browser di B con
 `supabase.from('tokens').update(...)`): se la RLS è corretta torna 0 righe modificate o un errore.
 
-Misura reale (T025, dopo T024): JS gzip **48,8 KB** (`index-*.js`, 148,7 KB non compresso), ben sotto i 500 KB.
+Misura reale (T025, rifatta con le variabili `VITE_` presenti): JS gzip **193,8 KB** (`index-*.js`, 657,8 KB non compresso), sotto i 500 KB.
+Attenzione: senza `VITE_SUPABASE_*` il build dà ~49 KB gzip perché `supabase.ts` lancia sempre e il bundler elimina il resto: misura falsata.

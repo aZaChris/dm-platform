@@ -21,6 +21,9 @@ Il pull aggiunge anche `VERCEL_*` e crea `app/.gitignore` (`.env*`): non serve c
 - Verificare i file `.env` stampando solo i nomi delle chiavi.
 - Un comando Vercel può sovrascrivere `.env.local`: dopo averlo lanciato controllare che le `VITE_` ci siano ancora.
 
+- Un build senza le variabili `VITE_` riesce lo stesso ma produce un bundle falsamente piccolo (~49 KB gzip invece di ~194):
+  non misurare le dimensioni con un `.env.local` incompleto.
+
 ## Riferimenti
 - `app/src/lib/supabase.ts`
 - `specs/001-tavolo-base/quickstart.md` (prerequisiti)
