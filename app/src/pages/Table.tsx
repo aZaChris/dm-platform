@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useTable } from '../hooks/useTable'
 import { useCellMap } from '../hooks/useCellMap'
 import { useChat } from '../hooks/useChat'
+import { useEncounter } from '../hooks/useEncounter'
 import type { CellType, Patch } from '../lib/cells'
 import { MapCanvas, type Tool } from '../components/MapCanvas'
 import { MapEditor } from '../components/MapEditor'
 import { DmPanel } from '../components/DmPanel'
 import { DiceRoller } from '../components/DiceRoller'
 import { Chat } from '../components/Chat'
+import { Initiative } from '../components/Initiative'
 import { DiceOverlay } from '../components/DiceOverlay'
 import { TokenList } from '../components/TokenList'
 import { Icon } from '../components/Icon'
@@ -17,6 +19,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
   const cm = useCellMap(campaignId)
   const chat = useChat(campaignId)
+  const enc = useEncounter(campaignId, role === 'dm')
   const [editing, setEditing] = useState(false)
   const [tool, setTool] = useState<Tool>('brush')
   const [cellType, setCellType] = useState<CellType>('w')
@@ -86,7 +89,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} onDims={(cols, rows) => setDims({ cols, rows })} />
+              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={enc.encounter?.started ? enc.encounter.turn_token_id : null} onDims={(cols, rows) => setDims({ cols, rows })} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>
@@ -100,6 +103,9 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
           <section className="card">
             <h2 className="side-h">Personaggi in scena</h2>
             <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} />
+          </section>
+          <section className="card">
+            <Initiative tokens={tokens} userId={userId} isDm={role === 'dm'} enc={enc} />
           </section>
           <section className="card">
             <Chat userId={userId} isDm={role === 'dm'} messages={chat.messages} rolls={rolls} members={members} errore={chat.errore} onSend={chat.send} onRemove={chat.remove} />

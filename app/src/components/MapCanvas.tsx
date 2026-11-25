@@ -10,6 +10,7 @@ export type Tool = 'brush' | 'fill' | 'erase'
 type Props = {
   showGrid: boolean
   selectedId: string | null
+  turnTokenId?: string | null // token di turno nel combattimento (feature 004)
   onDims: (cols: number, rows: number) => void
   url: string | null
   cellMap?: CellMap | null
@@ -26,7 +27,7 @@ type Props = {
 
 const COLORE = Object.fromEntries(CELL_TYPES.map((t) => [t.type, t.color]))
 
-export function MapCanvas({ showGrid, selectedId, onDims, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint }: Props) {
+export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
@@ -181,6 +182,7 @@ export function MapCanvas({ showGrid, selectedId, onDims, url, cellMap, tokens, 
               if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
             }}
           >
+            {t.id === turnTokenId && <Circle radius={raggio + 7} stroke="#8fd3b8" strokeWidth={3} dash={[6, 4]} listening={false} />}
             <Circle radius={raggio} fill={t.color} stroke={t.id === selectedId ? '#dcb468' : '#fff'} strokeWidth={t.id === selectedId ? 5 : 2} />
             <Text
               text={t.name.slice(0, 2).toUpperCase()}

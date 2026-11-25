@@ -32,4 +32,4 @@
 | 19 | Il DM chiude e riapre la pagina | il combattimento è com'era | edge case |
 | 20 | Il DM preme «Termina» e conferma | elenco e anello spariscono per entrambi | US3, FR-009 |
 | 21 | Solo tastiera: avviare, scrivere un'iniziativa, iniziare, turno avanti e indietro, terminare | tutto funziona, focus visibile | FR-011 |
-| 22 | `npm run build` da `app/` con le variabili `VITE_` presenti | JS gzip totale <500 KB (annotare il valore reale) | SC-005 |
+| 22 | `npm run build` da `app/` con le variabili `VITE_` presenti | JS gzip totale <500 KB (misurato: 206,1 KB gzip il 2026-11-25, +2,3 KB rispetto alla 003) | SC-005 |

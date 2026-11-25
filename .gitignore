@@ -11,3 +11,4 @@ supabase/.temp/
 .playwright/
 .claude/skills/design-taste-frontend/
 .claude/skills/web-design-guidelines/
+.vitest/

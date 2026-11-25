@@ -25,7 +25,8 @@ Nessun «NEEDS CLARIFICATION» nel contesto tecnico: le scelte sotto chiudono i 
 
 - **Decision**: funzione pura `sortParticipants`: iniziativa decrescente, poi modificatore decrescente, poi
   `tiebreak` decrescente, poi `token_id` (solo per avere lo stesso ordine su tutti i browser). Chi non ha ancora
-  l'iniziativa va in fondo. Lo «scambio» del DM tra due pari incrementa il `tiebreak` di quello che deve salire.
+  l'iniziativa va in fondo. Lo «scambio» del DM tra due pari rinumera il `tiebreak` di tutto il gruppo in pari
+  (scoperto in implementazione: alzare solo quello che sale lo farebbe saltare in cima a un gruppo di tre).
 - **Rationale**: regola di D&D 5e più la scelta del DM a parità totale (FR-004). Una colonna numerica basta per
   rappresentare la scelta del DM.
 - **Alternatives considered**: colonna `position` gestita a mano (andrebbe rinumerata a ogni nuova iniziativa).
