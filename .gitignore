@@ -7,3 +7,7 @@ dist/
 supabase/.temp/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+.vercel
+.playwright/
+.claude/skills/design-taste-frontend/
+.claude/skills/web-design-guidelines/
