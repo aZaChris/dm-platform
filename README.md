@@ -44,4 +44,5 @@ Altri comandi: `npm test` (griglia, riempimento, linea tra celle, annulla), `npm
 Feature 001 «tavolo base»: accesso con invito, mappa condivisa, token trascinabili e gestione membri
 completati. Feature 002 «editor di mappe a celle»: scritta, migrazioni 0007-0008 applicate e scenari 1-17
 verificati in locale e sul dominio pubblico.
-Feature 003 «chat del tavolo»: migrazione 0009 applicata e codice scritto; scenari del quickstart da verificare.
+Feature 003 «chat del tavolo»: migrazione 0009 applicata, in produzione e verificata sul dominio pubblico
+(messaggi, tiri nella chat, sussurri).

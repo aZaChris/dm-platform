@@ -49,7 +49,7 @@ ritrova dopo aver ricaricato.
 - [X] T004 [US1] Creare `app/src/components/Chat.tsx`: elenco `<ol role="log">` con nome del mittente, ora (`toLocaleTimeString` con ore e minuti) e testo come semplice figlio React (mai `dangerouslySetInnerHTML`); scorrimento automatico in fondo all'arrivo di un messaggio se l'utente era già in fondo; form con `<textarea>` etichettata «Messaggio», Invio invia e Maiusc+Invio va a capo; pulsante «Invia» disattivato se il testo senza spazi è vuoto o supera 500 caratteri, con contatore «N caratteri di troppo» quando li supera (nessun `maxLength`); il campo si svuota solo se `send` riesce, altrimenti il testo resta e l'errore compare con `role="alert"`
 - [X] T005 [US1] In `Chat.tsx` aggiungere il pulsante «Elimina» (con `aria-label` che cita il messaggio) sui messaggi propri e, per il DM, su tutti; chiama `remove(id)` dopo `confirm()`
 - [X] T006 [US1] In `app/src/pages/Table.tsx` usare `useChat(campaignId)` e aggiungere nella colonna laterale una card «Chat» con `<Chat>` (riceve `userId`, `isDm`, messaggi, `send`, `remove`); in `app/src/index.css` aggiungere gli stili `.chat-log` (altezza massima con scorrimento), `.chat-msg` (`white-space: pre-wrap`, `overflow-wrap: anywhere`) e lo stato di focus visibile, con i token CSS descritti in `DESIGN.md` (radice del repo)
-- [ ] T007 [US1] Eseguire gli scenari 1-5 e 11-15 di `quickstart.md`
+- [X] T007 [US1] Eseguire gli scenari 1-5 e 11-15 di `quickstart.md`
 
 **Checkpoint**: la chat funziona da sola; si può pubblicare.
 
@@ -62,7 +62,7 @@ ritrova dopo aver ricaricato.
 - [X] T008 [P] [US2] In `app/src/hooks/useTable.ts` caricare 100 tiri invece di 20, sia nella select iniziale (`limit(100)`) sia nel gestore Realtime (`slice(0, 100)`)
 - [X] T009 [P] [US2] In `app/src/components/DiceRoller.tsx` togliere l'elenco `dice-log` dei tiri e la prop `rolls`: resta solo il form; aggiornare la chiamata in `Table.tsx`
 - [X] T010 [US2] In `Chat.tsx` ricevere `rolls` (da `useTable`) e costruire il flusso `{ kind: 'msg' | 'roll' }` ordinato per `created_at` e poi per `id`, mostrando gli ultimi 100; il tiro si riconosce a colpo d'occhio (icona `dice` di `Icon.tsx`, stile `.chat-roll` in `index.css`) e mostra nome, etichetta, `dado ± modificatore = totale`, le classi `crit-txt`/`fail-txt` già usate per 20 e 1, e l'esito «riuscito/fallito contro CD N» se `dc` non è nullo; `Table.tsx` passa `rolls` a `<Chat>`
-- [ ] T011 [US2] Eseguire lo scenario 6 di `quickstart.md`
+- [X] T011 [US2] Eseguire lo scenario 6 di `quickstart.md`
 
 **Checkpoint**: un solo posto dove seguire ciò che succede al tavolo; il diario separato dei tiri non c'è più.
 
@@ -74,19 +74,24 @@ ritrova dopo aver ricaricato.
 
 - [X] T012 [US3] In `Chat.tsx` aggiungere un `<select>` etichettato «Destinatario»: «Tutti» più, per il DM, ogni altro membro e, per un Player, solo il DM (i membri arrivano da `useTable` tramite `Table.tsx`); il valore va a `send` come `recipient_id`; dopo l'invio il destinatario resta quello scelto
 - [X] T013 [US3] In `Chat.tsx` segnare i sussurri con la classe `.chat-whisper` (stile in `index.css`) e il testo «privato a NOME» per il mittente e «privato da NOME» per il destinatario; il nome del destinatario si legge dai membri, e se non c'è più resta «privato»
-- [ ] T014 [US3] Eseguire gli scenari 7-10 di `quickstart.md`
+- [X] T014 [US3] Eseguire gli scenari 7-10 di `quickstart.md`
 
 **Checkpoint**: tutte e tre le storie funzionano insieme.
 
 ## Phase 6: Polish e requisiti trasversali
 
-- [ ] T015 Controllo di tastiera e lettore di schermo su `Chat.tsx`: ogni controllo ha nome, focus visibile, `role="log"` annuncia i nuovi messaggi senza rubare il focus; eseguire lo scenario 16 di `quickstart.md`
-- [ ] T016 Eseguire lo scenario 17 (500 messaggi) e lo scenario 18: `npm run build` da `app/` **con le variabili `VITE_` presenti**, annotare la dimensione gzip reale in `specs/003-chat-tavolo/quickstart.md`; se supera 500 KB, rivedere prima di proseguire
+- [X] T015 Controllo di tastiera e lettore di schermo su `Chat.tsx`: ogni controllo ha nome, focus visibile, `role="log"` annuncia i nuovi messaggi senza rubare il focus; eseguire lo scenario 16 di `quickstart.md`
+- [X] T016 Eseguire lo scenario 17 (500 messaggi) e lo scenario 18: `npm run build` da `app/` **con le variabili `VITE_` presenti**, annotare la dimensione gzip reale in `specs/003-chat-tavolo/quickstart.md`; se supera 500 KB, rivedere prima di proseguire
 - [X] T017 Emendamento PATCH di `.specify/memory/constitution.md` (versione 1.0.1): la frase dei *Vincoli tecnici* diventa «il tiro dei dadi lo fa il database; il risultato compare in chat via Realtime»; aggiornare il Sync Impact Report e la data, motivo nel commit
 - [X] T018 Aggiornare `README.md` con la chat e i sussurri
-- [ ] T019 Deploy su Vercel (solo con il via di Christian) e ripetere sul dominio pubblico gli scenari 1, 6 e 7
+- [X] T019 Deploy su Vercel (solo con il via di Christian) e ripetere sul dominio pubblico gli scenari 1, 6 e 7
 
 ---
+
+**Verifica (2026-11-25)**: deploy in produzione fatto da Christian; scenari 1, 6, 7 e 8 provati da Christian sul
+dominio pubblico con tre account, tutti superati. Scenario 18 misurato (203,8 KB gzip). Gli altri scenari del
+quickstart (console, 500 messaggi, rete staccata, solo tastiera) non sono stati ripetuti uno per uno: i task
+sono chiusi su indicazione di Christian.
 
 ## Dependencies & Execution Order
 
