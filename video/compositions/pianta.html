@@ -1,0 +1,61 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: radial-gradient(ellipse at 50% 50%, #12262d, #0a1215 75%); }
+    #pi-world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #pi-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(220,180,104,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(220,180,104,.06) 1px, transparent 1px); background-size: 48px 48px; }
+    .pi-room { position: absolute; border-radius: 6px; background: #142a31; border: 4px solid rgba(220,180,104,.55); display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel'; font-weight: 700; font-size: 36px; color: #ece6d6; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+    .pi-lit { position: absolute; inset: 0; border-radius: 2px; background: radial-gradient(circle, rgba(220,180,104,.45), rgba(220,180,104,.08) 70%); opacity: 0; }
+    .pi-room span { position: relative; }
+    #pi-line { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; font-family: 'Cinzel'; font-weight: 700; font-size: 56px; }
+    #pi-line em { font-style: normal; color: #dcb468; }
+    .pi-fog { position: absolute; border-radius: 50%; }
+  </style>
+  <div id="root" data-composition-id="pianta" data-width="1920" data-height="1080">
+    <div id="pi-world">
+      <div id="pi-grid" data-layout-ignore></div>
+      <svg data-layout-ignore style="position:absolute;inset:0" width="1920" height="1080" fill="none">
+        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="#0d1a1f" stroke-width="54" stroke-linejoin="round" />
+        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="rgba(220,180,104,.25)" stroke-width="58" stroke-linejoin="round" stroke-dasharray="2 14" />
+      </svg>
+      <div class="pi-room" id="pi-r1" style="left:180px;top:140px;width:360px;height:220px"><i class="pi-lit"></i><span>Presentazione</span></div>
+      <div class="pi-room" id="pi-r2" style="left:700px;top:130px;width:300px;height:220px"><i class="pi-lit"></i><span>Accedi</span></div>
+      <div class="pi-room" id="pi-r3" style="left:1160px;top:120px;width:380px;height:240px"><i class="pi-lit"></i><span>Panoramica</span></div>
+      <div class="pi-room" id="pi-r4" style="left:180px;top:520px;width:380px;height:240px"><i class="pi-lit"></i><span>Campagne</span></div>
+      <div class="pi-room" id="pi-r5" style="left:680px;top:470px;width:520px;height:420px"><i class="pi-lit"></i><span>Tavolo</span></div>
+      <div class="pi-room" id="pi-r6" style="left:1307px;top:653px;width:346px;height:194px"><i class="pi-lit"></i><span>Membri</span></div>
+      <svg data-layout-ignore style="position:absolute;inset:0" width="1920" height="1080" fill="none">
+        <path id="pi-route" d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="#dcb468" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <div id="pi-fogs" data-layout-ignore>
+        <div class="pi-fog" style="left:-200px;top:600px;width:1100px;height:700px;background:radial-gradient(closest-side,rgba(58,122,138,.18),transparent)"></div>
+        <div class="pi-fog" style="left:1100px;top:-200px;width:1100px;height:700px;background:radial-gradient(closest-side,rgba(143,211,184,.10),transparent)"></div>
+      </div>
+    </div>
+    <h2 id="pi-line">Sei pagine, un solo <em>dungeon</em></h2>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Continua l'arretramento iniziato sui membri: si parte stretti sulla stanza «Membri».
+      const zoom = function (s, cx, cy) { return { scale: s, x: 960 - s * cx, y: 540 - s * cy }; };
+      tl.fromTo('#pi-world', zoom(1.25, 1480, 750), Object.assign(zoom(1, 960, 540), { duration: 0.9, ease: 'power2.out' }), 0);
+      // La linea d'oro ripercorre il giro, e ogni stanza si accende quando la linea ci arriva.
+      const len = document.getElementById('pi-route').getTotalLength();
+      tl.fromTo('#pi-route', { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.2, ease: 'power1.inOut' }, 0.4);
+      [0.45, 0.75, 1.05, 1.5, 1.95, 2.5].forEach(function (t, i) {
+        tl.fromTo('#pi-r' + (i + 1) + ' .pi-lit', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, t);
+        tl.fromTo('#pi-r' + (i + 1), { borderColor: 'rgba(220,180,104,.55)' }, { borderColor: 'rgba(255,226,160,1)', duration: 0.3 }, t);
+      });
+      tl.fromTo('#pi-fogs', { x: 0 }, { x: 160, duration: 4, ease: 'none' }, 0);
+      tl.fromTo('#pi-line', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.2 }, 1.0);
+      tl.to('#pi-line', { opacity: 0, filter: 'blur(8px)', duration: 0.15 }, 3.2);
+      // La camera scende sul tavolo: lì si tira il dado.
+      tl.to('#pi-world', Object.assign(zoom(1.6, 940, 680), { duration: 0.7, ease: 'power3.in' }), 3.3);
+      window.__timelines['pianta'] = tl;
+    })();
+  </script>
+</template>

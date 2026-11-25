@@ -1,0 +1,117 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #120d0a; font-family: 'DM Sans', sans-serif; }
+    #desk-world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #desk-wood { position: absolute; inset: -200px; background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 240px),
+      linear-gradient(180deg, #1d1510, #140e0b 60%, #0f0b09); }
+    #desk-grain { position: absolute; inset: -200px; opacity: .35; mix-blend-mode: overlay; }
+    #desk-halo { position: absolute; left: -330px; top: 130px; width: 1100px; height: 1100px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,186,96,.42), rgba(255,150,70,.12) 38%, transparent 68%); }
+    /* candela */
+    #desk-candle { position: absolute; left: 170px; top: 610px; width: 96px; height: 230px; border-radius: 10px 10px 6px 6px;
+      background: linear-gradient(90deg, #cdbf9f, #f3ead6 45%, #d8caa9); box-shadow: 0 30px 60px rgba(0,0,0,.6); }
+    #desk-drip { position: absolute; left: 160px; top: 604px; width: 116px; height: 34px; border-radius: 50%; background: #efe5cf; }
+    #desk-wick { position: absolute; left: 216px; top: 572px; width: 4px; height: 36px; background: #2b2118; border-radius: 2px; }
+    #desk-flame { position: absolute; left: 194px; top: 468px; width: 48px; height: 110px; transform-origin: 50% 100%;
+      border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+      background: radial-gradient(ellipse at 50% 72%, #fffbe8 0 18%, #ffd47a 34%, #ff9b3d 62%, rgba(255,110,40,0) 74%); }
+    .desk-ember { position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%; background: #ffc46b; box-shadow: 0 0 8px #ff9b3d; }
+    /* scheda del personaggio */
+    #desk-sheet { position: absolute; left: 330px; top: 70px; width: 470px; height: 640px; transform: rotate(-6deg);
+      background: linear-gradient(170deg, #efe3c6, #e2d2ae); border-radius: 6px; padding: 34px 36px; color: #3b2d1d;
+      box-shadow: 0 30px 60px rgba(0,0,0,.55); }
+    #desk-sheet h3 { font-family: 'Cinzel'; font-size: 30px; margin: 0 0 6px; }
+    #desk-sheet p { font-size: 22px; margin: 0 0 22px; opacity: .75; }
+    .desk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .desk-stat { border: 2px solid #8a6a3e; border-radius: 8px; text-align: center; padding: 8px 0; font-family: 'Cinzel'; font-size: 18px; }
+    .desk-stat b { display: block; font-size: 34px; }
+    .desk-lines { margin-top: 26px; height: 220px; background: repeating-linear-gradient(180deg, transparent 0 34px, rgba(80,60,30,.35) 34px 36px); }
+    /* d20 sul tavolo */
+    #desk-die { position: absolute; left: 860px; top: 820px; width: 120px; height: 120px; transform: rotate(18deg); }
+    /* telefono */
+    #desk-phone { position: absolute; left: 820px; top: 330px; width: 300px; height: 600px; border-radius: 40px; transform: rotate(-4deg);
+      background: #0b0d0f; border: 3px solid #2a2f33; box-shadow: 0 30px 60px rgba(0,0,0,.6); }
+    #desk-phone-screen { position: absolute; inset: 14px; border-radius: 30px; background: radial-gradient(circle at 50% 30%, #173039, #0a1418); opacity: 0; }
+    #desk-notif { position: absolute; left: 26px; right: 26px; top: 120px; padding: 18px; border-radius: 18px; background: rgba(236,230,214,.96);
+      color: #0a1215; opacity: 0; }
+    #desk-notif small { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; color: #3a5560; margin-bottom: 8px; }
+    #desk-notif b { display: block; font-family: 'Cinzel'; font-size: 26px; line-height: 1.15; }
+    #desk-notif span { display: block; font-size: 18px; margin-top: 6px; color: #3a5560; }
+    /* portatile */
+    #desk-laptop { position: absolute; left: 1084px; top: 284px; width: 800px; height: 464px; border-radius: 22px; background: #15191c;
+      border: 2px solid #2c3337; box-shadow: 0 40px 80px rgba(0,0,0,.65); }
+    #desk-screen { position: absolute; left: 1100px; top: 300px; width: 768px; height: 432px; overflow: hidden; background: #0a1215; }
+    #desk-screen img { width: 768px; height: 432px; display: block; }
+    #desk-base { position: absolute; left: 1040px; top: 748px; width: 888px; height: 40px; border-radius: 0 0 30px 30px;
+      background: linear-gradient(180deg, #2a3034, #14181a); }
+    #desk-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 55%, transparent 45%, rgba(0,0,0,.62)); pointer-events: none; }
+  </style>
+  <div id="root" data-composition-id="desk" data-width="1920" data-height="1080">
+    <div id="desk-world">
+      <div id="desk-wood"></div>
+      <svg id="desk-grain" data-layout-ignore width="2320" height="1480"><filter id="desk-n"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.25" numOctaves="3" seed="7" /></filter><rect width="100%" height="100%" filter="url(#desk-n)" /></svg>
+      <div id="desk-halo"></div>
+      <div id="desk-sheet" data-layout-ignore>
+        <h3>Scheda del personaggio</h3>
+        <p>Aria · Ranger · Livello 5</p>
+        <div class="desk-stats">
+          <div class="desk-stat">FOR<b>10</b></div><div class="desk-stat">DES<b>17</b></div><div class="desk-stat">COS<b>13</b></div>
+          <div class="desk-stat">INT<b>12</b></div><div class="desk-stat">SAG<b>15</b></div><div class="desk-stat">CAR<b>8</b></div>
+        </div>
+        <div class="desk-lines"></div>
+      </div>
+      <svg id="desk-die" data-layout-ignore viewBox="0 0 100 100">
+        <polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#b98a3c" />
+        <polygon points="50,4 92,72 8,72" fill="#dcb468" />
+        <polygon points="50,4 8,28 8,72" fill="#9d7431" /><polygon points="50,4 92,28 92,72" fill="#c99c4f" />
+        <polygon points="8,72 92,72 50,96" fill="#8a6428" />
+        <text x="50" y="58" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="22" fill="#2a1d0c">20</text>
+      </svg>
+      <div id="desk-phone"><div id="desk-phone-screen"></div>
+        <div id="desk-notif"><small>DM Platform · ora</small><b>Stasera alle 21 · La Cripta</b><span>Il tavolo ti aspetta</span></div>
+      </div>
+      <div id="desk-laptop"></div>
+      <div id="desk-screen"><img src="assets/img/landing-oggi.png" alt="" /></div>
+      <div id="desk-base"></div>
+      <div id="desk-candle"></div><div id="desk-drip"></div><div id="desk-wick"></div>
+      <div id="desk-flame"></div>
+      <div id="desk-embers"></div>
+    </div>
+    <div id="desk-vignette"></div>
+  </div>
+  <script>
+    (function () {
+      const D = 6;
+      const tl = gsap.timeline({ paused: true });
+      // PRNG con seme fisso: le braci sono sempre le stesse a ogni render.
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(11);
+      const host = document.getElementById('desk-embers');
+      for (let i = 0; i < 14; i++) {
+        const e = document.createElement('i'); e.className = 'desk-ember'; host.appendChild(e);
+        const d = 1.4 + r() * 1.2, start = r() * d, cycles = Math.max(1, Math.floor((D - start) / d));
+        const x = 205 + r() * 30;
+        tl.fromTo(e, { x: x, y: 520, opacity: 0, scale: 0.5 + r() * 0.8 },
+          { keyframes: { opacity: [0, 1, 0.8, 0] }, x: x + (r() - 0.5) * 140, y: 520 - 260 - r() * 200, duration: d, ease: 'none', repeat: cycles - 1 }, start);
+      }
+      // Fiamma: tremolio finito, calcolato dalla durata.
+      tl.fromTo('#desk-flame', { scaleY: 1, scaleX: 1, rotation: -2 }, { scaleY: 1.12, scaleX: 0.92, rotation: 2, duration: 0.2, ease: 'sine.inOut', yoyo: true, repeat: Math.max(0, Math.floor(D / 0.2) - 1) }, 0);
+      tl.fromTo('#desk-halo', { opacity: 0.85 }, { opacity: 1, duration: 0.3, ease: 'sine.inOut', yoyo: true, repeat: Math.max(0, Math.floor(D / 0.3) - 1) }, 0);
+      // Camera: inquadratura larga → telefono → portatile → dentro lo schermo.
+      const W = '#desk-world';
+      tl.fromTo(W, { scale: 1.08, x: -80, y: -40 }, { scale: 1.12, x: -110, y: -50, duration: 0.9, ease: 'none' }, 0);
+      tl.fromTo('#desk-phone-screen', { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 0.8);
+      tl.fromTo('#desk-phone', { x: 0 }, { keyframes: { x: [0, -5, 5, -4, 4, 0] }, duration: 0.4, ease: 'none' }, 0.8);
+      tl.fromTo('#desk-notif', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, 0.95);
+      tl.to(W, { scale: 1.7, x: 960 - 1.7 * 970, y: 540 - 1.7 * 560, duration: 0.6, ease: 'expo.inOut' }, 0.9);
+      tl.to(W, { scale: 1.2, x: 960 - 1.2 * 1484, y: 540 - 1.2 * 540, duration: 0.6, ease: 'power2.inOut' }, 3.2);
+      tl.to(W, { scale: 2.5, x: 960 - 2.5 * 1484, y: 540 - 2.5 * 516, duration: 1.3, ease: 'expo.inOut' }, 4.1);
+      tl.fromTo(W, { filter: 'blur(0px)' }, { keyframes: { filter: ['blur(0px)', 'blur(6px)', 'blur(0px)'] }, duration: 1.3, ease: 'none' }, 4.1);
+      tl.to('#desk-vignette', { opacity: 0, duration: 0.8, ease: 'power2.inOut' }, 4.6);
+      window.__timelines['desk'] = tl;
+    })();
+  </script>
+</template>

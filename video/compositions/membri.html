@@ -1,0 +1,57 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: radial-gradient(ellipse at 50% 20%, #183038, #0a1215 70%); }
+    #me-world { position: absolute; inset: 0; transform-origin: 960px 540px; }
+    #me-eyebrow { position: absolute; left: 160px; top: 90px; font-size: 28px; letter-spacing: .18em; text-transform: uppercase; color: #dcb468; font-weight: 600; }
+    #me-title { position: absolute; left: 160px; top: 136px; font-family: 'Cinzel'; font-weight: 700; font-size: 96px; }
+    #me-rod { position: absolute; left: 140px; width: 1100px; top: 330px; height: 22px; border-radius: 11px; background: linear-gradient(180deg, #c08a45, #6b4520); }
+    .me-ban { position: absolute; top: 340px; width: 230px; height: 560px; transform-origin: 50% 0; padding: 50px 20px 0; text-align: center;
+      clip-path: polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%); box-shadow: inset 0 -30px 60px rgba(0,0,0,.35); }
+    .me-emb { width: 120px; height: 120px; margin: 0 auto 26px; border-radius: 50%; border: 4px solid #dcb468; display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel'; font-weight: 700; font-size: 52px; color: #f6e8c6; background: rgba(0,0,0,.25); }
+    .me-ban b { display: block; font-family: 'Cinzel'; font-size: 38px; color: #f6e8c6; margin-bottom: 10px; }
+    .me-ban span { display: block; font-size: 28px; color: #e8d6ae; }
+    #me-invite { position: absolute; left: 1310px; top: 330px; width: 470px; height: 560px; }
+    #me-scroll { position: absolute; left: 0; right: 0; top: 0; height: 520px; border-radius: 8px; padding: 46px 40px; transform-origin: 50% 0;
+      background: linear-gradient(180deg, #efe3c6, #e0cfa8); color: #2e2214; box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+    #me-scroll h3 { font-family: 'Cinzel'; font-size: 44px; margin: 0 0 18px; line-height: 1.1; }
+    #me-scroll p { font-size: 30px; line-height: 1.35; margin: 0; color: #4a3a26; }
+    #me-seal { position: absolute; left: 160px; top: 330px; width: 150px; height: 150px; }
+  </style>
+  <div id="root" data-composition-id="membri" data-width="1920" data-height="1080">
+    <div id="me-world">
+      <div id="me-eyebrow">Il party</div>
+      <h1 id="me-title">Compagni di viaggio</h1>
+      <div id="me-rod" data-layout-ignore></div>
+      <div class="me-ban" style="left:170px;background:linear-gradient(180deg,#8e3a2c,#5c2119)"><div class="me-emb">T</div><b>Tu</b><span>Dungeon Master</span></div>
+      <div class="me-ban" style="left:440px;background:linear-gradient(180deg,#2f5d68,#1b3a42)"><div class="me-emb">M</div><b>Marta</b><span>Giocatore</span></div>
+      <div class="me-ban" style="left:710px;background:linear-gradient(180deg,#3b4a2a,#252f1a)"><div class="me-emb">D</div><b>Davide</b><span>Giocatore</span></div>
+      <div class="me-ban" style="left:980px;background:linear-gradient(180deg,#4a3423,#2e2016)"><div class="me-emb">G</div><b>Giulia</b><span>Giocatore</span></div>
+      <div id="me-invite">
+        <div id="me-scroll"><h3>Invita un giocatore</h3><p>Il link vale 7 giorni e una sola persona.</p></div>
+        <svg id="me-seal" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#a3342a" /><circle cx="50" cy="50" r="32" fill="none" stroke="#6e1f18" stroke-width="4" />
+          <path d="M34 62 40 36 50 50 60 36 66 62z" fill="#dcb468" /></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Arriva dalla frustata del tavolo.
+      tl.fromTo('#me-world', { x: 1400, filter: 'blur(18px)' }, { x: 0, filter: 'blur(0px)', duration: 0.45, ease: 'expo.out' }, 0);
+      // Gli stendardi si srotolano dall'asta, uno dopo l'altro, con un'oscillazione da stoffa.
+      tl.fromTo('.me-ban', { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: 'elastic.out(1, 0.55)', stagger: 0.12 }, 0.35);
+      tl.fromTo('.me-ban', { rotation: 0 }, { keyframes: { rotation: [0, 1.5, -1, 0.5, 0] }, duration: 1.6, ease: 'none', stagger: 0.12 }, 0.9);
+      // L'invito si chiude con il sigillo di ceralacca.
+      tl.fromTo('#me-scroll', { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: 'power3.out' }, 1.2);
+      tl.fromTo('#me-seal', { scale: 2.4, opacity: 0, rotation: -25 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.35, ease: 'back.out(2.2)' }, 2.1);
+      tl.fromTo('#me-invite', { y: 0 }, { keyframes: { y: [0, 8, 0] }, duration: 0.2, ease: 'none' }, 2.35);
+      // La camera arretra: la pagina diventa una stanza della pianta del sito.
+      tl.to('#me-world', { scale: 0.18, x: 520, y: 210, duration: 1.1, ease: 'power2.inOut' }, 2.9);
+      window.__timelines['membri'] = tl;
+    })();
+  </script>
+</template>

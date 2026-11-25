@@ -1,0 +1,74 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 55%, #1c3a42, #0a1215 70%); }
+    #da-world { position: absolute; inset: 0; }
+    #da-floor { position: absolute; inset: -100px; background-image: linear-gradient(rgba(220,180,104,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(220,180,104,.10) 1px, transparent 1px); background-size: 112px 112px; }
+    #da-shadow { position: absolute; left: 960px; top: 760px; width: 360px; height: 60px; margin-left: -180px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.6), transparent); }
+    #da-die { position: absolute; left: 0; top: 0; width: 400px; height: 400px; margin: -200px 0 0 -200px; }
+    .da-num { opacity: 0; }
+    #da-flash { position: absolute; inset: 0; background: radial-gradient(circle at 960px 540px, rgba(255,236,190,.9), rgba(220,180,104,.3) 30%, transparent 60%); opacity: 0; }
+    #da-cracks { position: absolute; inset: 0; }
+    .da-spark { position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #ffe3a0; box-shadow: 0 0 12px #dcb468; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="dado" data-width="1920" data-height="1080">
+    <div id="da-world" data-layout-ignore>
+      <div id="da-floor"></div>
+      <div id="da-shadow"></div>
+      <svg id="da-die" viewBox="0 0 100 100">
+        <g id="da-faces">
+          <polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#b98a3c" />
+          <polygon id="da-top" points="50,4 92,72 8,72" fill="#dcb468" />
+          <polygon points="50,4 8,28 8,72" fill="#9d7431" /><polygon points="50,4 92,28 92,72" fill="#c99c4f" /><polygon points="8,72 92,72 50,96" fill="#8a6428" />
+        </g>
+        <g font-family="Cinzel" font-weight="700" font-size="24" text-anchor="middle" fill="#2a1d0c">
+          <text class="da-num" id="da-n7" x="50" y="58">7</text><text class="da-num" id="da-n14" x="50" y="58">14</text><text class="da-num" id="da-n3" x="50" y="58">3</text>
+          <text class="da-num" id="da-n11" x="50" y="58">11</text><text class="da-num" id="da-n1" x="50" y="58">1</text><text class="da-num" id="da-n9" x="50" y="58">9</text>
+          <text class="da-num" id="da-n16" x="50" y="58">16</text><text class="da-num" id="da-n20" x="50" y="58">20</text>
+        </g>
+      </svg>
+      <svg id="da-cracks" width="1920" height="1080" fill="none" stroke="rgba(236,230,214,.85)" stroke-width="3" stroke-linecap="round">
+        <path class="da-crack" d="M960 540 l-120 -60 l-90 10 l-140 -110 l-200 -30" /><path class="da-crack" d="M960 540 l140 -90 l60 -120 l180 -80" />
+        <path class="da-crack" d="M960 540 l170 70 l90 130 l220 60" /><path class="da-crack" d="M960 540 l-60 150 l-150 80 l-90 160" />
+        <path class="da-crack" d="M960 540 l-180 30 l-160 120" /><path class="da-crack" d="M960 540 l30 -200 l-40 -160" />
+      </svg>
+      <div id="da-sparks"></div>
+    </div>
+    <div id="da-flash"></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(20);
+      // Numeri che passano mentre il dado rotola: sempre gli stessi, a tempi fissi.
+      const show = function (id, t) { tl.set('.da-num', { opacity: 0 }, t); tl.set('#da-n' + id, { opacity: 1 }, t); };
+      // Primo lancio: rotola dall'angolo, due rimbalzi, si ferma sull'1.
+      tl.fromTo('#da-die', { x: -200, y: 300, rotation: 0, scale: 0.8 }, { keyframes: { x: [-200, 500, 760, 900, 960], y: [300, 620, 470, 560, 540] }, rotation: 1080, scale: 1, duration: 1.3, ease: 'power2.out' }, 0);
+      tl.fromTo('#da-shadow', { x: -1100, opacity: 0 }, { x: 0, opacity: 1, duration: 1.3, ease: 'power2.out' }, 0);
+      [[7, 0.1], [14, 0.35], [3, 0.6], [11, 0.85], [1, 1.1]].forEach(function (k) { show(k[0], k[1]); });
+      // L'1: il vetro si incrina, il mondo trema, poi silenzio.
+      tl.fromTo('.da-crack', { strokeDasharray: 700, strokeDashoffset: 700 }, { strokeDashoffset: 0, duration: 0.18, ease: 'power3.out', stagger: 0.02 }, 1.35);
+      tl.fromTo('#da-world', { x: 0 }, { keyframes: { x: [0, -14, 12, -8, 5, 0] }, duration: 0.3, ease: 'none' }, 1.35);
+      tl.fromTo('#da-top', { fill: '#dcb468' }, { fill: '#6e5a3a', duration: 0.2 }, 1.35);
+      // Rilancio.
+      tl.to('#da-die', { y: 470, scale: 1.12, duration: 0.25, ease: 'power2.out' }, 2.05);
+      tl.to('.da-crack', { opacity: 0, duration: 0.3 }, 2.1);
+      tl.to('#da-top', { fill: '#dcb468', duration: 0.2 }, 2.1);
+      tl.to('#da-die', { keyframes: { x: [960, 860, 1010, 960], y: [470, 400, 500, 540] }, rotation: '+=1440', scale: 1.15, duration: 1.0, ease: 'power3.out' }, 2.3);
+      [[9, 2.35], [16, 2.6], [3, 2.85], [20, 3.15]].forEach(function (k) { show(k[0], k[1]); });
+      // Il 20: lampo, il dado si accende d'oro, esplosione di scintille.
+      tl.fromTo('#da-flash', { opacity: 0 }, { keyframes: { opacity: [0, 1, 0.25] }, duration: 0.7, ease: 'none' }, 3.3);
+      tl.fromTo('#da-faces', { filter: 'brightness(1)' }, { filter: 'brightness(1.45)', duration: 0.25 }, 3.3);
+      tl.to('#da-n20', { fill: '#3a2408', duration: 0.25 }, 3.3);
+      tl.to('#da-die', { scale: 1.3, duration: 0.5, ease: 'back.out(2)' }, 3.3);
+      const host = document.getElementById('da-sparks');
+      for (let i = 0; i < 60; i++) {
+        const s = document.createElement('i'); s.className = 'da-spark'; host.appendChild(s);
+        const a = r() * Math.PI * 2, d = 180 + r() * 620;
+        tl.fromTo(s, { x: 960, y: 540, opacity: 1, scale: 0.6 + r() }, { x: 960 + Math.cos(a) * d, y: 540 + Math.sin(a) * d + 80, opacity: 0, duration: 1.2 + r() * 0.5, ease: 'expo.out', immediateRender: false }, 3.32 + r() * 0.08);
+      }
+      window.__timelines['dado'] = tl;
+    })();
+  </script>
+</template>

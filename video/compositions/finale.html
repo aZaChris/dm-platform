@@ -1,0 +1,52 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: radial-gradient(ellipse at 50% 50%, #1c3a42, #0a1215 70%); }
+    #fi-claim { position: absolute; left: 0; right: 0; top: 470px; text-align: center; font-family: 'Cinzel'; font-weight: 700; font-size: 104px; }
+    #fi-claim .w { display: inline-block; margin-right: .25em; }
+    #fi-claim em { font-style: normal; color: #dcb468; }
+    #fi-mark { position: absolute; left: 960px; top: 400px; width: 300px; height: 300px; margin: -150px 0 0 -150px; }
+    #fi-name { position: absolute; left: 0; right: 0; top: 590px; text-align: center; font-family: 'Cinzel'; font-weight: 700; font-size: 120px; letter-spacing: .03em; }
+    #fi-concept { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-size: 36px; color: #dcb468; font-weight: 600; letter-spacing: .08em; }
+    #fi-url { position: absolute; left: 0; right: 0; top: 830px; text-align: center; font-size: 32px; color: #8a9ba0; }
+    .fi-spark { position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #ffe3a0; box-shadow: 0 0 12px #dcb468; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="finale" data-width="1920" data-height="1080">
+    <h2 id="fi-claim"><span class="w">Ogni</span><span class="w">clic</span><span class="w">è</span><span class="w">un</span><span class="w"><em>incantesimo</em></span></h2>
+    <div id="fi-sparks" data-layout-ignore></div>
+    <svg id="fi-mark" viewBox="0 0 100 100" fill="none" stroke="#dcb468" stroke-width="2.6" stroke-linejoin="round">
+      <polygon class="fi-draw" points="50,4 92,28 92,72 50,96 8,72 8,28" /><polygon class="fi-draw" points="50,4 92,72 8,72" />
+      <path class="fi-draw" d="M8 28 50 72 92 28 M50 4v0 M8 72 50 96 92 72" />
+      <text id="fi-20" x="50" y="58" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="20" fill="#dcb468" stroke="none">20</text>
+    </svg>
+    <h1 id="fi-name">DM Platform</h1>
+    <p id="fi-concept">Concept · il frontend che verrà</p>
+    <p id="fi-url">dm-platform-steel.vercel.app</p>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(5);
+      // La frase, parola per parola, poi ferma.
+      tl.fromTo('#fi-claim .w', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.13, ease: 'power2.out', stagger: 0.09 }, 0.2);
+      tl.to('#fi-claim', { opacity: 0, filter: 'blur(8px)', duration: 0.2 }, 2.9);
+      // Le scintille convergono e disegnano il marchio (il d20).
+      const host = document.getElementById('fi-sparks');
+      for (let i = 0; i < 40; i++) {
+        const s = document.createElement('i'); s.className = 'fi-spark'; host.appendChild(s);
+        const a = r() * Math.PI * 2, d = 500 + r() * 500;
+        tl.fromTo(s, { x: 960 + Math.cos(a) * d, y: 400 + Math.sin(a) * d, opacity: 0 }, { keyframes: { opacity: [0, 1, 1, 0] }, x: 960 + (r() - 0.5) * 120, y: 400 + (r() - 0.5) * 120, duration: 0.8, ease: 'power3.in', immediateRender: false }, 3.0 + r() * 0.2);
+      }
+      tl.fromTo('.fi-draw', { strokeDasharray: 400, strokeDashoffset: 400 }, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.out', stagger: 0.08 }, 3.6);
+      tl.fromTo('#fi-20', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 4.2);
+      // Il nome entra con una tendina, poi «Concept» e l'indirizzo.
+      tl.fromTo('#fi-name', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.6, ease: 'power3.inOut' }, 4.3);
+      tl.fromTo('#fi-concept', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 4.65);
+      tl.fromTo('#fi-url', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 4.75);
+      window.__timelines['finale'] = tl;
+    })();
+  </script>
+</template>

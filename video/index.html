@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0a1215; }
+      #root { position: relative; width: 1920px; height: 1080px; }
+    </style>
+  </head>
+  <body>
+    <!-- «Stasera il sito si sveglia»: concept del frontend di DM Platform. Copione in SPEC.md. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="65" data-width="1920" data-height="1080">
+      <div id="desk" data-composition-id="desk" data-composition-src="compositions/desk.html" data-start="0" data-duration="6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="oggi" data-composition-id="oggi" data-composition-src="compositions/oggi.html" data-start="6" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="landing" data-composition-id="landing" data-composition-src="compositions/landing.html" data-start="11" data-duration="8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="accedi" data-composition-id="accedi" data-composition-src="compositions/accedi.html" data-start="19" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="panoramica" data-composition-id="panoramica" data-composition-src="compositions/panoramica.html" data-start="23" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="campagne" data-composition-id="campagne" data-composition-src="compositions/campagne.html" data-start="28" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="tavolo" data-composition-id="tavolo" data-composition-src="compositions/tavolo.html" data-start="33" data-duration="12" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="membri" data-composition-id="membri" data-composition-src="compositions/membri.html" data-start="45" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="pianta" data-composition-id="pianta" data-composition-src="compositions/pianta.html" data-start="49" data-duration="4" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="dado" data-composition-id="dado" data-composition-src="compositions/dado.html" data-start="53" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="finale" data-composition-id="finale" data-composition-src="compositions/finale.html" data-start="58" data-duration="7" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines['main'] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

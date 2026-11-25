@@ -1,0 +1,102 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: linear-gradient(180deg, #0d1a1f 0%, #0a1215 70%, #070d10 100%); }
+    #pa-hall { position: absolute; inset: 0; }
+    .pa-arch { position: absolute; bottom: 0; width: 380px; height: 820px; border-radius: 190px 190px 0 0; background: linear-gradient(180deg, #0f2027, #0a1418);
+      border: 2px solid rgba(220,180,104,.12); border-bottom: 0; }
+    .pa-torch { position: absolute; width: 44px; height: 100px; transform-origin: 50% 100%; border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+      background: radial-gradient(ellipse at 50% 72%, #fffbe8 0 16%, #ffd47a 34%, #ff9b3d 62%, rgba(255,110,40,0) 74%); }
+    .pa-halo { position: absolute; width: 760px; height: 760px; border-radius: 50%; background: radial-gradient(circle, rgba(255,170,80,.24), transparent 65%); }
+    .pa-ember { position: absolute; left: 0; top: 0; width: 5px; height: 5px; border-radius: 50%; background: #ffc46b; box-shadow: 0 0 8px #ff9b3d; }
+    #pa-in { position: absolute; inset: 0; background: radial-gradient(circle at 960px 760px, #fff2cf 0%, #ffd890 30%, #dcb468 60%, #7a5428 100%); }
+    #pa-eyebrow { position: absolute; left: 160px; top: 120px; font-size: 28px; letter-spacing: .18em; text-transform: uppercase; color: #dcb468; font-weight: 600; }
+    #pa-title { position: absolute; left: 160px; top: 170px; font-family: 'Cinzel'; font-weight: 700; font-size: 96px; }
+    #pa-title .w { display: inline-block; margin-right: .25em; }
+    #pa-sub { position: absolute; left: 160px; top: 300px; font-size: 34px; color: #c9cfca; }
+    .pa-card { position: absolute; top: 400px; border-radius: 20px; padding: 40px 44px; background: linear-gradient(180deg, rgba(24,48,56,.92), rgba(18,33,39,.95));
+      border: 1px solid rgba(220,180,104,.3); box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+    .pa-card h2 { font-family: 'Cinzel'; font-size: 40px; margin: 0 0 22px; color: #dcb468; }
+    #pa-adv { left: 160px; width: 760px; height: 560px; }
+    #pa-adv b { display: block; font-family: 'Cinzel'; font-size: 52px; margin-bottom: 20px; }
+    #pa-mini { position: relative; height: 250px; border-radius: 12px; overflow: hidden; background: #0f2a30;
+      background-image: linear-gradient(rgba(220,180,104,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(220,180,104,.12) 1px, transparent 1px); background-size: 40px 40px; }
+    #pa-minifog { position: absolute; left: -100px; top: -60px; width: 700px; height: 400px; border-radius: 50%; background: radial-gradient(closest-side, rgba(220,180,104,.35), transparent); }
+    .pa-tok { position: absolute; width: 34px; height: 34px; border-radius: 50%; border: 3px solid #ece6d6; }
+    #pa-open { display: inline-block; margin-top: 26px; padding: 16px 30px; border-radius: 12px; background: #dcb468; color: #1a1408; font-size: 30px; font-weight: 700; }
+    #pa-log { left: 1000px; width: 760px; height: 560px; }
+    .pa-entry { position: relative; font-size: 30px; padding: 16px 0; border-bottom: 1px solid #26373d; white-space: nowrap; }
+    .pa-entry em { font-style: normal; color: #dcb468; font-weight: 700; }
+    #pa-quill { position: absolute; left: 0; top: 0; width: 70px; height: 70px; }
+    #pa-link { position: absolute; left: 160px; top: 990px; font-size: 32px; font-weight: 600; color: #dcb468; }
+    #pa-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+  </style>
+  <div id="root" data-composition-id="panoramica" data-width="1920" data-height="1080">
+    <div id="pa-hall" data-layout-ignore>
+      <div class="pa-arch" style="left:60px"></div><div class="pa-arch" style="left:770px;opacity:.6"></div><div class="pa-arch" style="left:1480px"></div>
+      <div class="pa-halo" style="left:-150px;top:150px"></div><div class="pa-halo" style="left:1310px;top:150px"></div>
+      <div id="pa-t1" class="pa-torch" style="left:210px;top:420px"></div><div id="pa-t2" class="pa-torch" style="left:1666px;top:420px"></div>
+      <div id="pa-embers"></div>
+    </div>
+    <div id="pa-eyebrow">Il tuo spazio</div>
+    <h1 id="pa-title"><span class="w">Bentornato</span><span class="w">al</span><span class="w">tavolo.</span></h1>
+    <p id="pa-sub">Ogni grande storia inizia con un tiro di dado.</p>
+    <div id="pa-adv" class="pa-card"><h2>La tua prossima avventura</h2><b>La Corona di Cenere</b>
+      <div id="pa-mini"><div id="pa-minifog"></div>
+        <div class="pa-tok" style="left:120px;top:90px;background:#3a7a8a"></div><div class="pa-tok" style="left:300px;top:150px;background:#3a7a8a"></div><div class="pa-tok" style="left:520px;top:70px;background:#b5483a"></div></div>
+      <div id="pa-open">Apri il tavolo →</div></div>
+    <div id="pa-log" class="pa-card"><h2>Diario delle attività</h2>
+      <div class="pa-entry"><span class="pa-txt">Aria · Prova di Percezione · <em>17</em> · Successo</span></div>
+      <div class="pa-entry"><span class="pa-txt">Thorne · Attacco con l'ascia · <em>14</em></span></div>
+      <div class="pa-entry"><span class="pa-txt">Custode · Furtività · <em>20</em> · Critico</span></div>
+      <div class="pa-entry"><span class="pa-txt">Aria si sposta in col 6, riga 4</span></div>
+      <svg id="pa-quill" viewBox="0 0 64 64" fill="none" stroke="#ece6d6" stroke-width="3" stroke-linecap="round"><path d="M10 54 L40 24 C48 14 58 8 60 4 C56 6 50 16 40 24" /><path d="M10 54 l6-2" /></svg>
+    </div>
+    <div id="pa-link">Le tue campagne →</div>
+    <svg id="pa-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
+    <div id="pa-in"></div>
+  </div>
+  <script>
+    (function () {
+      const D = 5;
+      const tl = gsap.timeline({ paused: true });
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(41), host = document.getElementById('pa-embers');
+      [232, 1688].forEach(function (cx) {
+        for (let i = 0; i < 10; i++) {
+          const e = document.createElement('i'); e.className = 'pa-ember'; host.appendChild(e);
+          const d = 1.4 + r() * 1.2, start = r() * d, n = Math.max(1, Math.floor((D - start) / d)), x = cx - 10 + r() * 20;
+          tl.fromTo(e, { x: x, y: 460, opacity: 0 }, { keyframes: { opacity: [0, 1, 0.7, 0] }, x: x + (r() - 0.5) * 150, y: 460 - 280 - r() * 220, duration: d, ease: 'none', repeat: n - 1 }, start);
+        }
+      });
+      ['#pa-t1', '#pa-t2'].forEach(function (t, i) {
+        const c = 0.17 + i * 0.04;
+        tl.fromTo(t, { scaleY: 1, rotation: -3 }, { scaleY: 1.14, rotation: 3, duration: c, ease: 'sine.inOut', yoyo: true, repeat: Math.max(0, Math.floor(D / c) - 1) }, 0);
+      });
+      // La luce della porta si ritira e scopre la sala.
+      tl.fromTo('#pa-in', { opacity: 1 }, { opacity: 0, duration: 0.5, ease: 'power2.out' }, 0);
+      tl.fromTo('#pa-hall', { scale: 1.12 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, 0);
+      tl.fromTo('#pa-eyebrow', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.35);
+      tl.fromTo('#pa-title .w', { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.13, ease: 'power2.out', stagger: 0.067 }, 0.4);
+      tl.fromTo('#pa-sub', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.2 }, 0.75);
+      tl.fromTo('.pa-card', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'expo.out', stagger: 0.12 }, 0.9);
+      tl.fromTo('#pa-minifog', { x: 0, y: 0 }, { x: 260, y: 40, duration: D, ease: 'sine.inOut' }, 0);
+      // Il diario si scrive da solo, riga per riga, seguito da una penna d'oca.
+      const rows = [1.4, 2.0, 2.6, 3.1];
+      document.querySelectorAll('#pa-log .pa-txt').forEach(function (el, i) {
+        tl.fromTo(el, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.5, ease: 'power1.inOut' }, rows[i]);
+        tl.fromTo('#pa-quill', { x: 40, y: 112 + i * 76 }, { x: 40 + 620, y: 112 + i * 76, duration: 0.5, ease: 'power1.inOut', immediateRender: i === 0 }, rows[i]);
+      });
+      tl.to('#pa-quill', { opacity: 0, duration: 0.2 }, 3.65);
+      tl.fromTo('#pa-link', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 2.0);
+      // Clic su «Le tue campagne»: frustata orizzontale verso la biblioteca.
+      tl.fromTo('#pa-cursor', { x: 900, y: 1100 }, { x: 330, y: 1000, duration: 0.6, ease: 'power3.out' }, 3.6);
+      tl.to('#pa-cursor', { scale: 0.85, duration: 0.08 }, 4.3);
+      tl.to('#pa-cursor', { scale: 1, duration: 0.12 }, 4.38);
+      tl.to(['#pa-hall', '#pa-eyebrow', '#pa-title', '#pa-sub', '.pa-card', '#pa-link'], { x: -1400, filter: 'blur(18px)', duration: 0.35, ease: 'power3.in' }, 4.6);
+      window.__timelines['panoramica'] = tl;
+    })();
+  </script>
+</template>

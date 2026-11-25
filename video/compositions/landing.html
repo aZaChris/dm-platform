@@ -1,0 +1,154 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0a1215; font-family: 'DM Sans', sans-serif; color: #ece6d6; }
+    /* sfondo generato: pianta di dungeon in due piani di parallasse, nebbia, torce */
+    .ld-layer { position: absolute; left: -200px; top: -200px; width: 2320px; height: 2600px; }
+    #ld-grid { background-image: linear-gradient(rgba(220,180,104,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(220,180,104,.07) 1px, transparent 1px); background-size: 64px 64px; }
+    .ld-fog { position: absolute; border-radius: 50%; }
+    #ld-fog1 { left: -300px; top: 300px; width: 1400px; height: 900px; background: radial-gradient(closest-side, rgba(58,122,138,.30), transparent); }
+    #ld-fog2 { left: 900px; top: -200px; width: 1300px; height: 900px; background: radial-gradient(closest-side, rgba(220,180,104,.18), transparent); }
+    #ld-fog3 { left: 400px; top: 700px; width: 1600px; height: 700px; background: radial-gradient(closest-side, rgba(143,211,184,.10), transparent); }
+    .ld-torch { position: absolute; width: 40px; height: 90px; transform-origin: 50% 100%; border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+      background: radial-gradient(ellipse at 50% 72%, #fffbe8 0 16%, #ffd47a 34%, #ff9b3d 62%, rgba(255,110,40,0) 74%); }
+    .ld-halo { position: absolute; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(255,170,80,.22), transparent 65%); }
+    .ld-ember { position: absolute; left: 0; top: 0; width: 5px; height: 5px; border-radius: 50%; background: #ffc46b; box-shadow: 0 0 8px #ff9b3d; }
+    #ld-page { position: absolute; left: 0; top: 0; width: 1920px; height: 2160px; }
+    /* nav */
+    #ld-nav { position: absolute; left: 96px; right: 96px; top: 40px; height: 80px; display: flex; align-items: center; justify-content: space-between; }
+    #ld-logo { font-family: 'Cinzel'; font-weight: 700; font-size: 36px; display: flex; align-items: center; gap: 14px; }
+    #ld-links { display: flex; gap: 48px; font-size: 28px; font-weight: 600; }
+    #ld-navline { position: absolute; left: 96px; right: 96px; top: 130px; height: 2px; background: linear-gradient(90deg, transparent, #dcb468, transparent); transform-origin: 50% 50%; }
+    .ld-btn { display: inline-flex; align-items: center; gap: 12px; padding: 18px 34px; border-radius: 12px; background: #dcb468; color: #1a1408;
+      font-size: 30px; font-weight: 700; position: relative; overflow: hidden; }
+    .ld-shine { position: absolute; top: -20px; bottom: -20px; left: 0; width: 80px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); transform: skewX(-20deg); }
+    /* hero */
+    #ld-pill { position: absolute; left: 0; right: 0; top: 230px; text-align: center; }
+    #ld-pill span { display: inline-block; padding: 10px 22px; border: 1px solid rgba(220,180,104,.5); border-radius: 999px; font-size: 28px; color: #dcb468; background: rgba(10,18,21,.6); }
+    #ld-title { position: absolute; left: 0; right: 0; top: 320px; text-align: center; font-family: 'Cinzel'; font-weight: 700; font-size: 124px; line-height: 1.08; letter-spacing: .02em; }
+    #ld-title .l { display: inline-block; }
+    #ld-sub { position: absolute; left: 360px; right: 360px; top: 640px; text-align: center; font-size: 34px; line-height: 1.45; color: #c9cfca; }
+    #ld-sub .w { display: inline-block; margin-right: .26em; }
+    #ld-cta { position: absolute; left: 0; right: 0; top: 810px; text-align: center; }
+    /* funzioni */
+    #ld-fhead { position: absolute; left: 0; right: 0; top: 1240px; text-align: center; font-family: 'Cinzel'; font-weight: 700; font-size: 88px; }
+    .ld-scroll { position: absolute; left: 430px; top: 1420px; width: 1060px; height: 520px; }
+    .ld-paper { position: absolute; left: 30px; right: 30px; top: 30px; bottom: 30px; transform-origin: 50% 0; border-radius: 6px; padding: 60px 70px 0 360px;
+      background: linear-gradient(180deg, #efe3c6, #e0cfa8); color: #2e2214; box-shadow: 0 30px 70px rgba(0,0,0,.55); }
+    .ld-rod { position: absolute; left: 0; right: 0; height: 44px; border-radius: 22px; background: linear-gradient(180deg, #7a5428, #c08a45 45%, #6b4520); }
+    .ld-rod.top { top: 8px; } .ld-rod.bot { top: 8px; }
+    .ld-paper h3 { font-family: 'Cinzel'; font-size: 56px; line-height: 1.1; margin: 0 0 20px; }
+    .ld-paper p { font-size: 32px; line-height: 1.4; margin: 0; color: #4a3a26; }
+    .ld-icon { position: absolute; left: 70px; top: 80px; width: 240px; height: 240px; }
+    #ld-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+    #ld-zoom { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #dcb468; clip-path: inset(46px 96px 1000px 1488px round 12px); opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="landing" data-width="1920" data-height="1080">
+    <div id="ld-back" class="ld-layer"><div id="ld-grid" style="position:absolute;inset:0"></div>
+      <svg data-layout-ignore style="position:absolute;inset:0" width="2320" height="2600"><g id="ld-rooms" fill="none" stroke="rgba(220,180,104,.22)" stroke-width="6">
+        <path d="M200 300 h520 v380 h-520 z M720 480 h260 M980 360 h600 v460 h-600 z M1580 560 h300 M1880 420 h300 v520 h-300 z M560 680 v320 M300 1000 h700 v520 h-700 z M1300 820 v380 M1100 1200 h700 v600 h-700 z M600 1520 v300 M400 1820 h560 v420 h-560 z" />
+      </g></svg>
+    </div>
+    <div id="ld-fogs" class="ld-layer"><div id="ld-fog1" class="ld-fog"></div><div id="ld-fog2" class="ld-fog"></div><div id="ld-fog3" class="ld-fog"></div></div>
+    <div class="ld-halo" style="left:-200px;top:380px"></div><div class="ld-halo" style="left:1420px;top:380px"></div>
+    <div id="ld-t1" class="ld-torch" style="left:130px;top:640px"></div><div id="ld-t2" class="ld-torch" style="left:1750px;top:640px"></div>
+    <div id="ld-embers"></div>
+    <div id="ld-page">
+      <div id="ld-nav">
+        <div id="ld-logo"><svg width="34" height="34" viewBox="0 0 24 24"><path d="M4 21V11a8 8 0 0 1 16 0v10h-5v-8a3 3 0 0 0-6 0v8z" fill="#dcb468" /></svg>DM Platform</div>
+        <div id="ld-links"><span>Tavolo</span><span>Funzioni</span><span>Dadi</span><span>Domande</span></div>
+        <div class="ld-btn" id="ld-navbtn">Crea il tuo tavolo →<i class="ld-shine"></i></div>
+      </div>
+      <div id="ld-navline"></div>
+      <div id="ld-pill"><span>Invito valido 7 giorni</span></div>
+      <h1 id="ld-title"></h1>
+      <p id="ld-sub"></p>
+      <div id="ld-cta"><div class="ld-btn" id="ld-ctabtn">Crea il tuo tavolo →<i class="ld-shine"></i></div></div>
+      <h2 id="ld-fhead">Cosa fa il tavolo.</h2>
+      <div id="ld-s1" class="ld-scroll"><div class="ld-paper">
+        <svg class="ld-icon" viewBox="0 0 100 100" fill="none" stroke="#7a5428" stroke-width="4" stroke-linejoin="round"><path class="ld-draw" d="M12 22 38 12 62 22 88 12v66L62 88 38 78 12 88z M38 12v66 M62 22v66 M24 40h8 M46 50l6 6m0-6-6 6 M70 34c4 8 4 16 0 24" /></svg>
+        <h3>Carica la mappa del tavolo</h3><p>Gli altri la vedono comparire senza ricaricare la pagina.</p></div>
+        <div class="ld-rod top"></div><div class="ld-rod bot"></div></div>
+      <div id="ld-s2" class="ld-scroll"><div class="ld-paper">
+        <svg class="ld-icon" viewBox="0 0 100 100" fill="none" stroke="#7a5428" stroke-width="4"><path class="ld-draw" d="M10 10h80v80H10z M10 37h80 M10 63h80 M37 10v80 M63 10v80" /><circle class="ld-draw" cx="50" cy="50" r="11" fill="#3a7a8a" stroke="#ece6d6" /></svg>
+        <h3>Sposta i token sulla griglia</h3><p>Il token si aggancia alla cella al rilascio.</p></div>
+        <div class="ld-rod top"></div><div class="ld-rod bot"></div></div>
+      <div id="ld-s3" class="ld-scroll"><div class="ld-paper">
+        <svg class="ld-icon" viewBox="0 0 100 100" fill="none" stroke="#7a5428" stroke-width="4"><path class="ld-draw" d="M18 20h64v60H18z M18 20l32 28 32-28" /><circle class="ld-draw" cx="70" cy="72" r="16" fill="#b5483a" stroke="#7a2a20" /></svg>
+        <h3>Invita i giocatori con un link</h3><p>Il link vale 7 giorni e una sola persona.</p></div>
+        <div class="ld-rod top"></div><div class="ld-rod bot"></div></div>
+    </div>
+    <svg id="ld-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
+    <div id="ld-zoom"></div>
+  </div>
+  <script>
+    (function () {
+      const D = 8;
+      const tl = gsap.timeline({ paused: true });
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(23);
+      // Braci dalle due torce.
+      const host = document.getElementById('ld-embers');
+      [150, 1770].forEach(function (cx) {
+        for (let i = 0; i < 12; i++) {
+          const e = document.createElement('i'); e.className = 'ld-ember'; host.appendChild(e);
+          const d = 1.5 + r() * 1.3, start = r() * d, n = Math.max(1, Math.floor((D - start) / d)), x = cx - 10 + r() * 20;
+          tl.fromTo(e, { x: x, y: 680, opacity: 0, scale: 0.5 + r() }, { keyframes: { opacity: [0, 1, 0.7, 0] }, x: x + (r() - 0.5) * 160, y: 680 - 300 - r() * 260, duration: d, ease: 'none', repeat: n - 1 }, start);
+        }
+      });
+      ['#ld-t1', '#ld-t2'].forEach(function (t, i) {
+        tl.fromTo(t, { scaleY: 1, rotation: -3 }, { scaleY: 1.15, rotation: 3, duration: 0.18 + i * 0.03, ease: 'sine.inOut', yoyo: true, repeat: Math.max(0, Math.floor(D / (0.18 + i * 0.03)) - 1) }, 0);
+      });
+      // Parallasse e nebbia: il mondo dietro si muove, i titoli atterrati restano fermi.
+      tl.fromTo('#ld-back', { x: 0, y: 0 }, { x: -120, y: -260, duration: D, ease: 'none' }, 0);
+      tl.fromTo('#ld-fogs', { x: 0, y: 0 }, { x: 160, y: -340, duration: D, ease: 'none' }, 0);
+      tl.fromTo('#ld-fog1', { xPercent: 0 }, { xPercent: 18, duration: D, ease: 'sine.inOut' }, 0);
+      tl.fromTo('#ld-fog2', { xPercent: 0 }, { xPercent: -14, duration: D, ease: 'sine.inOut' }, 0);
+      tl.fromTo('#ld-rooms', { strokeDasharray: 9000, strokeDashoffset: 9000 }, { strokeDashoffset: 0, duration: 3.2, ease: 'power2.out' }, 0);
+      // Entrata: il mondo arriva dal bagliore del clic precedente.
+      tl.fromTo('#ld-page', { scale: 1.06, filter: 'blur(10px)' }, { scale: 1, filter: 'blur(0px)', duration: 0.6, ease: 'expo.out' }, 0);
+      tl.fromTo('#ld-navline', { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: 'expo.out' }, 0.2);
+      tl.fromTo('#ld-pill', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.3);
+      // Titolo forgiato: ogni lettera nasce oro incandescente e si raffredda in avorio, un frame dopo l'altra.
+      const title = document.getElementById('ld-title');
+      ['Tavolo virtuale', 'per giochi di ruolo'].forEach(function (line, li) {
+        if (li) title.appendChild(document.createElement('br'));
+        line.split('').forEach(function (ch) { const s = document.createElement('span'); s.className = 'l'; s.textContent = ch === ' ' ? ' ' : ch; title.appendChild(s); });
+      });
+      tl.fromTo('#ld-title .l', { opacity: 0, scale: 1.5, color: '#fff2c8', textShadow: '0 0 28px rgba(255,190,90,.95)' },
+        { opacity: 1, scale: 1, duration: 0.35, ease: 'expo.out', stagger: 0.033 }, 0.45);
+      tl.to('#ld-title .l', { color: '#ece6d6', textShadow: '0 0 0px rgba(255,190,90,0)', duration: 0.6, ease: 'power2.out', stagger: 0.033 }, 0.85);
+      const sub = document.getElementById('ld-sub');
+      'Il DM carica la mappa e crea i token, i giocatori entrano con un invito e muovono i loro.'.split(' ').forEach(function (w) { const s = document.createElement('span'); s.className = 'w'; s.textContent = w; sub.appendChild(s); });
+      tl.fromTo('#ld-sub .w', { opacity: 0, color: '#4a5a60' }, { opacity: 1, color: '#c9cfca', duration: 0.2, ease: 'power2.out', stagger: 0.05 }, 1.7);
+      tl.fromTo('#ld-cta', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.4)' }, 2.3);
+      tl.fromTo('.ld-shine', { x: -120 }, { x: 520, duration: 0.9, ease: 'power2.inOut', stagger: 0.2 }, 2.6);
+      // Scorrimento verso le funzioni: la pagina sale, la nav resta.
+      tl.to('#ld-page', { y: -1080, duration: 0.8, ease: 'power2.inOut' }, 3.2);
+      tl.to(['#ld-nav', '#ld-navline'], { y: 1080, duration: 0.8, ease: 'power2.inOut' }, 3.2);
+      tl.fromTo('#ld-fhead', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.2, ease: 'power2.out' }, 3.8);
+      // Le funzioni si srotolano una alla volta, come pergamene, e si arrotolano per lasciare il posto.
+      ['#ld-s1', '#ld-s2', '#ld-s3'].forEach(function (s, i) {
+        const t0 = 3.9 + i * 1.12;
+        tl.fromTo(s + ' .ld-paper', { scaleY: 0.02 }, { scaleY: 1, duration: 0.45, ease: 'power3.out' }, t0);
+        tl.fromTo(s + ' .bot', { y: 0 }, { y: 452, duration: 0.45, ease: 'power3.out' }, t0);
+        tl.fromTo(s + ' .top', { opacity: 0 }, { opacity: 1, duration: 0.1 }, t0);
+        tl.fromTo(s + ' .bot', { opacity: 0 }, { opacity: 1, duration: 0.1 }, t0);
+        tl.fromTo(s + ' .ld-draw', { strokeDasharray: 400, strokeDashoffset: 400 }, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.out' }, t0 + 0.2);
+        if (i < 2) {
+          tl.to(s + ' .ld-paper', { scaleY: 0.02, duration: 0.25, ease: 'power3.in' }, t0 + 0.95);
+          tl.to(s + ' .bot', { y: 0, duration: 0.25, ease: 'power3.in' }, t0 + 0.95);
+          tl.to(s, { opacity: 0, duration: 0.08 }, t0 + 1.18);
+        }
+      });
+      // Il cursore clicca «Crea il tuo tavolo» nella nav: lo zoom attraverso il pulsante apre la scena dopo.
+      tl.fromTo('#ld-cursor', { x: 1900, y: 900 }, { x: 1700, y: 92, duration: 0.6, ease: 'power3.out' }, 6.6);
+      tl.to('#ld-cursor', { scale: 0.85, duration: 0.08 }, 7.25);
+      tl.to('#ld-cursor', { scale: 1, duration: 0.12 }, 7.33);
+      tl.fromTo('#ld-zoom', { opacity: 0 }, { opacity: 1, duration: 0.05, immediateRender: false }, 7.3);
+      tl.fromTo('#ld-zoom', { clipPath: 'inset(46px 96px 1000px 1488px round 12px)' }, { clipPath: 'inset(0px 0px 0px 0px round 0px)', duration: 0.5, ease: 'power3.in', immediateRender: false }, 7.35);
+      window.__timelines['landing'] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,79 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: radial-gradient(ellipse at 50% 50%, #183038 0%, #0d1a1f 45%, #070d10 100%); }
+    #ac-stone { position: absolute; inset: 0; opacity: .25; mix-blend-mode: overlay; }
+    #ac-circle { position: absolute; left: 960px; top: 540px; width: 1000px; height: 1000px; margin: -500px 0 0 -500px; }
+    #ac-outer, #ac-inner { transform-origin: 500px 500px; }
+    #ac-card { position: absolute; left: 660px; top: 250px; width: 600px; height: 580px; border-radius: 20px; padding: 48px 56px;
+      background: linear-gradient(180deg, rgba(18,33,39,.94), rgba(13,26,31,.96)); border: 1px solid rgba(220,180,104,.45);
+      box-shadow: 0 40px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06); }
+    #ac-card h1 { font-family: 'Cinzel'; font-weight: 700; font-size: 64px; margin: 0 0 10px; text-align: center; }
+    #ac-card .sub { text-align: center; font-size: 28px; color: #8a9ba0; margin: 0 0 34px; }
+    .ac-field { height: 76px; border-radius: 12px; border: 1px solid #26373d; background: #0a1215; margin-bottom: 20px; padding: 0 24px;
+      display: flex; align-items: center; font-size: 30px; overflow: hidden; white-space: nowrap; }
+    .ac-field span { display: inline-block; }
+    #ac-btn { height: 80px; border-radius: 12px; background: #dcb468; color: #1a1408; font-size: 32px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+    #ac-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+    #ac-light { position: absolute; inset: 0; background: radial-gradient(circle at 960px 760px, #fff2cf 0%, #ffd890 30%, #dcb468 60%, #7a5428 100%); clip-path: circle(0px at 960px 762px); }
+    #ac-in { position: absolute; inset: 0; background: #dcb468; }
+  </style>
+  <div id="root" data-composition-id="accedi" data-width="1920" data-height="1080">
+    <svg id="ac-stone" data-layout-ignore width="1920" height="1080"><filter id="ac-n"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="3" /></filter><rect width="100%" height="100%" filter="url(#ac-n)" /></svg>
+    <svg id="ac-circle" data-layout-ignore viewBox="0 0 1000 1000" fill="none">
+      <g id="ac-outer" stroke="#dcb468" stroke-width="3">
+        <circle class="ac-draw" cx="500" cy="500" r="480" />
+        <circle class="ac-draw" cx="500" cy="500" r="440" stroke-dasharray="4 18" />
+        <g id="ac-runes"></g>
+      </g>
+      <g id="ac-inner" stroke="#8fd3b8" stroke-width="2" opacity=".7">
+        <circle class="ac-draw" cx="500" cy="500" r="400" />
+        <polygon class="ac-draw" points="500,110 838,695 162,695" />
+        <polygon class="ac-draw" points="500,890 162,305 838,305" />
+      </g>
+    </svg>
+    <div id="ac-card">
+      <h1>Accedi</h1>
+      <p class="sub">DM Platform</p>
+      <div class="ac-field"><span id="ac-email">tu@esempio.it</span></div>
+      <div class="ac-field"><span id="ac-pass">••••••••</span></div>
+      <div id="ac-btn">Entra</div>
+    </div>
+    <div id="ac-light"></div>
+    <div id="ac-in"></div>
+    <svg id="ac-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
+  </div>
+  <script>
+    (function () {
+      const D = 4;
+      const tl = gsap.timeline({ paused: true });
+      // Segni runici: tratti geometrici attorno al cerchio (niente font esterni).
+      const g = document.getElementById('ac-runes');
+      for (let i = 0; i < 24; i++) {
+        const a = (i / 24) * Math.PI * 2, x = 500 + Math.cos(a) * 460, y = 500 + Math.sin(a) * 460;
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', i % 3 === 0 ? 'M-8 -10 L0 10 L8 -10' : i % 3 === 1 ? 'M-6 -10 V10 M-6 0 L6 -10' : 'M0 -10 V10 M-7 -3 H7');
+        p.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + ((a * 180) / Math.PI + 90).toFixed(1) + ')');
+        p.setAttribute('class', 'ac-draw'); g.appendChild(p);
+      }
+      // Entrata: l'oro dello zoom precedente si dissolve e scopre il portale.
+      tl.fromTo('#ac-in', { opacity: 1 }, { opacity: 0, duration: 0.4, ease: 'power2.out' }, 0);
+      tl.fromTo('.ac-draw', { strokeDasharray: 3200, strokeDashoffset: 3200 }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.out', stagger: 0.01 }, 0.1);
+      tl.fromTo('#ac-outer', { rotation: 0 }, { rotation: 40, duration: D, ease: 'none' }, 0);
+      tl.fromTo('#ac-inner', { rotation: 0 }, { rotation: -60, duration: D, ease: 'none' }, 0);
+      tl.fromTo('#ac-card', { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'expo.out' }, 0.35);
+      // Email e password si scrivono una lettera alla volta.
+      tl.fromTo('#ac-email', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.9, ease: 'steps(13)' }, 1.0);
+      tl.fromTo('#ac-pass', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.5, ease: 'steps(8)' }, 2.0);
+      tl.fromTo('#ac-cursor', { x: 1300, y: 1000 }, { x: 960, y: 770, duration: 0.6, ease: 'power3.out' }, 2.2);
+      tl.to('#ac-cursor', { scale: 0.85, duration: 0.08 }, 2.85);
+      tl.to('#ac-cursor', { scale: 1, duration: 0.12 }, 2.93);
+      // Clic su «Entra»: le rune si accendono e la porta di luce si apre dal pulsante.
+      tl.to('#ac-outer', { stroke: '#fff2cf', duration: 0.2 }, 2.9);
+      tl.fromTo('#ac-light', { clipPath: 'circle(0px at 960px 762px)' }, { clipPath: 'circle(2300px at 960px 762px)', duration: 0.8, ease: 'power3.in', immediateRender: false }, 3.0);
+      window.__timelines['accedi'] = tl;
+    })();
+  </script>
+</template>

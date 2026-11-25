@@ -1,0 +1,178 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6; background: #0a1215; }
+    #tv-world { position: absolute; inset: 0; }
+    .tv-fog { position: absolute; border-radius: 50%; }
+    #tv-parch { position: absolute; inset: 0; background: #e9dcbc; background-image: linear-gradient(rgba(122,84,40,.25) 2px, transparent 2px), linear-gradient(90deg, rgba(122,84,40,.25) 2px, transparent 2px); background-size: 156px 156px; }
+    #tv-verbs { position: absolute; left: 96px; top: 36px; height: 90px; width: 1100px; }
+    .tv-verb { position: absolute; left: 0; top: 0; font-family: 'Cinzel'; font-weight: 700; font-size: 72px; color: #ece6d6; opacity: 0; }
+    .tv-verb em { font-style: normal; color: #dcb468; }
+    #tv-map { position: absolute; left: 96px; top: 150px; width: 1120px; height: 840px; border-radius: 14px; overflow: hidden;
+      background: #0d1a1f; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 2px rgba(220,180,104,.35); }
+    .tv-cell { position: absolute; width: 70px; height: 70px; }
+    #tv-gridlines { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px); background-size: 70px 70px; }
+    .tv-trail { position: absolute; width: 70px; height: 70px; background: radial-gradient(circle, rgba(255,214,140,.75), rgba(220,180,104,.15) 70%); opacity: 0; }
+    .tv-tok { position: absolute; left: 0; top: 0; width: 56px; height: 56px; margin: 7px; border-radius: 50%; border: 3px solid #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 26px; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.6); }
+    #tv-ring { position: absolute; left: 0; top: 0; width: 84px; height: 84px; margin: -7px; border-radius: 50%; border: 4px dashed #8fd3b8; opacity: 0; }
+    #tv-tools { position: absolute; left: 96px; top: 1000px; display: flex; gap: 12px; }
+    .tv-tool { padding: 10px 22px; border-radius: 10px; border: 1px solid #26373d; font-size: 28px; font-weight: 600; color: #8a9ba0; background: #0d1a1f; }
+    .tv-tool.on { color: #1a1408; background: #dcb468; border-color: #dcb468; }
+    #tv-side { position: absolute; left: 1270px; top: 150px; width: 554px; }
+    .tv-card { position: absolute; left: 0; width: 554px; border-radius: 16px; padding: 22px 26px; background: #122127; border: 1px solid #26373d; }
+    .tv-card h3 { font-family: 'Cinzel'; font-size: 30px; color: #dcb468; margin: 0 0 14px; letter-spacing: .06em; }
+    #tv-init { top: 0; height: 330px; }
+    #tv-round { font-size: 28px; color: #8a9ba0; position: absolute; right: 26px; top: 26px; }
+    .tv-row { position: absolute; top: 0; left: 26px; right: 26px; height: 70px; border-radius: 10px; background: #0d1a1f; display: flex; align-items: center; gap: 16px; padding: 0 18px; font-size: 30px; font-weight: 600; }
+    .tv-row .dot { width: 22px; height: 22px; border-radius: 50%; }
+    .tv-row b { margin-left: auto; font-size: 34px; color: #dcb468; }
+    #tv-chat { top: 350px; height: 400px; overflow: hidden; }
+    .tv-msg { position: absolute; left: 26px; right: 26px; border-radius: 10px; padding: 12px 16px; background: #0d1a1f; font-size: 28px; line-height: 1.3; }
+    .tv-msg small { display: block; font-size: 22px; color: #8a9ba0; margin-bottom: 2px; }
+    .tv-msg small b { color: #ece6d6; }
+    #tv-roll, #tv-whisper, #tv-round { opacity: 0; }
+    #tv-roll { background: #183038; border-left: 4px solid #dcb468; }
+    #tv-roll em { font-style: normal; color: #dcb468; font-weight: 700; }
+    #tv-whisper { border: 2px dashed #8fd3b8; }
+    #tv-whisper small i { font-style: italic; color: #8fd3b8; }
+    .tv-smoke { position: absolute; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(143,211,184,.45), transparent 70%); opacity: 0; }
+    #tv-dice { top: 770px; height: 110px; display: flex; align-items: center; justify-content: center; }
+    #tv-rollbtn { padding: 18px 40px; border-radius: 12px; background: #dcb468; color: #1a1408; font-size: 32px; font-weight: 700; }
+    #tv-d20 { position: absolute; left: 0; top: 0; width: 130px; height: 130px; opacity: 0; }
+    .tv-spark { position: absolute; left: 0; top: 0; width: 7px; height: 7px; border-radius: 50%; background: #ffe3a0; box-shadow: 0 0 10px #dcb468; opacity: 0; }
+    #tv-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+  </style>
+  <div id="root" data-composition-id="tavolo" data-width="1920" data-height="1080">
+    <div id="tv-world">
+      <div id="tv-fogs" data-layout-ignore>
+        <div class="tv-fog" style="left:-300px;top:500px;width:1300px;height:800px;background:radial-gradient(closest-side,rgba(58,122,138,.22),transparent)"></div>
+        <div class="tv-fog" style="left:900px;top:-300px;width:1300px;height:800px;background:radial-gradient(closest-side,rgba(220,180,104,.12),transparent)"></div>
+      </div>
+      <div id="tv-verbs">
+        <div class="tv-verb" id="tv-v1"><em>Tira</em> il d20</div>
+        <div class="tv-verb" id="tv-v2"><em>Muovi</em> il token</div>
+        <div class="tv-verb" id="tv-v3"><em>Sussurra</em> al DM</div>
+        <div class="tv-verb" id="tv-v4">L'<em>iniziativa</em> si ordina</div>
+      </div>
+      <div id="tv-map" data-layout-ignore><div id="tv-cells"></div><div id="tv-trails"></div><div id="tv-gridlines"></div>
+        <div class="tv-tok" id="tv-a" style="background:#3a7a8a">A<div id="tv-ring"></div></div>
+        <div class="tv-tok" id="tv-t" style="background:#3a7a8a">T</div>
+        <div class="tv-tok" id="tv-c" style="background:#b5483a">C</div>
+      </div>
+      <div id="tv-tools"><span class="tv-tool">Mappa a celle</span><span class="tv-tool on">Pennello</span><span class="tv-tool">Riempimento</span><span class="tv-tool">Gomma</span></div>
+      <div id="tv-side">
+        <div class="tv-card" id="tv-init"><h3>Iniziativa</h3><div id="tv-round">Round 1 · turno di Aria</div>
+          <div class="tv-row" id="tv-ra"><span class="dot" style="background:#3a7a8a"></span>Aria<b>18</b></div>
+          <div class="tv-row" id="tv-rt"><span class="dot" style="background:#3a7a8a"></span>Thorne<b>15</b></div>
+          <div class="tv-row" id="tv-rc"><span class="dot" style="background:#b5483a"></span>Custode<b>12</b></div>
+        </div>
+        <div class="tv-card" id="tv-chat"><h3>Chat</h3>
+          <div class="tv-msg" id="tv-m1" style="top:70px"><small><b>Thorne</b> · 21:04</small>Pronti a scendere?</div>
+          <div class="tv-msg" id="tv-roll" style="top:170px"><small><b>Aria</b> · Prova di Percezione</small>17 + 3 = <em>20</em> · Successo</div>
+          <div class="tv-msg" id="tv-whisper" style="top:270px"><small><b>Custode</b> · <i>privato per te</i></small>C'è una trappola oltre la porta.</div>
+        </div>
+        <div class="tv-card" id="tv-dice"><div id="tv-rollbtn">Tira d20</div></div>
+      </div>
+      <div id="tv-smokes" data-layout-ignore></div>
+      <svg id="tv-d20" viewBox="0 0 100 100" data-layout-ignore>
+        <polygon points="50,4 92,28 92,72 50,96 8,72 8,28" fill="#b98a3c" /><polygon points="50,4 92,72 8,72" fill="#dcb468" />
+        <polygon points="50,4 8,28 8,72" fill="#9d7431" /><polygon points="50,4 92,28 92,72" fill="#c99c4f" /><polygon points="8,72 92,72 50,96" fill="#8a6428" />
+        <text x="50" y="58" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="22" fill="#2a1d0c">17</text>
+      </svg>
+      <div id="tv-sparks" data-layout-ignore></div>
+    </div>
+    <div id="tv-parch" data-layout-ignore></div>
+    <svg id="tv-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
+  </div>
+  <script>
+    (function () {
+      const D = 12, C = 70, MX = 96, MY = 150;
+      const tl = gsap.timeline({ paused: true });
+      function rng(s) { return function () { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      const r = rng(77);
+      // Mappa a celle con l'alfabeto dell'app: . vuoto, f pavimento, w muro, d porta, a acqua (colori di lib/cells.ts).
+      const COL = { f: '#6d6248', w: '#1a2226', d: '#a8743a', a: '#2f6f8f' };
+      const MAP = [
+        'wwwwwwwww.......', 'wfffffffw..aaa..', 'wfffffffw.aaaaa.', 'wffffffffdaaaaa.', 'wfffffffw.aaaa..', 'wwwwdwwww.......',
+        '....f.....wwwwww', '....ffffffdffffw', '....f.....wffffw', 'wwwwdwww..wffffw', 'wffffffw..wffffw', 'wwwwwwww..wwwwww'];
+      const cells = document.getElementById('tv-cells'), painted = [];
+      MAP.forEach(function (row, y) { row.split('').forEach(function (k, x) {
+        if (k === '.') return;
+        const c = document.createElement('i'); c.className = 'tv-cell'; c.style.left = x * C + 'px'; c.style.top = y * C + 'px'; c.style.background = COL[k];
+        if (k === 'w') c.style.boxShadow = 'inset 0 -6px 0 rgba(0,0,0,.35)';
+        cells.appendChild(c); painted.push(c);
+      }); });
+      const at = function (col, row) { return { x: col * C, y: row * C }; };
+      // 0: la pagina a quadretti del libro diventa la mappa.
+      tl.fromTo('#tv-parch', { opacity: 1 }, { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, 0);
+      tl.fromTo('#tv-world', { scale: 1.15 }, { scale: 1, duration: 0.9, ease: 'expo.out' }, 0);
+      tl.fromTo(painted, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(2)', stagger: 0.008 }, 0.4);
+      tl.fromTo('#tv-fogs', { x: 0 }, { x: 220, duration: D, ease: 'none' }, 0);
+      // I token atterrano.
+      [['#tv-a', 3, 2], ['#tv-t', 5, 3], ['#tv-c', 13, 8]].forEach(function (k, i) {
+        const p = at(k[1], k[2]);
+        tl.fromTo(k[0], { x: p.x, y: p.y - 160, scale: 1.6, opacity: 0 }, { x: p.x, y: p.y, scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(1.8)' }, 1.6 + i * 0.12);
+      });
+      tl.fromTo('#tv-side .tv-card', { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.5, ease: 'expo.out', stagger: 0.1 }, 0.6);
+      tl.fromTo('#tv-tools', { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.5);
+      // Ordine d'iniziativa di partenza: mescolato.
+      const slot = function (i) { return 70 + i * 82; };
+      gsap.set('#tv-rc', { y: slot(0) }); gsap.set('#tv-ra', { y: slot(1) }); gsap.set('#tv-rt', { y: slot(2) });
+      // Ogni verbo: titolo per sfocatura, poi esce quando arriva il successivo.
+      const verbs = [['#tv-v1', 2.6], ['#tv-v2', 5.2], ['#tv-v3', 7.6], ['#tv-v4', 9.5]];
+      verbs.forEach(function (v, i) {
+        tl.fromTo(v[0], { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.2, ease: 'power2.out' }, v[1]);
+        if (i < 3) tl.to(v[0], { opacity: 0, filter: 'blur(8px)', duration: 0.15 }, verbs[i + 1][1] - 0.18);
+      });
+      // TIRA: clic su «Tira d20», il dado vola nella chat e diventa il tiro.
+      tl.fromTo('#tv-cursor', { x: 1900, y: 1100 }, { x: 1560, y: 950, duration: 0.6, ease: 'power3.out' }, 2.7);
+      tl.to('#tv-cursor', { scale: 0.85, duration: 0.08 }, 3.35); tl.to('#tv-cursor', { scale: 1, duration: 0.12 }, 3.43);
+      tl.fromTo('#tv-d20', { x: 1482, y: 860, opacity: 0, rotation: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.15, immediateRender: false }, 3.4);
+      tl.to('#tv-d20', { keyframes: { x: [1482, 1150, 1380], y: [860, 520, 470] }, rotation: 900, duration: 0.8, ease: 'power2.inOut' }, 3.45);
+      tl.to('#tv-d20', { scale: 0.3, opacity: 0, duration: 0.2, ease: 'power2.in' }, 4.25);
+      tl.fromTo('#tv-roll', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.6)', immediateRender: false }, 4.3);
+      const sh = document.getElementById('tv-sparks');
+      for (let i = 0; i < 18; i++) {
+        const s = document.createElement('i'); s.className = 'tv-spark'; sh.appendChild(s);
+        const a = r() * Math.PI * 2, d = 60 + r() * 120;
+        tl.fromTo(s, { x: 1700, y: 545, opacity: 1 }, { x: 1700 + Math.cos(a) * d, y: 545 + Math.sin(a) * d, opacity: 0, duration: 0.7, ease: 'expo.out', immediateRender: false }, 4.35);
+      }
+      // MUOVI: il cursore prende Aria e la porta fino alla porta; le celle si accendono sotto la scia.
+      const path = [[3, 2], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3], [8, 3], [9, 3]];
+      const trails = document.getElementById('tv-trails');
+      const a0 = at(3, 2);
+      tl.to('#tv-cursor', { x: MX + a0.x + 40, y: MY + a0.y + 40, duration: 0.45, ease: 'power3.inOut' }, 5.0);
+      path.forEach(function (p, i) {
+        if (!i) return;
+        const q = at(p[0], p[1]), t0 = 5.7 + (i - 1) * 0.2;
+        tl.to('#tv-a', { x: q.x, y: q.y, duration: 0.18, ease: 'power2.inOut' }, t0);
+        tl.to('#tv-cursor', { x: MX + q.x + 40, y: MY + q.y + 40, duration: 0.18, ease: 'power2.inOut' }, t0);
+        const tr = document.createElement('i'); tr.className = 'tv-trail'; tr.style.left = q.x + 'px'; tr.style.top = q.y + 'px'; trails.appendChild(tr);
+        tl.fromTo(tr, { opacity: 0 }, { keyframes: { opacity: [0, 0.9, 0.2] }, duration: 0.9, ease: 'none', immediateRender: false }, t0);
+      });
+      tl.to('#tv-cursor', { opacity: 0, duration: 0.2 }, 7.3);
+      // SUSSURRA: il messaggio privato arriva nel fumo menta.
+      const sm = document.getElementById('tv-smokes');
+      for (let i = 0; i < 7; i++) {
+        const s = document.createElement('i'); s.className = 'tv-smoke'; sm.appendChild(s);
+        tl.fromTo(s, { x: 1300 + r() * 420, y: 740 + r() * 60, scale: 0.4, opacity: 0 }, { keyframes: { opacity: [0, 0.9, 0] }, scale: 1.8, y: '-=90', duration: 1.4, ease: 'power1.out', immediateRender: false }, 7.75 + i * 0.05);
+      }
+      tl.fromTo('#tv-whisper', { opacity: 0, filter: 'blur(10px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out', immediateRender: false }, 7.95);
+      // INIZIATIVA: le righe si girano come carte e si mettono in ordine 18 · 15 · 12; l'anello menta va su Aria.
+      tl.to(['#tv-rc', '#tv-ra', '#tv-rt'], { rotationX: 90, duration: 0.15, ease: 'power2.in', stagger: 0.05 }, 9.8);
+      tl.to('#tv-ra', { y: slot(0), duration: 0.01 }, 10.1);
+      tl.to('#tv-rt', { y: slot(1), duration: 0.01 }, 10.1);
+      tl.to('#tv-rc', { y: slot(2), duration: 0.01 }, 10.1);
+      tl.to(['#tv-ra', '#tv-rt', '#tv-rc'], { rotationX: 0, duration: 0.3, ease: 'back.out(1.6)', stagger: 0.07 }, 10.12);
+      tl.fromTo('#tv-ra', { boxShadow: 'inset 0 0 0 0px #8fd3b8' }, { boxShadow: 'inset 0 0 0 3px #8fd3b8', duration: 0.3, immediateRender: false }, 10.5);
+      tl.fromTo('#tv-round', { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 10.55);
+      tl.fromTo('#tv-ring', { opacity: 0, scale: 1.4, rotation: 0 }, { opacity: 1, scale: 1, rotation: 90, duration: 0.5, ease: 'expo.out', immediateRender: false }, 10.55);
+      tl.to('#tv-ring', { rotation: 160, duration: 0.85, ease: 'none' }, 11.05);
+      // Frustata verso la pagina dei membri.
+      tl.to('#tv-world', { x: -1500, filter: 'blur(18px)', duration: 0.3, ease: 'power3.in' }, 11.68);
+      window.__timelines['tavolo'] = tl;
+    })();
+  </script>
+</template>

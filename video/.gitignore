@@ -1,0 +1,6 @@
+# Generati da HyperFrames: snapshot, report, render e cattura della landing (si rifanno con i comandi del README)
+.hyperframes/
+capture/
+renders/
+*.mp4
+node_modules/
