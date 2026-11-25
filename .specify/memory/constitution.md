@@ -1,10 +1,9 @@
 <!--
 Sync Impact Report
-- Version change: (template) → 1.0.0
-- Principi aggiunti: I–V (Peso minimo, Nessun backend proprio, Niente codice già fornito,
-  Semplicità/YAGNI, Funzioni core)
-- Sezioni aggiunte: Vincoli tecnici, Flusso di lavoro
-- Sezioni rimosse: nessuna
+- Version change: 1.0.0 → 1.0.1 (PATCH)
+- Modificato: Vincoli tecnici, frase sui dadi allineata al codice (dalla migrazione 0006 il tiro
+  lo fa il database con roll_d20; la feature 003 lo mostra nella chat)
+- Principi aggiunti/rimossi: nessuno
 - Template: plan-template.md ✅ (Constitution Check generico, nessuna modifica),
   spec-template.md ✅, tasks-template.md ✅
 - TODO rimandati: nessuno
@@ -47,7 +46,8 @@ base di codice.
 ## Vincoli tecnici
 
 - Stack fisso: React, Vite, Supabase cloud, Vercel, `react-konva` per la mappa.
-- La logica dei dadi vive nel client; il risultato è pubblicato in chat via Realtime.
+- Il tiro dei dadi lo fa il database, così non è truccabile dal browser; il risultato compare
+  in chat via Realtime.
 - Tutti i dati condivisi hanno policy RLS; nessuna tabella senza RLS.
 - Lingua dei documenti (spec, plan, tasks, commit): italiano.
 
@@ -67,4 +67,4 @@ semantico: MAJOR per rimozione o ridefinizione di principi, MINOR per nuovi prin
 sezioni, PATCH per chiarimenti. Ogni plan verifica la conformità; le violazioni vanno
 giustificate nella tabella Complexity Tracking del plan.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-16 | **Last Amended**: 2026-11-16
+**Version**: 1.0.1 | **Ratified**: 2026-11-16 | **Last Amended**: 2026-11-25

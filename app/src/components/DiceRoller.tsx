@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import type { Roll } from '../hooks/useTable'
+type Props = { onRoll: (label: string, modifier: number, dc: number | null) => Promise<void> }
 
-type Props = { rolls: Roll[]; onRoll: (label: string, modifier: number, dc: number | null) => Promise<void> }
-
-// Form del tiro più diario degli ultimi tiri (visibile a tutta la campagna).
-export function DiceRoller({ rolls, onRoll }: Props) {
+// Form del tiro: il risultato compare a tutti nell'overlay e nella chat.
+export function DiceRoller({ onRoll }: Props) {
   const [label, setLabel] = useState('Prova di Percezione')
   const [mod, setMod] = useState(0)
   const [dc, setDc] = useState('')
@@ -28,19 +26,6 @@ export function DiceRoller({ rolls, onRoll }: Props) {
         </div>
         <button disabled={invio}>Tira d20</button>
       </form>
-      <ul className="dice-log">
-        {rolls.map((r) => (
-          <li key={r.id}>
-            <span>
-              <b>{r.display_name}</b> · {r.label}
-            </span>
-            <span className={r.face === 20 ? 'crit-txt' : r.face === 1 ? 'fail-txt' : ''}>
-              {r.face}
-              {r.modifier ? (r.modifier > 0 ? `+${r.modifier}` : `${r.modifier}`) : ''} = {r.total}
-            </span>
-          </li>
-        ))}
-      </ul>
     </section>
   )
 }

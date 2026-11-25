@@ -31,7 +31,7 @@ form { flex-direction: column; align-items: stretch; max-width: 20rem; }
 .row { margin: .5rem 0; }
 .error { color: var(--danger); }
 
-input, select {
+input, select, textarea {
   padding: .5rem .7rem; color: var(--text); background: var(--bg-side);
   border: 1px solid var(--line); border-radius: 8px; font: inherit;
 }
@@ -45,7 +45,7 @@ button:hover { transform: translateY(-2px); border-color: var(--gold); }
 button:disabled { opacity: .5; cursor: default; transform: none; }
 /* Un solo pulsante oro per schermata: il submit dei form. */
 form button, form > button { color: var(--gold-ink); background: var(--gold); border-color: var(--gold); }
-:is(a, button, input, select):focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+:is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* Entrata a cascata */
 .page > *, #root > * { animation: entra .45s var(--ease) both; }
@@ -216,3 +216,22 @@ h1, h2, .hero-title { text-wrap: balance; }
 .map-editor .swatch { display: inline-block; width: .8em; height: .8em; border: 1px solid var(--line); vertical-align: -1px; }
 .map-editor label { display: grid; gap: .2rem; font-size: 12px; color: var(--muted); } .map-editor input[type='number'] { width: 5.5rem; }
 .map-editor button { padding: .4rem .7rem; font-size: 13px; }
+
+/* ── Chat (feature 003) ── */
+.chat-log {
+  list-style: none; padding: 0 .25rem 0 0; margin: 0 0 .75rem; display: grid; gap: .5rem;
+  max-height: 22rem; overflow-y: auto; overscroll-behavior: contain; font-size: 14px;
+}
+.chat-msg { padding: .45rem .65rem; border-radius: 8px; background: var(--bg-side); border: 1px solid transparent; min-width: 0; }
+.chat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: 12px; color: var(--muted); }
+.chat-meta b { color: var(--text); font-size: 13px; }
+.chat-body { margin: .2rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-roll { background: var(--surface-2); border-left: 3px solid var(--gold); font-variant-numeric: tabular-nums; }
+.chat-roll .chat-meta svg { color: var(--gold); }
+.chat-whisper { border: 1px dashed var(--mint); }
+.chat-tag { color: var(--mint); font-style: italic; }
+.chat-del { margin-left: auto; padding: 0 .2rem; font-size: 12px; }
+.chat-form { max-width: none; }
+.chat-form textarea { resize: vertical; min-height: 3rem; }
+.chat-form .row { margin: 0; justify-content: flex-end; }
+.chat-form select { flex: 1; min-width: 0; }

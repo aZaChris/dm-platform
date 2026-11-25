@@ -83,7 +83,7 @@ export function useTable(campaignId: string, userId: string) {
         .select('*')
         .eq('campaign_id', campaignId)
         .order('created_at', { ascending: false })
-        .limit(20)
+        .limit(100)
       if (vivo && data) setRolls(data as Roll[])
     }
 
@@ -107,7 +107,7 @@ export function useTable(campaignId: string, userId: string) {
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'rolls', filter: filtro }, (p) => {
         const tiro = p.new as Roll
-        setRolls((rs) => (rs.some((r) => r.id === tiro.id) ? rs : [tiro, ...rs].slice(0, 20)))
+        setRolls((rs) => (rs.some((r) => r.id === tiro.id) ? rs : [tiro, ...rs].slice(0, 100)))
         setNuovoTiro(tiro) // l'overlay compare a tutti, non solo a chi ha tirato
       })
       // Gli eventi DELETE non si possono filtrare lato server: filtriamo qui.

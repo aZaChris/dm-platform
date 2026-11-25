@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useTable } from '../hooks/useTable'
 import { useCellMap } from '../hooks/useCellMap'
+import { useChat } from '../hooks/useChat'
 import type { CellType, Patch } from '../lib/cells'
 import { MapCanvas, type Tool } from '../components/MapCanvas'
 import { MapEditor } from '../components/MapEditor'
 import { DmPanel } from '../components/DmPanel'
 import { DiceRoller } from '../components/DiceRoller'
+import { Chat } from '../components/Chat'
 import { DiceOverlay } from '../components/DiceOverlay'
 import { TokenList } from '../components/TokenList'
 import { Icon } from '../components/Icon'
@@ -14,6 +16,7 @@ import { ULTIMA } from '../components/Shell'
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
   const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
   const cm = useCellMap(campaignId)
+  const chat = useChat(campaignId)
   const [editing, setEditing] = useState(false)
   const [tool, setTool] = useState<Tool>('brush')
   const [cellType, setCellType] = useState<CellType>('w')
@@ -99,6 +102,10 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
             <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} />
           </section>
           <section className="card">
+            <Chat userId={userId} isDm={role === 'dm'} messages={chat.messages} rolls={rolls} members={members} errore={chat.errore} onSend={chat.send} onRemove={chat.remove} />
+          </section>
+          <section className="card"><DiceRoller onRoll={tiraD20} /></section>
+          <section className="card">
             <h2 className="side-h">Registro del tavolo</h2>
             {eventi.length === 0 ? (
               <p className="muted">Nessuna azione in questa sessione.</p>
@@ -106,7 +113,6 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
               <ul className="dice-log">{eventi.map((e, i) => <li key={`${i}-${e}`}>{e}</li>)}</ul>
             )}
           </section>
-          <section className="card"><DiceRoller rolls={rolls} onRoll={tiraD20} /></section>
           {role === 'dm' && <section className="card"><DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} /></section>}
         </div>
       </div>

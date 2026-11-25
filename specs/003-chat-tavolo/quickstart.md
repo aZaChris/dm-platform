@@ -29,4 +29,4 @@
 | 15 | A stacca la rete, scrive, la riattacca | il testo non inviato resta nel campo; arrivano i messaggi mandati dagli altri nel frattempo | edge case |
 | 16 | Solo tastiera: Tab fino al campo, scrivere, Invio; Maiusc+Invio va a capo; Tab al destinatario, frecce per sceglierlo | tutto funziona, focus visibile | FR-011 |
 | 17 | Campagna con 500 messaggi (script dalla console), aprire il tavolo | apertura senza ritardi percepibili; si vedono gli ultimi 100 | SC-004 |
-| 18 | `npm run build` da `app/` con le variabili `VITE_` presenti | JS gzip totale <500 KB (annotare il valore reale qui) | SC-005 |
+| 18 | `npm run build` da `app/` con le variabili `VITE_` presenti | JS gzip totale <500 KB (misurato: 203,8 KB gzip il 2026-11-25, +1,8 KB rispetto alla 002) | SC-005 |

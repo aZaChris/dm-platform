@@ -5,6 +5,9 @@ const ROLLING_MS = 1100
 const VISIBLE_MS = 3600
 const calmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// Verdetto contro la CD (null = tiro libero): il 20 naturale riesce sempre, l'1 naturale fallisce sempre.
+export const esito = (roll: Roll) => (roll.dc == null ? null : roll.face === 20 || (roll.face !== 1 && roll.total >= roll.dc))
+
 // d20 a tutto schermo, visibile a tutti i membri: annuncio, rotolata, esito, verdetto.
 export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void }) {
   const [shown, setShown] = useState(calmo() ? roll.face : 0)
@@ -37,7 +40,7 @@ export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void
 
   const crit = done && roll.face === 20
   const fumble = done && roll.face === 1
-  const successo = roll.dc == null ? null : roll.face === 20 || (roll.face !== 1 && roll.total >= roll.dc)
+  const successo = esito(roll)
   const segno = roll.modifier >= 0 ? '+' : '−'
 
   return (
