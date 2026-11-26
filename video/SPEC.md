@@ -5,8 +5,11 @@ GOAL:    chi guarda vede tutto il sito di DM Platform, pagina per pagina, immagi
          Le pagine, le sezioni e i testi sono quelli veri dell'app (etichette lette dal codice il 2026-11-25);
          l'animazione, i materiali e gli sfondi sono la parte immaginata.
 OUTPUT:  HyperFrames, 1920 x 1080, 30 fps
-TIME:    65 s x 30 = 1950 frame. Clock: la musica (catalogo HeyGen, ~90 bpm, 20 frame per beat; si riallinea ai
-         beat reali con `npx hyperframes beats` quando c'è il brano).
+TIME:    71 s x 30 = 2130 frame (aggiornato il 2026-11-26: +6 s per la scena delle schede). Clock: la musica, due brani del catalogo HeyGen con licenza d'uso: assets/audio/tema-apertura.mp3
+         (crescendo, 0–31 s) e assets/audio/tema-tavolo.mp3 (tema pieno, da 30,5 s con J-cut sul taglio del tavolo,
+         si spegne nel finale).
+         I file audio non sono nel repo (licenza d'uso, non di ridistribuzione): si recuperano con
+         `npx hyperframes media-use resolve --type bgm` (bgm_001 e bgm_002 del ledger) e si convertono in MP3.
 
 LOOK:    medium: ottone e pergamena alla luce di candela; ogni pagina è un luogo del dungeon (sala, biblioteca,
          portale, mappa) con un suo sfondo generato, sempre nella stessa palette.
@@ -32,9 +35,10 @@ SHOTS:
   S1  0–120     Scrivania dall'alto a lume di candela; il telefono si accende: «Stasera alle 21 · La Cripta».
                 Suono: vibrazione, ambiente. Passa: push nel portatile.
   S2  120–180   Push nello schermo (scala 1→7, expo.inOut 20 f, blur); lo schermo diventa il browser.
-  S3  180–270   OGGI: la landing reale (cattura), ferma. Titolo «Funziona. Ma dorme» («dorme» in muted).
+  S3  180–270   OGGI: la landing rifatta il 26 novembre (cattura reale, assets/img/landing-nuova.png). Titolo «Il sito si è
+                svegliato» («svegliato» in oro), a sinistra sotto i pulsanti della hero.
                 Il cursore entra e si ferma su «Crea il tuo tavolo».
-  S4  270–330   Clic: onda d'oro dal pulsante, la pagina si sveglia. Titolo «E se il sito prendesse vita?».
+  S4  270–330   Clic: onda d'oro dal pulsante, la pagina si sveglia. Titolo «Ora entriamo al tavolo».
                 Suono: clic, la musica si apre.
   S5  330–570   LANDING viva. Sfondo: mappa di dungeon generata in parallasse con nebbia; «Tavolo virtuale per
                 giochi di ruolo» forgiato lettera per lettera in oro; le funzioni («Carica la mappa del tavolo»,
@@ -51,15 +55,20 @@ SHOTS:
                 4 verbi da ~90 f: tira (il d20 vola nella chat) · muovi (le celle si accendono sotto il token) ·
                 sussurra (fumetto nel fumo menta, «privato per te») · iniziativa (le carte si ordinano 18 · 15 · 12,
                 anello menta sul primo).
-  S10 1350–1470 MEMBRI «Il party» · «Compagni di viaggio»: i membri sono stendardi con il ruolo («Dungeon Master»,
+                Il lato destro è il pannello a schede dell'app (Scena · Chat · Combattimento · Scheda): la scheda attiva
+                segue il verbo (tira e sussurra in Chat, muovi in Scena, iniziativa in Combattimento).
+  S9b 1350–1530 SCHEDE «Da Roll20 alla tua scheda»: il file JSON vola in «Importa da Roll20», la scheda di Aria si
+                compone con i numeri reali di un paladino di 10° (PF 52/93, CA 16, FOR +4, Atletica +8, CD 16);
+                l'interruttore passa a «Classica» e la scheda gira come una carta; poi diventa una finestra sopra la mappa.
+  S10 1530–1650 MEMBRI «Il party» · «Compagni di viaggio»: i membri sono stendardi con il ruolo («Dungeon Master»,
                 «Giocatore»); «Invita un giocatore» diventa una pergamena chiusa da un sigillo di ceralacca.
-  S11 1470–1590 PANORAMICA DEL SITO (payoff): la camera arretra e tutte le pagine visitate sono stanze di un'unica
+  S11 1650–1770 PANORAMICA DEL SITO (payoff): la camera arretra e tutte le pagine visitate sono stanze di un'unica
                 pianta di dungeon, unite da corridoi; una linea d'oro ripercorre il giro. Musica al massimo.
-  S12 1590–1740 Finale C: al centro della pianta il d20 rotola, si ferma sull'1: crepa sul vetro (tonfo, 6 f di
+  S12 1770–1920 Finale C: al centro della pianta il d20 rotola, si ferma sull'1: crepa sul vetro (tonfo, 6 f di
                 silenzio); rilancio, 20: esplosione di scintille.
-  S13 1740–1830 «Ogni clic è un incantesimo» («incantesimo» in oro), tiene 2.5 s.
-  S14 1830–1950 End card: le scintille disegnano il marchio, «DM Platform» entra con una tendina, sotto
-                «Concept · il frontend che verrà» e dm-platform-steel.vercel.app. Tiene 2.5 s.
+  S13 1920–2010 «Ogni clic è un incantesimo» («incantesimo» in oro), tiene 2.5 s.
+  S14 2010–2130 End card: le scintille disegnano il marchio, «DM Platform» entra con una tendina, sotto
+                «Il tavolo è aperto» e dm-platform-steel.vercel.app. Tiene 2.5 s.
 
 BANNED:  vuoto scuro con cose piccole al centro (ogni scena ha un luogo che riempie ≥40% del frame);
          bagliori e particelle senza causa (braci da candele e torce, scintille dal 20 e dai clic);

@@ -4,3 +4,8 @@ capture/
 renders/
 *.mp4
 node_modules/
+# Cache locali di HyperFrames e musica del catalogo HeyGen: la licenza copre l'uso nei video, non la ridistribuzione dei file
+.media/
+.thumbnails/
+.waveform-cache/
+assets/audio/

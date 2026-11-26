@@ -1,0 +1,151 @@
+<template>
+  <style>
+    @font-face { font-family: 'Cinzel'; src: url('assets/fonts/cinzel.woff2') format('woff2'); font-weight: 400 900; }
+    @font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; }
+    #root { position: absolute; inset: 0; overflow: hidden; font-family: 'DM Sans', sans-serif; color: #ece6d6;
+      background: radial-gradient(ellipse at 70% 30%, #183038, #0a1215 70%); }
+    #sc-world { position: absolute; inset: 0; }
+    #sc-eyebrow { position: absolute; left: 120px; top: 90px; font-size: 28px; letter-spacing: .18em; text-transform: uppercase; color: #dcb468; font-weight: 600; }
+    #sc-title { position: absolute; left: 120px; top: 136px; width: 640px; font-family: 'Cinzel'; font-weight: 700; font-size: 72px; line-height: 1.08; margin: 0; }
+    #sc-title em { font-style: normal; color: #dcb468; }
+    /* Il file di Roll20 e il pulsante d'import */
+    #sc-file { position: absolute; left: 0; top: 0; width: 210px; height: 260px; border-radius: 14px; padding: 26px 20px; background: #efe3c6; color: #2e2214;
+      box-shadow: 0 24px 60px rgba(0,0,0,.55); clip-path: polygon(0 0, 78% 0, 100% 18%, 100% 100%, 0 100%); }
+    #sc-file b { display: block; font-family: 'Cinzel'; font-size: 44px; color: #8e3a2c; margin-bottom: 18px; }
+    #sc-file span { font-size: 22px; font-weight: 600; word-break: break-all; }
+    #sc-import { position: absolute; left: 120px; top: 640px; padding: 22px 36px; border-radius: 14px; border: 2px dashed #dcb468; font-size: 34px; font-weight: 700; color: #dcb468; background: rgba(220,180,104,.06); }
+    #sc-wave { position: absolute; left: 300px; top: 676px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 3px solid #dcb468; opacity: 0; }
+    /* La scheda */
+    #sc-sheet { position: absolute; left: 860px; top: 120px; width: 940px; height: 840px; transform-origin: 50% 50%; perspective: 2000px; }
+    .sc-face { position: absolute; inset: 0; border-radius: 22px; padding: 34px 40px; background: #122127; border: 1px solid #2f444b;
+      box-shadow: 0 40px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(220,180,104,.25); backface-visibility: hidden; }
+    .sc-name { font-family: 'Cinzel'; font-weight: 700; font-size: 52px; margin: 0; }
+    .sc-sub { font-size: 30px; color: #8a9ba0; margin: 4px 0 24px; }
+    #sc-toggle { position: absolute; right: 40px; top: 40px; display: flex; padding: 5px; border-radius: 12px; border: 1px solid #26373d; background: #0d1a1f; z-index: 2; }
+    #sc-toggle span { padding: 8px 18px; border-radius: 9px; font-size: 24px; font-weight: 700; color: #8a9ba0; }
+    #sc-tog-pill { position: absolute; left: 5px; top: 5px; height: calc(100% - 10px); width: 112px; border-radius: 9px; background: #dcb468; }
+    #sc-toggle span { position: relative; }
+    .sc-top { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+    .sc-box { border: 1px solid #26373d; border-radius: 14px; padding: 16px 18px; background: #0d1a1f; text-align: center; }
+    .sc-lab { font-size: 24px; letter-spacing: .16em; text-transform: uppercase; color: #dcb468; font-weight: 700; }
+    .sc-big { font-family: 'Cinzel'; font-weight: 700; font-size: 54px; line-height: 1.1; }
+    .sc-hp { text-align: left; }
+    .sc-hp small { font-size: 28px; color: #8a9ba0; }
+    #sc-bar { height: 10px; border-radius: 6px; background: #183038; overflow: hidden; margin-top: 8px; }
+    #sc-bar i { display: block; height: 100%; width: 56%; background: #8fd3b8; transform-origin: 0 50%; }
+    .sc-abil { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 22px; }
+    .sc-ab { border: 1px solid #26373d; border-radius: 14px 14px 26px 26px; padding: 12px 4px; background: #0d1a1f; text-align: center; }
+    .sc-ab .sc-big { font-size: 40px; }
+    .sc-ab small { display: block; font-size: 28px; color: #8a9ba0; }
+    .sc-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sc-skill { display: flex; justify-content: space-between; padding: 12px 18px; border-radius: 10px; background: #183038; font-size: 28px; font-weight: 600; }
+    .sc-skill b { font-family: 'Cinzel'; color: #dcb468; }
+    /* Faccia classica: tre colonne come la scheda su carta */
+    #sc-back { transform: rotateY(180deg); }
+    .sc-cols { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 16px; height: 600px; }
+    .sc-col { display: grid; gap: 14px; align-content: start; }
+    .sc-line { height: 16px; border-radius: 8px; background: #26373d; }
+    .sc-slab { border: 1px solid #26373d; border-radius: 12px; padding: 14px; background: #0d1a1f; display: grid; gap: 10px; }
+    /* Mappa sotto la finestra */
+    #sc-map { position: absolute; left: 120px; top: 120px; width: 1680px; height: 860px; border-radius: 18px; overflow: hidden; opacity: 0;
+      background: #0d1a1f; box-shadow: 0 30px 80px rgba(0,0,0,.6);
+      background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 70px 70px; }
+    #sc-room { position: absolute; left: 140px; top: 140px; width: 840px; height: 490px; background: #6d6248; box-shadow: 0 0 0 26px #1a2226; }
+    .sc-tok { position: absolute; width: 56px; height: 56px; border-radius: 50%; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px; color: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.6); }
+    #sc-winbar { position: absolute; left: 0; right: 0; top: 0; height: 0; border-radius: 22px 22px 0 0; background: linear-gradient(180deg, #1b333b, #0d1a1f); }
+    #sc-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
+  </style>
+  <div id="root" data-composition-id="schede" data-width="1920" data-height="1080">
+    <div id="sc-world">
+      <div id="sc-map" data-layout-ignore><div id="sc-room"></div>
+        <div class="sc-tok" style="left:350px;top:330px;background:#3a7a8a">A</div>
+        <div class="sc-tok" style="left:560px;top:420px;background:#5b8a6f">T</div>
+        <div class="sc-tok" style="left:820px;top:250px;background:#b5483a">C</div>
+      </div>
+      <div id="sc-eyebrow">Schede</div>
+      <h1 id="sc-title">Da Roll20 alla tua <em>scheda</em></h1>
+      <div id="sc-import">Importa da Roll20</div>
+      <div id="sc-wave"></div>
+      <div id="sc-file" data-layout-ignore><b>{ }</b><span>aria_paladina.json</span></div>
+      <div id="sc-sheet" data-layout-allow-overlap>
+        <div class="sc-face" id="sc-front">
+          <p class="sc-name">Aria</p>
+          <p class="sc-sub">Paladina 10 · Mezzelfa · Competenza +4</p>
+          <div class="sc-top">
+            <div class="sc-box sc-hp"><div class="sc-lab">Punti ferita</div><div class="sc-big">52 <small>/ 93</small></div><div id="sc-bar"><i></i></div></div>
+            <div class="sc-box"><div class="sc-lab">CA</div><div class="sc-big">16</div></div>
+            <div class="sc-box"><div class="sc-lab">Iniziativa</div><div class="sc-big">+1</div></div>
+          </div>
+          <div class="sc-abil">
+            <div class="sc-ab"><div class="sc-lab">For</div><div class="sc-big">+4</div><small>18</small></div>
+            <div class="sc-ab"><div class="sc-lab">Des</div><div class="sc-big">+1</div><small>12</small></div>
+            <div class="sc-ab"><div class="sc-lab">Cos</div><div class="sc-big">+3</div><small>16</small></div>
+            <div class="sc-ab"><div class="sc-lab">Int</div><div class="sc-big">+0</div><small>11</small></div>
+            <div class="sc-ab"><div class="sc-lab">Sag</div><div class="sc-big">+0</div><small>10</small></div>
+            <div class="sc-ab"><div class="sc-lab">Car</div><div class="sc-big">+4</div><small>18</small></div>
+          </div>
+          <div class="sc-skills">
+            <div class="sc-skill">Atletica <b>+8</b></div><div class="sc-skill">Intimidire <b>+8</b></div>
+            <div class="sc-skill">TS Carisma <b>+12</b></div><div class="sc-skill">CD incantesimi <b>16</b></div>
+          </div>
+        </div>
+        <div class="sc-face" id="sc-back">
+          <p class="sc-name">Aria</p>
+          <p class="sc-sub">Vista classica · come la scheda su carta</p>
+          <div class="sc-cols">
+            <div class="sc-col"><div class="sc-slab"><div class="sc-lab">Caratteristiche</div><div class="sc-line"></div><div class="sc-line"></div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Tiri salvezza</div><div class="sc-line"></div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Abilità</div><div class="sc-line"></div><div class="sc-line"></div><div class="sc-line"></div><div class="sc-line"></div></div></div>
+            <div class="sc-col"><div class="sc-slab"><div class="sc-lab">CA · Iniziativa · Velocità</div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Punti ferita</div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Attacchi</div><div class="sc-line"></div><div class="sc-line"></div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Equipaggiamento</div><div class="sc-line"></div><div class="sc-line"></div></div></div>
+            <div class="sc-col"><div class="sc-slab"><div class="sc-lab">Tratti · Ideali · Legami</div><div class="sc-line"></div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Privilegi</div><div class="sc-line"></div><div class="sc-line"></div><div class="sc-line"></div></div>
+              <div class="sc-slab"><div class="sc-lab">Incantesimi</div><div class="sc-line"></div><div class="sc-line"></div></div></div>
+          </div>
+        </div>
+        <div id="sc-winbar"></div>
+        <div id="sc-toggle"><div id="sc-tog-pill"></div><span id="sc-t1" style="color:#1a1408">Pratica</span><span id="sc-t2">Classica</span></div>
+      </div>
+    </div>
+    <svg id="sc-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Arriva dalla frustata del tavolo.
+      tl.fromTo('#sc-world', { x: 1400, filter: 'blur(18px)' }, { x: 0, filter: 'blur(0px)', duration: 0.45, ease: 'expo.out' }, 0);
+      tl.fromTo('#sc-title', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.25, ease: 'power2.out' }, 0.3);
+      // Il file di Roll20 vola nel pulsante d'import; clic e onda d'oro.
+      tl.fromTo('#sc-file', { x: 360, y: 300, rotation: -14, opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.25 }, 0.4);
+      tl.to('#sc-file', { keyframes: { x: [360, 260, 200], y: [300, 420, 600] }, rotation: 8, scale: 0.35, duration: 0.75, ease: 'power2.inOut' }, 0.66);
+      tl.to('#sc-file', { opacity: 0, duration: 0.15 }, 1.32);
+      tl.fromTo('#sc-cursor', { x: 900, y: 1000 }, { x: 290, y: 690, duration: 0.6, ease: 'power3.out' }, 0.7);
+      tl.to('#sc-cursor', { scale: 0.85, duration: 0.08 }, 1.4); tl.to('#sc-cursor', { scale: 1, duration: 0.12 }, 1.48);
+      tl.fromTo('#sc-wave', { opacity: 1, scale: 1 }, { opacity: 0, scale: 8, duration: 0.6, ease: 'expo.out', immediateRender: false }, 1.45);
+      tl.to('#sc-import', { backgroundColor: 'rgba(220,180,104,.22)', duration: 0.15 }, 1.45);
+      // La scheda si compone: corpo, PF con la barra, caratteristiche una dopo l'altra, abilità.
+      tl.fromTo('#sc-sheet', { opacity: 0, x: 80, scale: 0.96 }, { opacity: 1, x: 0, scale: 1, duration: 0.5, ease: 'expo.out' }, 1.6);
+      tl.fromTo('#sc-bar i', { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power3.out' }, 1.9);
+      tl.fromTo('#sc-front .sc-ab', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'back.out(1.8)', stagger: 0.07 }, 2.0);
+      tl.fromTo('#sc-front .sc-skill', { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out', stagger: 0.08 }, 2.5);
+      // L'interruttore passa a «Classica»: la scheda gira come una carta.
+      tl.to('#sc-cursor', { x: 1700, y: 190, duration: 0.5, ease: 'power3.inOut' }, 3.0);
+      tl.to('#sc-cursor', { scale: 0.85, duration: 0.08 }, 3.5); tl.to('#sc-cursor', { scale: 1, duration: 0.12 }, 3.58);
+      tl.to('#sc-tog-pill', { x: 118, duration: 0.25, ease: 'power3.out' }, 3.52);
+      tl.to('#sc-t1', { color: '#8a9ba0', duration: 0.2 }, 3.52); tl.to('#sc-t2', { color: '#1a1408', duration: 0.2 }, 3.52);
+      tl.fromTo('#sc-front', { rotationY: 0 }, { rotationY: -180, duration: 0.7, ease: 'power2.inOut' }, 3.65);
+      tl.fromTo('#sc-back', { rotationY: 180 }, { rotationY: 0, duration: 0.7, ease: 'power2.inOut' }, 3.65);
+      tl.to('#sc-cursor', { opacity: 0, duration: 0.2 }, 4.2);
+      // La scheda diventa una finestra sopra la mappa: titolo e import escono, la mappa entra sotto.
+      tl.to(['#sc-title', '#sc-eyebrow', '#sc-import'], { opacity: 0, duration: 0.25 }, 4.6);
+      tl.to('#sc-map', { opacity: 1, duration: 0.4, ease: 'power2.out' }, 4.65);
+      tl.to('#sc-sheet', { x: 170, y: 70, scale: 0.55, duration: 0.7, ease: 'expo.inOut' }, 4.7);
+      tl.to('#sc-winbar', { height: 46, duration: 0.3, ease: 'power2.out' }, 5.0);
+      // Frustata verso la pagina dei membri.
+      tl.to('#sc-world', { x: -1500, filter: 'blur(18px)', duration: 0.3, ease: 'power3.in' }, 5.68);
+      window.__timelines['schede'] = tl;
+    })();
+  </script>
+</template>
