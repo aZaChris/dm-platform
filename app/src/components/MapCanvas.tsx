@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Konva from 'konva'
 import { Stage, Layer, Image as KImage, Line, Group, Circle, Text, Shape, Label, Tag } from 'react-konva'
-import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
+import { CELL_PX, cellCenter, clampToMap, gridDims, snapToCell, type Dims } from '../lib/grid'
 import { CELL_TYPES, applyPatch, cellIndex, floodFill, lineCells, type CellType, type Patch } from '../lib/cells'
 import type { CellMap } from '../hooks/useCellMap'
 import type { Token } from '../hooks/useTable'
@@ -14,7 +14,8 @@ type Props = {
   showGrid: boolean
   selectedId: string | null
   turnTokenId?: string | null // token di turno nel combattimento (feature 004)
-  onDims: (cols: number, rows: number) => void
+  hex?: boolean // griglia esagonale (006), solo con la mappa a immagine
+  onDims: (dims: Dims) => void
   onOpen?: (tokenId: string) => void // doppio clic o doppio tocco su un token: apre la sua scheda (007, US4)
   url: string | null
   cellMap?: CellMap | null
@@ -35,7 +36,7 @@ type Props = {
 
 const COLORE = Object.fromEntries(CELL_TYPES.map((t) => [t.type, t.color]))
 
-export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint, ruler, measures = [], onMeasure }: Props) {
+export function MapCanvas({ hex, showGrid, selectedId, turnTokenId, onDims, onOpen, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint, ruler, measures = [], onMeasure }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
@@ -48,17 +49,9 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
   useEffect(() => {
     if (!url) return setImg(null)
     const i = new Image()
-    i.onload = () => {
-      setImg(i)
-      if (!celle) onDims(Math.ceil(i.width / CELL_PX), Math.ceil(i.height / CELL_PX))
-    }
+    i.onload = () => setImg(i)
     i.src = url
   }, [url])
-
-  useEffect(() => {
-    if (celle) onDims(celle.cols, celle.rows)
-    else if (img) onDims(Math.ceil(img.width / CELL_PX), Math.ceil(img.height / CELL_PX))
-  }, [celle?.cols, celle?.rows, !celle])
 
   useEffect(() => {
     // Si adatta al contenitore (con la barra laterale la finestra non basta).
@@ -71,14 +64,18 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
   // Con la mappa a celle la dimensione viene da colonne e righe, altrimenti dall'immagine.
   const W = celle ? celle.cols * CELL_PX : img?.width
   const H = celle ? celle.rows * CELL_PX : img?.height
+  useEffect(() => {
+    if (W && H) onDims(gridDims(W, H, hex))
+  }, [W, H, hex])
   if (!W || !H) return <div ref={ref}><p>Carico la mappa…</p></div>
 
   const scala = Math.min(vista.w / W, vista.h / H)
-  const cols = Math.ceil(W / CELL_PX)
-  const rows = Math.ceil(H / CELL_PX)
+  const { cols, rows, oddCols } = gridDims(W, H, hex)
   const linee: number[][] = []
-  for (let x = 0; x <= W; x += CELL_PX) linee.push([x, 0, x, H])
-  for (let y = 0; y <= H; y += CELL_PX) linee.push([0, y, W, y])
+  if (!hex) {
+    for (let x = 0; x <= W; x += CELL_PX) linee.push([x, 0, x, H])
+    for (let y = 0; y <= H; y += CELL_PX) linee.push([0, y, W, y])
+  }
   const raggio = CELL_PX * 0.4
   const modifica = !!(editing && celle && isDm) && !ruler
   // Le celle mostrate includono il tratto in corso, ancora non salvato.
@@ -103,8 +100,8 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
   function cellaDentro(e: Parameters<typeof cellaSotto>[0]): Cell | null {
     const p = e.target.getStage()?.getPointerPosition()
     if (!p) return null
-    const { col, row } = snapToCell(p.x / scala, p.y / scala)
-    const c = clampToMap(col, row, cols, rows)
+    const { col, row } = snapToCell(p.x / scala, p.y / scala, hex)
+    const c = clampToMap(col, row, cols, rows, oddCols)
     return [c.col, c.row]
   }
 
@@ -202,30 +199,50 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
         {showGrid && linee.map((p, i) => (
           <Line key={i} points={p} stroke={celle ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.35)'} strokeWidth={1 / scala} listening={false} />
         ))}
+        {showGrid && hex && (
+          <Shape
+            listening={false}
+            sceneFunc={(ctx) => {
+              const r = CELL_PX / Math.sqrt(3)
+              ctx.beginPath()
+              for (let row = 0; row < rows; row++)
+                for (let col = 0; col < (row & 1 ? oddCols : cols); col++) {
+                  const [x, y] = cellCenter(col, row, true)
+                  ctx.moveTo(x, y - r)
+                  for (const [dx, dy] of [[1, -0.5], [1, 0.5], [0, 1], [-1, 0.5], [-1, -0.5]]) ctx.lineTo(x + (dx * CELL_PX) / 2, y + dy * r)
+                  ctx.closePath()
+                }
+              ctx.setAttr('strokeStyle', 'rgba(0,0,0,0.35)')
+              ctx.setAttr('lineWidth', 1 / scala)
+              ctx.stroke()
+            }}
+          />
+        )}
         {tokens.map((t) => (
           <TokenNode
             key={t.id}
             t={t}
+            hex={hex}
             raggio={raggio}
             draggable={!modifica && !ruler && (isDm || t.owner_id === userId)}
             selezionato={t.id === selectedId}
             diTurno={t.id === turnTokenId}
             onOpen={onOpen ? () => onOpen(t.id) : undefined}
             onDrop={(x, y, g) => {
-              const { col, row } = snapToCell(x, y)
-              const c = clampToMap(col, row, cols, rows)
+              const { col, row } = snapToCell(x, y, hex)
+              const c = clampToMap(col, row, cols, rows, oddCols)
               // Aggancia subito il nodo alla cella, senza aspettare il ritorno dal server.
-              g.position({ x: c.col * CELL_PX + CELL_PX / 2, y: c.row * CELL_PX + CELL_PX / 2 })
+              const [cx, cy] = cellCenter(c.col, c.row, hex)
+              g.position({ x: cx, y: cy })
               if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
             }}
           />
         ))}
         {measures.map((m) => {
-          const centro = (c: Cell) => [c[0] * CELL_PX + CELL_PX / 2, c[1] * CELL_PX + CELL_PX / 2]
-          const [x1, y1] = centro(m.from)
-          const [x2, y2] = centro(m.to)
+          const [x1, y1] = cellCenter(...m.from, hex)
+          const [x2, y2] = cellCenter(...m.to, hex)
           const colore = m.mine ? '#dcb468' : '#8fd3b8'
-          const testo = formatDistance(distance(m.from, m.to)) + (m.mine ? '' : ` · ${m.name}`)
+          const testo = formatDistance(distance(m.from, m.to, hex), hex) + (m.mine ? '' : ` · ${m.name}`)
           return (
             <Group key={m.id} listening={false}>
               <Line points={[x1, y1, x2, y2]} stroke={colore} strokeWidth={4 / scala + 2} dash={[12, 8]} lineCap="round" shadowColor="#000" shadowBlur={6} shadowOpacity={0.6} />
@@ -248,6 +265,7 @@ const calmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 type NodoProps = {
   t: Token
+  hex?: boolean
   raggio: number
   draggable: boolean
   selezionato: boolean
@@ -258,11 +276,10 @@ type NodoProps = {
 
 // Un token sulla mappa. Quando col/riga cambiano (anche da un altro giocatore) scivola nella nuova cella
 // invece di saltare: la posizione la muove la tween di Konva, non le prop, sennò React la reimposterebbe di colpo.
-function TokenNode({ t, raggio, draggable, selezionato, diTurno, onOpen, onDrop }: NodoProps) {
+function TokenNode({ t, hex, raggio, draggable, selezionato, diTurno, onOpen, onDrop }: NodoProps) {
   const g = useRef<Konva.Group>(null)
   const anello = useRef<Konva.Circle>(null)
-  const x = t.col * CELL_PX + CELL_PX / 2
-  const y = t.row * CELL_PX + CELL_PX / 2
+  const [x, y] = cellCenter(t.col, t.row, hex)
 
   useLayoutEffect(() => {
     const n = g.current

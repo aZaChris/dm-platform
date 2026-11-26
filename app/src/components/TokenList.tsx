@@ -1,4 +1,4 @@
-import { clampToMap } from '../lib/grid'
+import { clampToMap, type Dims } from '../lib/grid'
 import type { Token } from '../hooks/useTable'
 import { Icon } from './Icon'
 
@@ -9,7 +9,7 @@ type Props = {
   selezionato: string | null
   onSelect: (id: string) => void
   onMove: (id: string, col: number, row: number) => void
-  dims: { cols: number; rows: number } | null
+  dims: Dims | null
   conScheda?: Set<string> // token che hanno una scheda collegata
   onOpen?: (id: string) => void
 }
@@ -23,7 +23,7 @@ export function TokenList({ tokens, userId, isDm, selezionato, onSelect, onMove,
     const d = FRECCE[e.key]
     if (!d || !dims || !(isDm || t.owner_id === userId)) return
     e.preventDefault()
-    const c = clampToMap(t.col + d[0], t.row + d[1], dims.cols, dims.rows)
+    const c = clampToMap(t.col + d[0], t.row + d[1], dims.cols, dims.rows, dims.oddCols)
     if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
   }
 

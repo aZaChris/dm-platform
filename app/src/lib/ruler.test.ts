@@ -24,3 +24,19 @@ describe('formatDistance', () => {
     expect(formatDistance(distance([2, 2], [2, 2]))).toBe('0 celle · 0 ft · 0 m')
   })
 })
+
+describe('esagoni', () => {
+  it('i sei confinanti distano 1, da riga pari e dispari', () => {
+    const pari: [number, number][] = [[1, 2], [3, 2], [1, 1], [2, 1], [1, 3], [2, 3]]
+    const dispari: [number, number][] = [[1, 3], [3, 3], [2, 2], [3, 2], [2, 4], [3, 4]]
+    for (const c of pari) expect(distance([2, 2], c, true).cells).toBe(1)
+    for (const c of dispari) expect(distance([2, 3], c, true).cells).toBe(1)
+  })
+  it('conta i passi minimi tra esagoni lontani', () => {
+    expect(distance([0, 0], [3, 0], true).cells).toBe(3)
+    expect(distance([0, 0], [0, 4], true).cells).toBe(4)
+    expect(distance([0, 0], [3, 3], true).cells).toBe(5)
+    expect(distance([3, 3], [0, 0], true).cells).toBe(5)
+    expect(formatDistance(distance([0, 0], [3, 0], true), true)).toBe('3 esagoni · 15 ft · 4,5 m')
+  })
+})

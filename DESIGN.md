@@ -52,6 +52,7 @@ Contrasto: testo su `--surface` ≥ 7:1; `--muted` solo per testo secondario ≥
 - **Finestra mobile**: sopra la mappa, bordo `--gold` al 40%, barra trascinabile, si ridimensiona dall'angolo, si
   riduce alla sola barra; non blocca la mappa sotto.
 
+- **Griglia esagonale** (006): vertice in alto, larga quanto la cella, stesse linee sottili della quadrata.
 - **Righello** (005): linea tratteggiata tra i centri delle celle con un'etichetta a fumetto «6 celle · 30 ft · 9 m».
   Oro la propria misura, menta quelle degli altri con il nome di chi misura.
 
