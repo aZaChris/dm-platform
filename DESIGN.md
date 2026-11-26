@@ -52,6 +52,9 @@ Contrasto: testo su `--surface` ≥ 7:1; `--muted` solo per testo secondario ≥
 - **Finestra mobile**: sopra la mappa, bordo `--gold` al 40%, barra trascinabile, si ridimensiona dall'angolo, si
   riduce alla sola barra; non blocca la mappa sotto.
 
+- **Righello** (005): linea tratteggiata tra i centri delle celle con un'etichetta a fumetto «6 celle · 30 ft · 9 m».
+  Oro la propria misura, menta quelle degli altri con il nome di chi misura.
+
 ## 5. Layout
 Barra laterale 240px + contenuto fluido; griglia a 12 colonne, spazi multipli di 4px (8 · 16 · 24 · 40).
 Sotto 800px la barra diventa una riga in alto. La mappa occupa sempre tutta la larghezza disponibile.

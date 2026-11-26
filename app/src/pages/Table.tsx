@@ -15,6 +15,8 @@ import { TokenList } from '../components/TokenList'
 import { Icon } from '../components/Icon'
 import { ULTIMA } from '../components/Shell'
 import { useCharacters } from '../hooks/useCharacters'
+import { useRuler } from '../hooks/useRuler'
+import { clampToMap } from '../lib/grid'
 import { SheetPractical } from '../components/SheetPractical'
 import { SheetClassic } from '../components/SheetClassic'
 import { SheetWindow } from '../components/SheetWindow'
@@ -56,6 +58,9 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const turno = enc.encounter?.started ? enc.encounter.turn_token_id : null
   // La scheda del token scelto sulla mappa, altrimenti la propria (feature 007).
   const [finestra, setFinestra] = useState(false)
+  const [righello, setRighello] = useState(false)
+  const io = members.find((m) => m.user_id === userId)?.display_name ?? 'Io'
+  const rul = useRuler(campaignId, userId, io)
   const conScheda = new Set((chars.schede ?? []).flatMap((c) => (c.token_id ? [c.token_id] : [])))
   // Dal token alla sua scheda: lo seleziona e apre la scheda «Scheda» del pannello (o la aggiorna se è in finestra).
   const apriScheda = (tokenId: string) => {
@@ -69,6 +74,31 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
     canUndo: cm.canUndo, canRedo: cm.canRedo, onUndo: cm.undo, onRedo: cm.redo, onCreate: cm.create,
     onClear: cm.clear, onResize: cm.resize, onSetActive: cm.setActive, onRemove: cm.remove,
   }
+
+  // Righello da tastiera (005): R lo accende e lo spegne, con un token scelto le frecce allungano la misura, Esc la chiude.
+  useEffect(() => {
+    function tasto(e: KeyboardEvent) {
+      const el = e.target as HTMLElement
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key === 'r' || e.key === 'R') {
+        if (righello) rul.measure([0, 0], null)
+        setRighello(!righello)
+        return
+      }
+      if (!righello) return
+      if (e.key === 'Escape') return rul.measure([0, 0], null)
+      const d = ({ ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] } as Record<string, [number, number]>)[e.key]
+      const tok = tokens.find((t) => t.id === selezionato)
+      if (!d || !tok || !dims) return
+      e.preventDefault()
+      const da: [number, number] = [tok.col, tok.row]
+      const ora = rul.mia?.to ?? da
+      const c = clampToMap(ora[0] + d[0], ora[1] + d[1], dims.cols, dims.rows)
+      rul.measure(da, [c.col, c.row])
+    }
+    addEventListener('keydown', tasto)
+    return () => removeEventListener('keydown', tasto)
+  }, [righello, rul, tokens, selezionato, dims])
 
   if (role === undefined) return <p className="muted">Caricamento…</p>
   if (role === null) {
@@ -119,6 +149,9 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
               <div className="map-toolbar">
                 <b>{cm.map?.active ? 'Mappa a celle' : 'Mappa'}</b>
                 <span className="map-hint muted">Trascina un token, o sceglilo in «Scena» e usa le frecce</span>
+                <button className="icon-btn" aria-pressed={righello} aria-label="Righello: misura una distanza (R)" title="Righello: misura una distanza (R)" onClick={() => { if (righello) rul.measure([0, 0], null); setRighello(!righello) }}>
+                  <Icon name="ruler" />
+                </button>
                 <button className="icon-btn" aria-pressed={finestra} aria-label="Scheda in una finestra sopra la mappa" title="Scheda in una finestra sopra la mappa" onClick={() => setFinestra(!finestra)}>
                   <Icon name="sheet" />
                 </button>
@@ -126,7 +159,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} onOpen={(id) => conScheda.has(id) && apriScheda(id)} />
+              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} onOpen={(id) => conScheda.has(id) && apriScheda(id)} ruler={righello} measures={rul.measures} onMeasure={rul.measure} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite" key={eventi[0]} className="map-last">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>

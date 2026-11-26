@@ -55,7 +55,7 @@ Mentre un membro misura, gli altri connessi vedono la stessa linea con la stessa
 ### Functional Requirements
 
 - **FR-001**: Ogni membro MUST poter attivare e disattivare il righello sulla mappa.
-- **FR-002**: La misura MUST andare dal centro di una cella al centro di un'altra e mostrare la distanza in celle e in piedi, con 5 piedi per cella.
+- **FR-002**: La misura MUST andare dal centro di una cella al centro di un'altra e mostrare la distanza in celle, in piedi (5 piedi per cella) e in metri (1,5 m per cella, come nella traduzione italiana delle regole).
 - **FR-003**: Sulla griglia quadrata la distanza MUST contare ogni passo in diagonale come una cella: il numero di celle è il maggiore tra la differenza di colonne e quella di righe.
 - **FR-004**: Con il righello attivo il trascinamento MUST NOT spostare token né modificare la mappa.
 - **FR-005**: La misura MUST essere mostrata in tempo reale agli altri membri connessi, con il nome di chi misura, e MUST sparire per tutti quando finisce.

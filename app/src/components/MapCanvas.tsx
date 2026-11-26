@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Konva from 'konva'
-import { Stage, Layer, Image as KImage, Line, Group, Circle, Text, Shape } from 'react-konva'
+import { Stage, Layer, Image as KImage, Line, Group, Circle, Text, Shape, Label, Tag } from 'react-konva'
 import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
 import { CELL_TYPES, applyPatch, cellIndex, floodFill, lineCells, type CellType, type Patch } from '../lib/cells'
 import type { CellMap } from '../hooks/useCellMap'
 import type { Token } from '../hooks/useTable'
+import type { Measure } from '../hooks/useRuler'
+import { distance, formatDistance, type Cell } from '../lib/ruler'
 
 export type Tool = 'brush' | 'fill' | 'erase'
 
@@ -25,17 +27,22 @@ type Props = {
   tool?: Tool
   cellType?: CellType
   onPaint?: (patch: Patch) => void
+  // Righello (005): con ruler attivo il trascinamento misura invece di muovere token o dipingere.
+  ruler?: boolean
+  measures?: Measure[]
+  onMeasure?: (from: Cell, to: Cell | null) => void
 }
 
 const COLORE = Object.fromEntries(CELL_TYPES.map((t) => [t.type, t.color]))
 
-export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint }: Props) {
+export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint, ruler, measures = [], onMeasure }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
   const [bozza, setBozza] = useState<Patch>([]) // il tratto in corso, mostrato subito in locale
   const tratto = useRef<Map<number, CellType> | null>(null)
   const ultima = useRef<[number, number] | null>(null)
+  const inizio = useRef<Cell | null>(null) // partenza della misura in corso
   const celle = cellMap?.active ? cellMap : null
 
   useEffect(() => {
@@ -73,7 +80,7 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
   for (let x = 0; x <= W; x += CELL_PX) linee.push([x, 0, x, H])
   for (let y = 0; y <= H; y += CELL_PX) linee.push([0, y, W, y])
   const raggio = CELL_PX * 0.4
-  const modifica = !!(editing && celle && isDm)
+  const modifica = !!(editing && celle && isDm) && !ruler
   // Le celle mostrate includono il tratto in corso, ancora non salvato.
   const mostrate = celle ? (bozza.length ? applyPatch(celle.cells, bozza) : celle.cells) : ''
 
@@ -92,7 +99,23 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
     setBozza([...tratto.current!])
   }
 
+  // La cella sotto il puntatore, riportata dentro la mappa: la misura non esce dal bordo.
+  function cellaDentro(e: Parameters<typeof cellaSotto>[0]): Cell | null {
+    const p = e.target.getStage()?.getPointerPosition()
+    if (!p) return null
+    const { col, row } = snapToCell(p.x / scala, p.y / scala)
+    const c = clampToMap(col, row, cols, rows)
+    return [c.col, c.row]
+  }
+
   function giu(e: Parameters<typeof cellaSotto>[0]) {
+    if (ruler) {
+      const c = cellaDentro(e)
+      if (!c) return
+      inizio.current = c
+      onMeasure?.(c, c)
+      return
+    }
     if (!modifica || !celle) return
     const c = cellaSotto(e)
     if (!c) return
@@ -108,12 +131,22 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
   }
 
   function muovi(e: Parameters<typeof cellaSotto>[0]) {
+    if (ruler && inizio.current) {
+      const c = cellaDentro(e)
+      if (c) onMeasure?.(inizio.current, c) // l'hook manda solo se la cella è cambiata
+      return
+    }
     if (!tratto.current) return
     const c = cellaSotto(e)
     if (c) aggiungi(c.col, c.row)
   }
 
   function su() {
+    if (inizio.current) {
+      inizio.current = null
+      onMeasure?.([0, 0], null)
+      return
+    }
     if (!tratto.current) return
     const patch: Patch = [...tratto.current]
     tratto.current = null
@@ -127,7 +160,7 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
     <Stage
       width={W * scala}
       height={H * scala}
-      style={modifica ? { touchAction: 'none', cursor: 'crosshair' } : undefined}
+      style={modifica || ruler ? { touchAction: 'none', cursor: 'crosshair' } : undefined}
       onPointerDown={giu}
       onPointerMove={muovi}
       onPointerUp={su}
@@ -174,7 +207,7 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
             key={t.id}
             t={t}
             raggio={raggio}
-            draggable={!modifica && (isDm || t.owner_id === userId)}
+            draggable={!modifica && !ruler && (isDm || t.owner_id === userId)}
             selezionato={t.id === selectedId}
             diTurno={t.id === turnTokenId}
             onOpen={onOpen ? () => onOpen(t.id) : undefined}
@@ -187,6 +220,24 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
             }}
           />
         ))}
+        {measures.map((m) => {
+          const centro = (c: Cell) => [c[0] * CELL_PX + CELL_PX / 2, c[1] * CELL_PX + CELL_PX / 2]
+          const [x1, y1] = centro(m.from)
+          const [x2, y2] = centro(m.to)
+          const colore = m.mine ? '#dcb468' : '#8fd3b8'
+          const testo = formatDistance(distance(m.from, m.to)) + (m.mine ? '' : ` · ${m.name}`)
+          return (
+            <Group key={m.id} listening={false}>
+              <Line points={[x1, y1, x2, y2]} stroke={colore} strokeWidth={4 / scala + 2} dash={[12, 8]} lineCap="round" shadowColor="#000" shadowBlur={6} shadowOpacity={0.6} />
+              <Circle x={x1} y={y1} radius={7} fill={colore} />
+              <Circle x={x2} y={y2} radius={9} stroke={colore} strokeWidth={3} />
+              <Label x={x2} y={y2 - 18} scaleX={1 / Math.max(scala, 0.6)} scaleY={1 / Math.max(scala, 0.6)}>
+                <Tag fill="#0d1a1f" stroke={colore} strokeWidth={1.5} cornerRadius={6} pointerDirection="down" pointerWidth={10} pointerHeight={7} />
+                <Text text={testo} fill="#ece6d6" fontSize={15} fontStyle="bold" padding={7} />
+              </Label>
+            </Group>
+          )
+        })}
       </Layer>
     </Stage>
     </div>
