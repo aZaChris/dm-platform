@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="it" data-type="software" data-radius="soft" data-buttons="arrow" data-motion>
+<html lang="it" data-type="software" data-radius="soft" data-ground="sage" data-buttons="tonal" data-motion>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DM Platform: tavolo virtuale per giochi di ruolo online</title>
-<meta name="description" content="Il DM carica la mappa e crea i token, i giocatori entrano con un invito e muovono i loro. Ogni spostamento e ogni tiro di d20 arriva a tutti nello stesso istante.">
+<meta name="description" content="Mappa a celle, token, chat e turni di combattimento per il tuo gruppo: il DM prepara il tavolo, i giocatori entrano con un link d'invito e vedono ogni mossa e ogni tiro di d20 nello stesso istante.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="DM Platform: tavolo virtuale per giochi di ruolo online">
-<meta property="og:description" content="Mappa condivisa, token sulla griglia e dadi d20 tirati dal database, per il tuo gruppo di gioco.">
+<meta property="og:description" content="Mappa a celle, token, chat, iniziativa e d20 tirati dal database, per il tuo gruppo di gioco.">
 <meta property="og:image" content="share.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -40,99 +40,162 @@
 }
 </style>
 <link rel="stylesheet" href="assets/ui/base.css">
-<link rel="stylesheet" href="assets/diagrams/diagram.css">
 <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
 <script src="assets/backgrounds/backgrounds.js"></script>
 <script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
 <link rel="modulepreload" href="assets/moments/moments.js">
 <link rel="modulepreload" href="assets/moments/lib.js">
-<link rel="modulepreload" href="assets/moments/word-highlight/moment.js">
-<link rel="stylesheet" href="assets/moments/word-highlight/moment.css">
 <style>
-  /* Finestra del tavolo (hero, app-frame e frammenti delle funzioni): HTML vivo con i colori del progetto */
+  /* Finestra del tavolo (hero, app-frame e frammenti): HTML vivo con i colori del progetto */
   .tb { --tb-ink: #ece6d6; --tb-mut: #8a9ba0; --tb-line: rgb(236 230 214 / .1); --tb-gold: #dcb468; --tb-mint: #8fd3b8;
         background: #0d1a1f; color: var(--tb-ink); border-radius: 12px; overflow: hidden; font: 400 14px/1.4 var(--font-text);
         box-shadow: 0 0 0 1px rgb(236 230 214 / .1), 0 30px 70px -30px rgb(0 0 0 / .8); text-align: left; }
   .tb__bar { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-bottom: 1px solid var(--tb-line); font-size: 13px; color: var(--tb-mut); }
   .tb__bar b { color: var(--tb-ink); font-weight: 500; } .tb__bar .sp { flex: 1; }
   .tb__dots { display: flex; gap: 6px; } .tb__dots i { width: 10px; height: 10px; border-radius: 50%; background: #2a3a41; }
-  .tb__body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); min-height: 300px; }
-  .tb__map { position: relative; min-height: 260px; border-right: 1px solid var(--tb-line);
-    background:
-      repeating-linear-gradient(0deg, rgb(0 0 0 / .28) 0 1px, transparent 1px 12.5%),
-      repeating-linear-gradient(90deg, rgb(0 0 0 / .28) 0 1px, transparent 1px 10%),
-      radial-gradient(60% 55% at 28% 38%, #6f5a34 0 35%, transparent 70%),
-      radial-gradient(50% 60% at 78% 70%, #2d5a55 0 30%, transparent 70%),
-      linear-gradient(135deg, #17333a, #20404a 55%, #2b4a45); }
-  .tk { position: absolute; width: 8.5%; aspect-ratio: 1; min-width: 22px; max-width: 40px; margin: -4% 0 0 -4%; border-radius: 50%; display: grid; place-items: center;
-        font: 600 12px/1 var(--font-text); color: #fff; border: 2px solid #fff; box-shadow: 0 4px 10px rgb(0 0 0 / .5); background: #3a7a8a; }
-  .tk--foe { background: #b5483a; } .tk--sel { box-shadow: 0 0 0 3px var(--tb-gold), 0 4px 10px rgb(0 0 0 / .5); }
+  .tb__map { position: relative; aspect-ratio: 5 / 3; overflow: hidden; background: #0d1a1f; }
+  .tb__map > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .tk { position: absolute; width: 4.2%; aspect-ratio: 1; min-width: 18px; transform: translate(-50%, -50%); border-radius: 50%; display: grid; place-items: center;
+        font: 600 9px/1 var(--font-text); color: #fff; border: 2px solid #fff; box-shadow: 0 3px 8px rgb(0 0 0 / .55); background: #3f7d8c; }
+  .tk--b { background: #5b8a6f; } .tk--c { background: #8a6a3f; } .tk--foe { background: #b5483a; }
+  .tk--sel { border-color: var(--tb-gold); }
+  .tk--turn { outline: 2px dashed var(--tb-mint); outline-offset: 4px; }
   .tb__side { padding: 12px; display: grid; gap: 6px; align-content: start; min-width: 0; }
   .tb__h { font: 500 12px/1.2 var(--font-text); color: var(--tb-gold); letter-spacing: 0; margin: 2px 2px 4px; }
   .tb__row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 9px; background: rgb(236 230 214 / .05); font-size: 13px; min-width: 0; }
   .tb__row.is-on { box-shadow: inset 0 0 0 1px var(--tb-gold); }
-  .tb__row .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 600 11px/1 var(--font-text); color: #fff; background: #3a7a8a; border: 2px solid #fff; }
-  .tb__row .dot.foe { background: #b5483a; } .tb__row b { font-weight: 500; } .tb__row span:last-child { margin-left: auto; color: var(--tb-mut); white-space: nowrap; }
+  .tb__row.is-turn { box-shadow: inset 0 0 0 1px var(--tb-mint); background: rgb(143 211 184 / .1); }
+  .tb__row .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 600 11px/1 var(--font-text); color: #fff; background: #3f7d8c; border: 2px solid #fff; }
+  .tb__row .dot.b { background: #5b8a6f; } .tb__row .dot.c { background: #8a6a3f; } .tb__row .dot.foe { background: #b5483a; }
+  .tb__row b { font-weight: 500; } .tb__row span:last-child { margin-left: auto; color: var(--tb-mut); white-space: nowrap; }
+  .tb__row .val { color: var(--tb-gold) !important; font: 500 15px var(--font-display); }
   .tb__row > span:only-child { margin-left: 0; color: var(--tb-mut); }
-  .tb__roll { margin-top: 4px; padding: 10px 12px; border-radius: 9px; background: rgb(220 180 104 / .1); box-shadow: inset 0 0 0 1px rgb(220 180 104 / .35); font-size: 13px; }
-  .tb__roll small { display: block; color: var(--tb-mut); font-size: 13px; } .tb__roll b { color: var(--tb-gold); font-weight: 500; } .tb__roll em { font-style: normal; color: var(--tb-mint); font-weight: 500; }
-  .tb__tools { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--tb-line); font-size: 13px; color: var(--tb-mut); }
+  .tb__tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--tb-line); font-size: 13px; color: var(--tb-mut); }
   .tb__tools b { color: var(--tb-ink); font-weight: 500; }
+  .tb__tools.tools { justify-content: flex-start; flex-wrap: wrap; }
+  .tools > span { padding: 4px 9px; border-radius: 7px; box-shadow: inset 0 0 0 1px var(--tb-line); }
+  .tools > span.on { color: var(--tb-gold); box-shadow: inset 0 0 0 1px var(--tb-gold); }
+  .tools .sw i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; box-shadow: 0 0 0 1px var(--tb-mut); }
+  .tb__tabs { display: flex; gap: 2px; padding: 6px; border-bottom: 1px solid var(--tb-line); font-size: 12px; color: var(--tb-mut); }
+  .tb__tabs span { flex: 1; text-align: center; padding: 5px 4px; border-radius: 7px; white-space: nowrap; }
+  .tb__tabs .on { color: var(--tb-gold); background: #183038; box-shadow: inset 0 -2px 0 var(--tb-gold); }
   .tb__foot { display: flex; justify-content: space-between; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--tb-line); font-size: 13px; color: var(--tb-mut); }
   .keys { display: flex; gap: 6px; } .keys i { font-style: normal; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: rgb(236 230 214 / .08); box-shadow: inset 0 0 0 1px var(--tb-line); }
   .invite { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 9px; background: rgb(236 230 214 / .05); font-size: 13px; }
   .invite code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tb-mut); font: 400 13px var(--font-text); }
   .invite span { padding: 4px 10px; border-radius: 99px; background: var(--tb-gold); color: #1a1408; font-weight: 500; font-size: 13px; }
+  .msg { padding: 8px 10px; border-radius: 9px; background: rgb(236 230 214 / .05); font-size: 13px; }
+  .msg small { display: block; color: var(--tb-mut); font-size: 12px; } .msg small b { color: var(--tb-ink); font-weight: 500; }
+  .msg.roll { background: rgb(220 180 104 / .1); box-shadow: inset 3px 0 0 var(--tb-gold); }
+  .msg.whisper { box-shadow: inset 0 0 0 1px var(--tb-mint); }
+  .field { padding: 9px 10px; border-radius: 8px; background: #0a1215; box-shadow: inset 0 0 0 1px var(--tb-line); font-size: 13px; color: var(--tb-mut); }
+  .gold-btn, .btns .gold { padding: 9px 10px; border-radius: 8px; background: var(--tb-gold); color: #1a1408; text-align: center; font-weight: 500; font-size: 13px; }
+  .btns { display: flex; gap: 6px; margin-top: 6px; } .btns span { flex: 1; text-align: center; padding: 8px 6px; border-radius: 8px; font-size: 12px; box-shadow: inset 0 0 0 1px var(--tb-line); }
 
-  /* hero: la cornice luminosa è calda come il tavolo, non il paesaggio dipinto della demo */
-  .hero--centred .hero__window { background:
-    radial-gradient(90% 70% at 50% 115%, rgb(220 180 104 / .38) 0 25%, transparent 70%),
-    radial-gradient(70% 60% at 12% 100%, rgb(143 211 184 / .22) 0 20%, transparent 65%),
+  /* hero split: una finestra sola sul fondo illuminato; la mappa sopra, l'ordine d'iniziativa sotto */
+  .hero-lit { background:
+    radial-gradient(90% 60% at 50% 110%, rgb(220 180 104 / .32) 0 25%, transparent 70%),
+    radial-gradient(70% 60% at 0% 0%, rgb(143 211 184 / .16) 0 20%, transparent 65%),
     linear-gradient(#0f1d23, #14282e); }
-  .hero--centred h1 { max-width: 22ch; font-size: clamp(34px, 4.4vw, 64px); }
-  .hero__window .tb__body { min-height: 300px; }
-  @media (max-width: 639px) { .hero__window .tb__body { grid-template-columns: 1fr; } .hero__window .tb__side { display: none; } .hero__window .tb__map { min-height: 200px; border-right: 0; } }
+  .hero-tb { position: absolute; left: 48px; top: 48px; right: -1px; bottom: -1px; border-radius: 12px 0 0 0; }
+  .hero-tb .tb__side { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 1023px) { .hero-tb { left: 24px; top: 24px; } .hero-tb .tb__tabs, .hero-tb .tb__side { display: none; } }
 
-  /* app-frame: la lista dei personaggi accanto alla mappa aperta, una sola finestra (ricetta del kit, sections-library.md) */
+  /* app-frame: l'elenco accanto alla mappa aperta, una sola finestra (ricetta del kit, sections-library.md) */
   .app.ui { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); margin-top: var(--s-7); background: #0d1a1f; border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); overflow: hidden; }
   .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
   .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
-  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, #0d1a1f); pointer-events: none; }
-  @media (max-width: 1023px) {
-    .app.ui { grid-template-columns: minmax(0, 1fr); }
-    .app > .app__pane--list { display: none; }
-    .app > .app__pane + .app__pane { border-left: 0; }
-  }
-  .app .app__pane--open .tb__map { min-height: 420px; border-right: 0; }
+  @media (max-width: 1023px) { .app.ui { grid-template-columns: minmax(0, 1fr); } .app > .app__pane--list { display: none; } .app > .app__pane + .app__pane { border-left: 0; } }
   .app .tb { box-shadow: none; border-radius: 0; background: transparent; height: 100%; }
-  @media (max-width: 1023px) { .app .app__pane--open .tb__map { min-height: 300px; } }
+  /* il loop: Aria scivola di quattro celle, poi il registro lo scrive (motion.css dà durata e pausa) */
+  .tk--walk { animation: cammina 1s cubic-bezier(.22, 1, .36, 1) infinite both; }
+  @keyframes cammina { 0%, 25% { left: 17.5%; } 60%, 100% { left: 37.5%; } }
+  .tb__news { animation: notizia 1s ease-out infinite both; color: var(--tb-ink); }
+  @keyframes notizia { 0%, 60% { opacity: 0; } 70%, 100% { opacity: 1; } }
 
-  /* funzioni: quattro frammenti nello stesso pannello */
-  #funzioni .panel { --p-h: 300px; background: radial-gradient(80% 70% at 50% 110%, rgb(220 180 104 / .28), transparent 70%), radial-gradient(60% 60% at 10% 0%, rgb(143 211 184 / .14), transparent 70%), #0d1a1f; }
-  #funzioni .panel::before { display: none; }
-  #funzioni .tb { width: 100%; }
-  #funzioni .tb .tb__map { min-height: 150px; border-right: 0; }
-  @media (max-width: 639px) { #funzioni .panel { --p-h: 190px; } }
-  .statement { padding-block: var(--s-10); }
-  .statement .t-label { color: var(--muted); margin-bottom: var(--s-6); }
+  /* liquid-type: il titolo grande è la sezione; sotto, quattro numeri veri */
+  #party .wrap { display: grid; align-content: center; gap: var(--s-9); min-height: 100%; }
+  .party-head { max-width: none; display: grid; gap: var(--s-5); }
+  #party .mo-lt__type { max-width: 16ch; text-transform: none; }
+  .facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-5); }
+  .facts li { display: grid; gap: 4px; } .facts b { font: 400 clamp(28px, 3vw, 40px)/1 var(--font-display); color: var(--accent); }
+  .facts span { color: var(--muted); }
+  @media (max-width: 767px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* dadi: il d20 com'è nell'app, fermo sull'esito */
+  .plain-facts { list-style: none; margin: var(--s-5) 0; padding: 0; display: grid; gap: var(--s-2); }
+  .plain-facts li { padding-left: 18px; position: relative; } .plain-facts li::before { content: ""; position: absolute; left: 0; top: .6em; width: 8px; height: 1px; background: var(--accent); }
+  .dice-frame { background: radial-gradient(circle at 50% 45%, #183038, #0a1215 70%); }
+  .dice-frame > .dice { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--s-3); text-align: center; color: #ece6d6; }
+  .dice__title { margin: 0; font: 400 clamp(18px, 2vw, 26px) var(--font-display); text-transform: uppercase; letter-spacing: .02em; }
+  .dice__d20 { width: clamp(130px, 16vw, 200px); filter: drop-shadow(0 0 24px rgb(220 180 104 / .45)); }
+  .dice__d20 polygon { fill: #183038; stroke: #dcb468; stroke-width: 2; stroke-linejoin: round; }
+  .dice__d20 .f { fill: rgb(220 180 104 / .07); stroke-width: .8; } .dice__d20 polyline { fill: none; stroke: #dcb468; stroke-width: .6; opacity: .5; }
+  .dice__d20 text { font: 400 26px var(--font-display); fill: #ece6d6; text-anchor: middle; }
+  .dice__sum { margin: 0; font-size: 20px; } .dice__sum b { font: 400 28px var(--font-display); color: #dcb468; }
+  .dice__ok { margin: 0; font: 400 20px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: #8fd3b8; }
+
+  /* combattimento: la finestra dell'iniziativa sul vetro scanalato */
+  .init-tb { width: 420px; }
+  .menu-map { aspect-ratio: 5 / 3; overflow: hidden; } .menu-map svg { width: 100%; height: 100%; display: block; }
+  .close__word { text-transform: none; font-size: clamp(34px, 10vw, 150px); line-height: 1.05; overflow-wrap: anywhere; }
+  /* le crocette dei fatti stanno dentro la riga, così il testo parte dal margine della colonna */
+  .plain-facts li { padding-left: 0; } .plain-facts li::before { content: none; }
+  #tavolo .app { height: 360px; }
+  #funzioni .panel { --p-h: 300px; }
+  @media (max-width: 639px) { #funzioni .panel { --p-h: 200px; } #passi .panel { --p-h: 170px; }
+    #combattimento .at-corner { --ax: 20px !important; --ay: 20px !important; } .init-tb { width: 300px; } }
+  /* la D di Cinzel è più larga della piastrina del logo: nel logo l'iniziale usa il carattere del testo */
+  .nav__logo .mark--initial { font-family: var(--font-text); font-weight: 600; }
+  /* sotto 420px il bottone del menu lascia spazio al logo: lo stesso invito è nella hero, subito sotto */
+  @media (max-width: 419px) { .nav__actions .btn { display: none; } }
+  /* Cinzel è largo: il titolo della hero scende a 52px per stare in tre righe nella colonna span-5 */
+  .hero--split h1 { font-size: clamp(34px, 3.6vw, 52px); }
 </style>
 </head>
 <body>
 <!-- type: software
-     deal: hero centred, nav nav-centre, close close-type, footer footer-dark, rhythm surface-pairs, buttons arrow, mark arc, grounds none (nessun effetto shader: vedi report)
-     moments: word-highlight in #dadi -->
+     deal: hero split, nav nav-mega, close close-word, footer footer-dark, rhythm space, buttons tonal, mark initial, ground sage
+     palette: i colori del cliente (petrolio, oro, menta di DESIGN.md) con Cinzel + DM Sans, al posto di quella dealt
+     effect: fluted-glass nel [data-visual] di #combattimento
+     moments: liquid-type in #party, iris-opens in #dadi
+     beats: #party (liquid-type) · #dadi (iris-opens) · #combattimento (effetto); calme in mezzo: #tavolo, #funzioni; #passi e #domande calme prima della chiusura -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="mappa" viewBox="0 0 200 120"><rect width="200" height="120" fill="#0d1a1f"/><rect x="0" y="0" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="0" width="10" height="10" fill="#1a2226"/><rect x="10.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="20" y="0" width="10" height="10" fill="#1a2226"/><rect x="20.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="30" y="0" width="10" height="10" fill="#1a2226"/><rect x="30.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="40" y="0" width="10" height="10" fill="#1a2226"/><rect x="40.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="50" y="0" width="10" height="10" fill="#1a2226"/><rect x="50.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="60" y="0" width="10" height="10" fill="#1a2226"/><rect x="60.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="70" y="0" width="10" height="10" fill="#1a2226"/><rect x="70.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="80" y="0" width="10" height="10" fill="#1a2226"/><rect x="80.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="90" y="0" width="10" height="10" fill="#1a2226"/><rect x="90.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="100" y="0" width="10" height="10" fill="#1a2226"/><rect x="100.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="110" y="0" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="0.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="10" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="10.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="10" width="10" height="10" fill="#6d6248"/><rect x="20" y="10" width="10" height="10" fill="#6d6248"/><rect x="30" y="10" width="10" height="10" fill="#6d6248"/><rect x="40" y="10" width="10" height="10" fill="#6d6248"/><rect x="50" y="10" width="10" height="10" fill="#6d6248"/><rect x="60" y="10" width="10" height="10" fill="#6d6248"/><rect x="70" y="10" width="10" height="10" fill="#6d6248"/><rect x="80" y="10" width="10" height="10" fill="#6d6248"/><rect x="90" y="10" width="10" height="10" fill="#6d6248"/><rect x="100" y="10" width="10" height="10" fill="#6d6248"/><rect x="110" y="10" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="10.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="20" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="20" width="10" height="10" fill="#6d6248"/><rect x="20" y="20" width="10" height="10" fill="#6d6248"/><rect x="30" y="20" width="10" height="10" fill="#6d6248"/><rect x="40" y="20" width="10" height="10" fill="#6d6248"/><rect x="50" y="20" width="10" height="10" fill="#6d6248"/><rect x="60" y="20" width="10" height="10" fill="#6d6248"/><rect x="70" y="20" width="10" height="10" fill="#6d6248"/><rect x="80" y="20" width="10" height="10" fill="#6d6248"/><rect x="90" y="20" width="10" height="10" fill="#6d6248"/><rect x="100" y="20" width="10" height="10" fill="#6d6248"/><rect x="110" y="20" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="120" y="20" width="10" height="10" fill="#1a2226"/><rect x="120.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="130" y="20" width="10" height="10" fill="#1a2226"/><rect x="130.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="140" y="20" width="10" height="10" fill="#1a2226"/><rect x="140.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="150" y="20" width="10" height="10" fill="#1a2226"/><rect x="150.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="160" y="20" width="10" height="10" fill="#1a2226"/><rect x="160.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="170" y="20" width="10" height="10" fill="#1a2226"/><rect x="170.75" y="20.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="30" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="30.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="30" width="10" height="10" fill="#6d6248"/><rect x="20" y="30" width="10" height="10" fill="#6d6248"/><rect x="30" y="30" width="10" height="10" fill="#6d6248"/><rect x="40" y="30" width="10" height="10" fill="#6d6248"/><rect x="50" y="30" width="10" height="10" fill="#6d6248"/><rect x="60" y="30" width="10" height="10" fill="#6d6248"/><rect x="70" y="30" width="10" height="10" fill="#6d6248"/><rect x="80" y="30" width="10" height="10" fill="#6d6248"/><rect x="90" y="30" width="10" height="10" fill="#6d6248"/><rect x="100" y="30" width="10" height="10" fill="#6d6248"/><rect x="110" y="30" width="10" height="10" fill="#a8743a"/><rect x="113" y="33" width="4" height="4" fill="#e8c58a"/><rect x="120" y="30" width="10" height="10" fill="#6d6248"/><rect x="130" y="30" width="10" height="10" fill="#6d6248"/><rect x="140" y="30" width="10" height="10" fill="#6d6248"/><rect x="150" y="30" width="10" height="10" fill="#6d6248"/><rect x="160" y="30" width="10" height="10" fill="#6d6248"/><rect x="170" y="30" width="10" height="10" fill="#1a2226"/><rect x="170.75" y="30.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="40" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="40.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="40" width="10" height="10" fill="#6d6248"/><rect x="20" y="40" width="10" height="10" fill="#6d6248"/><rect x="30" y="40" width="10" height="10" fill="#6d6248"/><rect x="40" y="40" width="10" height="10" fill="#6d6248"/><rect x="50" y="40" width="10" height="10" fill="#6d6248"/><rect x="60" y="40" width="10" height="10" fill="#6d6248"/><rect x="70" y="40" width="10" height="10" fill="#6d6248"/><rect x="80" y="40" width="10" height="10" fill="#6d6248"/><rect x="90" y="40" width="10" height="10" fill="#6d6248"/><rect x="100" y="40" width="10" height="10" fill="#6d6248"/><rect x="110" y="40" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="40.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="120" y="40" width="10" height="10" fill="#6d6248"/><rect x="130" y="40" width="10" height="10" fill="#6d6248"/><rect x="140" y="40" width="10" height="10" fill="#6d6248"/><rect x="150" y="40" width="10" height="10" fill="#6d6248"/><rect x="160" y="40" width="10" height="10" fill="#6d6248"/><rect x="170" y="40" width="10" height="10" fill="#1a2226"/><rect x="170.75" y="40.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="50" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="50.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="50" width="10" height="10" fill="#6d6248"/><rect x="20" y="50" width="10" height="10" fill="#6d6248"/><rect x="30" y="50" width="10" height="10" fill="#6d6248"/><rect x="40" y="50" width="10" height="10" fill="#6d6248"/><rect x="50" y="50" width="10" height="10" fill="#2f6f8f"/><rect x="60" y="50" width="10" height="10" fill="#2f6f8f"/><rect x="70" y="50" width="10" height="10" fill="#2f6f8f"/><rect x="80" y="50" width="10" height="10" fill="#6d6248"/><rect x="90" y="50" width="10" height="10" fill="#6d6248"/><rect x="100" y="50" width="10" height="10" fill="#6d6248"/><rect x="110" y="50" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="50.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="120" y="50" width="10" height="10" fill="#6d6248"/><rect x="130" y="50" width="10" height="10" fill="#6d6248"/><rect x="140" y="50" width="10" height="10" fill="#6d6248"/><rect x="150" y="50" width="10" height="10" fill="#6d6248"/><rect x="160" y="50" width="10" height="10" fill="#6d6248"/><rect x="170" y="50" width="10" height="10" fill="#1a2226"/><rect x="170.75" y="50.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="60" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="60" width="10" height="10" fill="#6d6248"/><rect x="20" y="60" width="10" height="10" fill="#6d6248"/><rect x="30" y="60" width="10" height="10" fill="#6d6248"/><rect x="40" y="60" width="10" height="10" fill="#6d6248"/><rect x="50" y="60" width="10" height="10" fill="#2f6f8f"/><rect x="60" y="60" width="10" height="10" fill="#2f6f8f"/><rect x="70" y="60" width="10" height="10" fill="#2f6f8f"/><rect x="80" y="60" width="10" height="10" fill="#6d6248"/><rect x="90" y="60" width="10" height="10" fill="#6d6248"/><rect x="100" y="60" width="10" height="10" fill="#6d6248"/><rect x="110" y="60" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="120" y="60" width="10" height="10" fill="#1a2226"/><rect x="120.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="130" y="60" width="10" height="10" fill="#1a2226"/><rect x="130.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="140" y="60" width="10" height="10" fill="#a8743a"/><rect x="143" y="63" width="4" height="4" fill="#e8c58a"/><rect x="150" y="60" width="10" height="10" fill="#1a2226"/><rect x="150.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="160" y="60" width="10" height="10" fill="#1a2226"/><rect x="160.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="170" y="60" width="10" height="10" fill="#1a2226"/><rect x="170.75" y="60.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="0" y="70" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="70.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="70" width="10" height="10" fill="#6d6248"/><rect x="20" y="70" width="10" height="10" fill="#6d6248"/><rect x="30" y="70" width="10" height="10" fill="#6d6248"/><rect x="40" y="70" width="10" height="10" fill="#6d6248"/><rect x="50" y="70" width="10" height="10" fill="#6d6248"/><rect x="60" y="70" width="10" height="10" fill="#6d6248"/><rect x="70" y="70" width="10" height="10" fill="#6d6248"/><rect x="80" y="70" width="10" height="10" fill="#6d6248"/><rect x="90" y="70" width="10" height="10" fill="#6d6248"/><rect x="100" y="70" width="10" height="10" fill="#6d6248"/><rect x="110" y="70" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="70.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="140" y="70" width="10" height="10" fill="#6d6248"/><rect x="0" y="80" width="10" height="10" fill="#1a2226"/><rect x="0.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="10" y="80" width="10" height="10" fill="#1a2226"/><rect x="10.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="20" y="80" width="10" height="10" fill="#1a2226"/><rect x="20.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="30" y="80" width="10" height="10" fill="#1a2226"/><rect x="30.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="40" y="80" width="10" height="10" fill="#1a2226"/><rect x="40.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="50" y="80" width="10" height="10" fill="#a8743a"/><rect x="53" y="83" width="4" height="4" fill="#e8c58a"/><rect x="60" y="80" width="10" height="10" fill="#1a2226"/><rect x="60.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="70" y="80" width="10" height="10" fill="#1a2226"/><rect x="70.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="80" y="80" width="10" height="10" fill="#1a2226"/><rect x="80.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="90" y="80" width="10" height="10" fill="#1a2226"/><rect x="90.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="100" y="80" width="10" height="10" fill="#1a2226"/><rect x="100.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="110" y="80" width="10" height="10" fill="#1a2226"/><rect x="110.75" y="80.75" width="8.5" height="8.5" fill="none" stroke="#5b6a70" stroke-width="1.5"/><rect x="140" y="80" width="10" height="10" fill="#6d6248"/><rect x="50" y="90" width="10" height="10" fill="#6d6248"/><rect x="140" y="90" width="10" height="10" fill="#6d6248"/><rect x="50" y="100" width="10" height="10" fill="#6d6248"/><rect x="60" y="100" width="10" height="10" fill="#6d6248"/><rect x="70" y="100" width="10" height="10" fill="#6d6248"/><rect x="80" y="100" width="10" height="10" fill="#6d6248"/><rect x="90" y="100" width="10" height="10" fill="#6d6248"/><rect x="100" y="100" width="10" height="10" fill="#6d6248"/><rect x="110" y="100" width="10" height="10" fill="#6d6248"/><rect x="120" y="100" width="10" height="10" fill="#6d6248"/><rect x="130" y="100" width="10" height="10" fill="#6d6248"/><rect x="140" y="100" width="10" height="10" fill="#6d6248"/><g stroke="rgb(255 255 255 / .1)" stroke-width=".4"><path d="M0 0V120"/><path d="M10 0V120"/><path d="M20 0V120"/><path d="M30 0V120"/><path d="M40 0V120"/><path d="M50 0V120"/><path d="M60 0V120"/><path d="M70 0V120"/><path d="M80 0V120"/><path d="M90 0V120"/><path d="M100 0V120"/><path d="M110 0V120"/><path d="M120 0V120"/><path d="M130 0V120"/><path d="M140 0V120"/><path d="M150 0V120"/><path d="M160 0V120"/><path d="M170 0V120"/><path d="M180 0V120"/><path d="M190 0V120"/><path d="M200 0V120"/><path d="M0 0H200"/><path d="M0 10H200"/><path d="M0 20H200"/><path d="M0 30H200"/><path d="M0 40H200"/><path d="M0 50H200"/><path d="M0 60H200"/><path d="M0 70H200"/><path d="M0 80H200"/><path d="M0 90H200"/><path d="M0 100H200"/><path d="M0 110H200"/><path d="M0 120H200"/></g></symbol></svg>
 
-<header class="nav nav--centre">
+<header class="nav">
   <div class="wrap nav__bar">
     <a class="skip-link" href="#top">Vai al contenuto</a>
-    <a class="nav__logo" href="#top"><span class="mark" data-mark="arc" aria-hidden="true"></span><span translate="no">DM Platform</span></a>
+    <a class="nav__logo" href="#top"><span class="mark mark--initial" aria-hidden="true">D</span><span translate="no">DM Platform</span></a>
     <nav class="nav__links" aria-label="Principale">
-      <div class="nav__item"><a class="nav__link" href="#tavolo">Tavolo</a></div>
+      <div class="nav__item">
+        <a class="nav__link" href="#tavolo">Il tavolo <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="nav__menu">
+          <div class="wrap grid">
+            <div class="menu-col span-3">
+              <p class="t-label">Al tavolo</p>
+              <a href="#tavolo">Mappa e token<span>Celle, griglia e personaggi in scena</span></a>
+              <a href="#dadi">Dadi<span>Il d20 tirato dal database</span></a>
+              <a href="#combattimento">Combattimento<span>Iniziativa, round e turni</span></a>
+            </div>
+            <div class="menu-col span-3">
+              <p class="t-label">Per il gruppo</p>
+              <a href="#funzioni">Chat e inviti<span>Messaggi, sussurri e link d'invito</span></a>
+              <a href="#passi">Primi passi<span>Dalla registrazione al primo invito</span></a>
+            </div>
+            <a class="menu-card span-3 start-10" href="#combattimento">
+              <div class="panel menu-map"><svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#mappa"/></svg></div>
+              <span class="t-card">Nuovo: i turni di combattimento</span>
+              <span class="t-small muted">L'ordine si calcola da solo dai tiri d'iniziativa.</span>
+            </a>
+          </div>
+        </div>
+      </div>
       <div class="nav__item"><a class="nav__link" href="#funzioni">Funzioni</a></div>
-      <div class="nav__item"><a class="nav__link" href="#dadi">Dadi</a></div>
+      <div class="nav__item"><a class="nav__link" href="#passi">Primi passi</a></div>
       <div class="nav__item"><a class="nav__link" href="#domande">Domande</a></div>
     </nav>
     <div class="nav__actions">
+      <a class="nav__link" href="/#/accedi">Accedi</a>
       <a class="btn btn--primary" href="/#/accedi">Crea il tuo tavolo</a>
     </div>
     <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
@@ -142,114 +205,154 @@
 </header>
 
 <main id="top">
-  <section class="hero hero--centred" data-enter aria-labelledby="hero-h">
-    <div class="wrap"><div class="hero-text">
-      <div class="hero__c">
-        <a class="pill" href="#funzioni"><span>Invito valido 7 giorni</span><span class="muted">Vedi come si entra</span></a>
-        <h1 id="hero-h">Tavolo virtuale per giochi di ruolo</h1>
-        <p class="hero__lead">Il DM carica la mappa e crea i token, i giocatori entrano con un invito e muovono i loro. Ogni spostamento e ogni tiro di d20 arriva a tutti nello stesso istante.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="/#/accedi">Crea il tuo tavolo<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#funzioni">Vedi le funzioni</a></div>
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <p class="hero__kicker"><span class="dot" aria-hidden="true"></span>Nuovo: chat del tavolo e turni di combattimento</p>
+        <h1 id="hero-h">Tavolo virtuale per giochi di ruolo online</h1>
+        <p class="hero__lead">Il DM disegna la mappa e crea i token, i giocatori entrano con un link d'invito valido 7 giorni. Mosse, tiri di d20 e messaggi arrivano a tutti nello stesso istante.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="/#/accedi">Crea il tuo tavolo<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#tavolo">Guarda il tavolo</a></div>
       </div>
-      <div class="hero__window" role="img" aria-label="Il tavolo di una campagna: una mappa con quattro token e il risultato di un tiro di dado">
-        <div class="ly-piece tb" aria-hidden="true">
+      <div class="hero__media span-6 start-7 hero-lit" role="img" aria-label="Il tavolo della campagna La Corona di Cenere: la mappa a celle con quattro token e, accanto, l'ordine d'iniziativa con il turno di Aria">
+        <div class="tb hero-tb" aria-hidden="true">
           <div class="tb__bar"><span class="tb__dots"><i></i><i></i><i></i></span><span><b>La Corona di Cenere</b> · Tavolo di gioco</span><span class="sp"></span><span>4 membri</span></div>
-          <div class="tb__body">
-            <div class="tb__map">
-              <span class="tk tk--sel" style="left:30%;top:42%">A</span><span class="tk" style="left:52%;top:58%">T</span><span class="tk" style="left:42%;top:78%">K</span><span class="tk tk--foe" style="left:80%;top:36%">C</span>
-            </div>
-            <div class="tb__side" data-ly-steps="900">
-              <div class="tb__h">Personaggi in scena</div>
-              <div class="tb__row is-on"><span class="dot">A</span><b>Aria</b><span>col 4, riga 5</span></div>
-              <div class="tb__row"><span class="dot">T</span><b>Thorne</b><span>col 6, riga 7</span></div>
-              <div class="tb__row"><span class="dot foe">C</span><b>Custode</b><span>col 9, riga 5</span></div>
-              <div class="tb__roll" data-step><small>Aria · Prova di Percezione · CD 15</small>14 + 3 = <b>17</b> · <em>Successo</em></div>
-            </div>
+          <div class="tb__map"><svg viewBox="0 0 200 120" aria-hidden="true"><use href="#mappa"/></svg>
+            <span class="tk tk--turn" style="left:17.5%;top:37.5%">AR</span><span class="tk tk--b" style="left:27.5%;top:54.2%">TH</span><span class="tk tk--c" style="left:22.5%;top:62.5%">KA</span><span class="tk tk--foe" style="left:72.5%;top:37.5%">CU</span>
           </div>
+          <div class="tb__tabs"><span>Scena</span><span>Chat</span><span class="on">Combattimento</span></div>
+          <div class="tb__side">
+            <div class="tb__row is-turn"><span class="dot">A</span><b>Aria</b><span class="val">18</span></div>
+            <div class="tb__row"><span class="dot foe">C</span><b>Custode</b><span class="val">15</span></div>
+            <div class="tb__row"><span class="dot b">T</span><b>Thorne</b><span class="val">11</span></div>
+            <div class="tb__row"><span class="dot c">K</span><b>Kael</b><span class="val">7</span></div>
+          </div>
+        </div>
+        <div class="ly-float">
+          <div class="ly-float__row"><span class="ly-live">In gioco</span><span>Round 2</span></div>
+          <div class="ly-float__title">Turno di Aria, poi il Custode</div>
         </div>
       </div>
     </div></div>
   </section>
 
+  <section class="section statement" id="party" aria-labelledby="party-h">
+    <div class="wrap">
+      <div data-moment="liquid-type" class="section-head party-head">
+        <h2 class="mo-lt__type" id="party-h">Tutto il party allo stesso tavolo</h2>
+        <p class="t-lead">Chi gioca da casa vede la stessa mappa, gli stessi token e lo stesso d20 di chi siede accanto al DM.</p>
+      </div>
+      <ul class="facts">
+        <li><b>7 giorni</b><span>la validità di un link d'invito</span></li>
+        <li><b>40 × 30</b><span>le celle massime di una mappa</span></li>
+        <li><b>500</b><span>i caratteri di un messaggio in chat</span></li>
+        <li><b>1 d20</b><span>tirato dal database per tutti</span></li>
+      </ul>
+    </div>
+  </section>
+
   <section class="section" id="tavolo" aria-labelledby="tavolo-h">
     <div class="wrap">
       <div class="grid">
-        <div class="section-head span-5"><h2 id="tavolo-h">Mappa, token e registro nella stessa finestra.</h2></div>
-        <div class="span-6 start-7"><p class="muted t-lead">Il DM carica l'immagine, crea i personaggi e li assegna. Chi gioca li sposta sulla griglia e il registro segna ogni mossa.</p></div>
+        <div class="section-head span-5"><h2 id="tavolo-h">Il tavolo in una sola finestra.</h2></div>
+        <div class="span-6 start-7"><p class="t-lead">Il DM dipinge muri, porte e acqua cella per cella. Chi gioca trascina il proprio token, e accanto alla mappa le schede tengono scena, chat e combattimento.</p></div>
       </div>
-      <div class="ui app fill" role="img" aria-label="Il tavolo di gioco: l'elenco dei personaggi in scena accanto alla mappa con i token e la griglia" data-ui-pause-host>
+      <div class="ui app" role="img" aria-label="Il tavolo di gioco: l'elenco dei personaggi in scena e il registro accanto alla mappa a celle, dove il token di Aria si sposta di quattro celle" data-ui-pause-host>
         <div class="app__pane app__pane--list">
           <div class="tb" aria-hidden="true">
-            <div class="tb__tools"><b>La Corona di Cenere</b><span>Dungeon Master</span></div>
+            <div class="tb__tabs"><span class="on">Scena</span><span>Chat</span><span>Combattimento</span><span>DM</span></div>
             <div class="tb__side">
               <div class="tb__h">Personaggi in scena</div>
               <div class="tb__row is-on"><span class="dot">A</span><b>Aria</b><span>col 4, riga 5</span></div>
-              <div class="tb__row"><span class="dot">T</span><b>Thorne</b><span>col 6, riga 7</span></div>
-              <div class="tb__row"><span class="dot">K</span><b>Kael</b><span>col 5, riga 8</span></div>
-              <div class="tb__row"><span class="dot foe">C</span><b>Custode</b><span>col 9, riga 5</span></div>
+              <div class="tb__row"><span class="dot b">T</span><b>Thorne</b><span>col 6, riga 3</span></div>
+              <div class="tb__row"><span class="dot c">K</span><b>Kael</b><span>col 9, riga 4</span></div>
+              <div class="tb__row"><span class="dot foe">C</span><b>Custode</b><span>col 15, riga 5</span></div>
               <div class="tb__h" style="margin-top:12px">Registro del tavolo</div>
-              <div class="tb__row"><span>Aria spostata in col 4, riga 5</span></div>
-              <div class="tb__row"><span>Custode spostato in col 9, riga 5</span></div>
-              <div class="tb__row"><span>Thorne spostato in col 6, riga 7</span></div>
-              <div class="tb__row"><span>Kael spostato in col 5, riga 8</span></div>
+              <div class="tb__row"><span>Custode spostato in col 15, riga 5</span></div>
+              <div class="tb__row"><span>Thorne spostato in col 6, riga 3</span></div>
             </div>
           </div>
         </div>
-        <div class="app__pane app__pane--open" data-ui-loop>
+        <div class="app__pane app__pane--open" data-m-loop>
           <div class="tb" aria-hidden="true">
-            <div class="tb__tools"><b>Mappa</b><span>Griglia visibile</span></div>
-            <div class="tb__map">
-              <span class="tk tk--sel" style="left:30%;top:42%">A</span><span class="tk" style="left:52%;top:58%">T</span><span class="tk" style="left:42%;top:78%">K</span><span class="tk tk--foe" style="left:80%;top:36%">C</span>
+            <div class="tb__tools"><b>Mappa a celle</b><span>Griglia visibile</span></div>
+            <div class="tb__map"><svg viewBox="0 0 200 120" aria-hidden="true"><use href="#mappa"/></svg>
+              <span class="tk tk--sel tk--walk" style="left:17.5%;top:37.5%">AR</span><span class="tk tk--b" style="left:27.5%;top:20.8%">TH</span><span class="tk tk--c" style="left:42.5%;top:29.2%">KA</span><span class="tk tk--foe" style="left:72.5%;top:37.5%">CU</span>
             </div>
-            <div class="tb__foot"><span>Posizioni in celle: col, riga</span><span>Aria spostata in col 4, riga 5</span></div>
+            <div class="tb__foot"><span>Posizioni in celle: col, riga</span><span class="tb__news">Aria spostata in col 8, riga 5</span></div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section g2 ground-surface" id="funzioni" aria-labelledby="funzioni-h">
+  <section class="section ground-surface" id="dadi" data-moment="iris-opens" data-moment-opts='{"from": "base"}' aria-labelledby="dadi-h">
     <div class="wrap">
-      <div class="group">
-        <div class="section-head">
-          <h2 id="funzioni-h">Cosa fa il tavolo. <span class="muted">Ogni funzione è già in uso nel gioco.</span></h2>
+      <div class="grid">
+        <div class="section-head span-5">
+          <h2 id="dadi-h">Il d20 lo tira il database. <span class="muted">Nessuno trucca un tiro.</span></h2>
+          <p class="t-lead">Scrivi la prova, il modificatore e la classe difficoltà. Il numero lo sceglie il server, e il dado rotola sullo schermo di tutti insieme.</p>
+          <ul class="plain-facts">
+            <li>Il 20 naturale riesce sempre, l'1 fallisce sempre</li>
+            <li>Ogni tiro resta nella chat del tavolo</li>
+            <li>Anche l'iniziativa si tira così</li>
+          </ul>
+          <a class="link" href="#combattimento">Vedi i turni di combattimento</a>
         </div>
-        <div class="grid">
-          <article class="card card--row card--open span-6">
-            <h3>Carica la mappa del tavolo</h3>
-            <p>Il DM sceglie un'immagine JPG, PNG o WebP fino a 5 MB. Gli altri la vedono comparire senza ricaricare la pagina.</p>
-            <div class="panel" role="img" aria-label="La barra della mappa con l'interruttore della griglia e la mappa caricata">
-              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:400px;--ax:max(24px, 50% - 200px);--ay:48px;--ay-sm:16px">
-                <div class="tb" aria-hidden="true"><div class="tb__tools"><b>Mappa</b><span>JPG, PNG o WebP · max 5 MB</span></div><div class="tb__map"><span class="tk" style="left:34%;top:50%">T</span></div></div>
-              </div></div>
-            </div>
-          </article>
-          <article class="card card--row card--open span-6">
-            <h3>Sposta i token sulla griglia</h3>
-            <p>Il token si aggancia alla cella al rilascio. Ogni giocatore muove i propri, il DM muove tutti.</p>
-            <div class="panel" role="img" aria-label="Un token che si aggancia a una cella della griglia">
-              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:400px;--ax:max(24px, 50% - 200px);--ay:48px;--ay-sm:16px">
-                <div class="tb" aria-hidden="true"><div class="tb__tools"><b>Elfo</b><span>col 7, riga 6</span></div><div class="tb__map"><span class="tk tk--sel" style="left:58%;top:52%">E</span><span class="tk tk--foe" style="left:26%;top:40%">O</span></div></div>
-              </div></div>
-            </div>
-          </article>
+        <div class="frame frame--split span-6 start-7 dice-frame" role="img" aria-label="Il risultato di un tiro: Prova di Percezione con classe difficoltà 15, il d20 mostra 14, più 3 fa 17, successo">
+          <div class="dice" aria-hidden="true">
+            <p class="dice__title">Prova di Percezione · CD 15</p>
+            <svg class="dice__d20" viewBox="0 0 100 100"><polygon points="50,4 92,28 92,72 50,96 8,72 8,28"/><polygon class="f" points="50,22 76,66 24,66"/><polyline points="50,4 50,22 92,28 76,66 92,72 50,96 24,66 8,72 8,28 50,22 76,66 24,66 8,28"/><text x="50" y="57">14</text></svg>
+            <p class="dice__sum">14 + 3 = <b>17</b></p>
+            <p class="dice__ok">Successo</p>
+          </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section" id="funzioni" aria-labelledby="funzioni-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="funzioni-h">Cosa fa il tavolo. <span class="muted">Ogni funzione è già in uso nelle campagne.</span></h2>
+      </div>
       <div class="grid">
-        <article class="card card--row card--open span-6">
+          <article class="card card--row card--open span-3">
+            <h3>Disegna la mappa a celle</h3>
+            <p>Pennello, riempimento e gomma su una griglia fino a 40 × 30. Annulla e ripeti con Ctrl+Z.</p>
+            <div class="panel" role="img" aria-label="Gli strumenti dell'editor della mappa sopra una porzione di mappa a celle">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:260px;--ax:max(16px, 50% - 130px);--ay:48px;--ay-sm:16px">
+                <div class="tb" aria-hidden="true"><div class="tb__tools tools"><span class="on">Pennello</span><span>Riempimento</span><span>Gomma</span><span class="sw"><i style="background:#1a2226"></i>Muro</span></div><div class="tb__map"><svg viewBox="0 0 200 120" aria-hidden="true"><use href="#mappa"/></svg></div></div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--row card--open span-3">
+            <h3>Scrivi nella chat del tavolo</h3>
+            <p>Messaggi a tutti o sussurri a una persona sola. I tiri di dado compaiono nello stesso flusso.</p>
+            <div class="panel" role="img" aria-label="La chat del tavolo con un messaggio del DM, un tiro di dado e un sussurro">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:260px;--ax:max(16px, 50% - 130px);--ay:48px;--ay-sm:16px">
+                <div class="tb" aria-hidden="true"><div class="tb__side">
+                  <div class="msg"><small><b>Davide</b> 21:04</small>Il portone della cripta è socchiuso.</div>
+                  <div class="msg roll"><small><b>Aria</b> 21:05</small>Percezione: 14 + 3 = 17 · riuscito contro CD 15</div>
+                  <div class="msg whisper"><small><b>Davide</b> 21:05 · privato per te</small>Dietro la porta c'è qualcuno.</div>
+                </div></div>
+              </div></div>
+            </div>
+          </article>
+        <article class="card card--row card--open span-3">
           <h3>Invita i giocatori con un link</h3>
           <p>Il link vale 7 giorni e una sola persona. Il DM vede i membri e può rimuoverli.</p>
           <div class="panel" role="img" aria-label="Un link d'invito con il pulsante Copia e l'elenco dei membri">
-            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:400px;--ax:max(24px, 50% - 200px);--ay:48px;--ay-sm:16px">
-              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="invite"><code>…/#/invito/7f3a9c</code><span>Copia</span></div><div class="tb__row"><span class="dot">E</span><b>Davide</b><span>Dungeon Master</span></div><div class="tb__row"><span class="dot">A</span><b>Aria</b><span>Giocatore</span></div></div></div>
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:260px;--ax:max(16px, 50% - 130px);--ay:48px;--ay-sm:16px">
+              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="invite"><code>…/#/invito/7f3a9c</code><span>Copia</span></div><div class="tb__row"><span class="dot b">D</span><b>Davide</b><span>Dungeon Master</span></div><div class="tb__row"><span class="dot">A</span><b>Aria</b><span>Giocatore</span></div></div></div>
             </div></div>
           </div>
         </article>
-        <article class="card card--row card--open span-6">
+        <article class="card card--row card--open span-3">
           <h3>Muovi i token con le frecce</h3>
           <p>Scegli un personaggio dall'elenco e usa la tastiera: serve anche a chi non può trascinare.</p>
           <div class="panel" role="img" aria-label="L'elenco dei personaggi con quello scelto e i quattro tasti freccia">
-            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:400px;--ax:max(24px, 50% - 200px);--ay:48px;--ay-sm:16px">
-              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="tb__row is-on"><span class="dot">A</span><b>Aria</b><span>col 4, riga 5</span></div><div class="tb__row"><span class="dot">T</span><b>Thorne</b><span>col 6, riga 7</span></div><div class="keys"><i>←</i><i>↑</i><i>↓</i><i>→</i></div></div></div>
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:260px;--ax:max(16px, 50% - 130px);--ay:48px;--ay-sm:16px">
+              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="tb__row is-on"><span class="dot">A</span><b>Aria</b><span>col 4, riga 5</span></div><div class="tb__row"><span class="dot b">T</span><b>Thorne</b><span>col 6, riga 7</span></div><div class="keys"><i>←</i><i>↑</i><i>↓</i><i>→</i></div></div></div>
             </div></div>
           </div>
         </article>
@@ -257,21 +360,86 @@
     </div>
   </section>
 
-  <section class="section statement" id="dadi" data-moment="word-highlight" aria-label="Dadi">
+  <section class="section" id="combattimento" aria-labelledby="combattimento-h">
     <div class="wrap">
-      <p class="t-label">Dadi</p>
-      <p class="mo-wh__text">Il d20 lo tira <strong>il database</strong>, non il browser. Nessuno può truccare un tiro dalla console, e tutti al tavolo vedono lo stesso numero, lo stesso totale e lo stesso verdetto.</p>
+      <div class="grid">
+        <div class="section-head span-5">
+          <h2 id="combattimento-h">Iniziativa e turni in ordine. <span class="muted">Tutti vedono a chi tocca.</span></h2>
+          <p class="t-lead">Il DM sceglie chi combatte, ognuno tira l'iniziativa del proprio personaggio e l'ordine si compone da solo. Un clic passa il turno, e sulla mappa l'anello si sposta sul token giusto.</p>
+          <ul class="plain-facts">
+            <li>Pareggi sciolti dal modificatore, poi dal DM</li>
+            <li>Personaggi aggiunti anche a combattimento iniziato</li>
+            <li>Round contati in automatico</li>
+          </ul>
+          <a class="link" href="/#/accedi">Prova un combattimento</a>
+        </div>
+        <div class="frame frame--split span-6 start-7" data-visual data-fx="fluted-glass" data-fx-seed="31" role="img" aria-label="Il pannello Combattimento: round 2, l'ordine d'iniziativa con Aria di turno e il pulsante Turno successivo">
+          <div class="stage stage--fade-br">
+            <div class="at-corner to-edge" style="--ax:56px;--ay:56px">
+              <div class="tb init-tb" aria-hidden="true">
+                <div class="tb__tabs"><span>Scena</span><span>Chat</span><span class="on">Combattimento</span></div>
+                <div class="tb__side">
+                  <div class="tb__h">Round 2 · turno di Aria</div>
+                  <div class="tb__row is-turn"><span class="dot">A</span><b>Aria</b><span class="val">18</span></div>
+                  <div class="tb__row"><span class="dot foe">C</span><b>Custode</b><span class="val">15</span></div>
+                  <div class="tb__row"><span class="dot b">T</span><b>Thorne</b><span class="val">11</span></div>
+                  <div class="tb__row"><span class="dot c">K</span><b>Kael</b><span class="val">7</span></div>
+                  <div class="btns"><span>Turno precedente</span><span class="gold">Turno successivo</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="passi" aria-labelledby="passi-h">
+    <div class="wrap">
+      <div class="section-head"><h2 id="passi-h">Il primo tavolo in tre passi. <span class="muted">Senza installare niente.</span></h2></div>
+      <div class="grid">
+        <article class="card card--row card--open span-4">
+          <h3>Registrati</h3>
+          <p>Email, password e il nome che gli altri vedranno al tavolo.</p>
+          <div class="panel" role="img" aria-label="Il modulo di registrazione con nome, email e password">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:300px;--ax:max(24px, 50% - 150px);--ay:40px;--ay-sm:16px">
+              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="field">La tua email</div><div class="field">••••••••</div><div class="gold-btn">Crea account</div></div></div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <h3>Crea la campagna</h3>
+          <p>Le dai un nome e diventi il DM: mappa e token sono tuoi da preparare.</p>
+          <div class="panel" role="img" aria-label="Il campo Nuova campagna con il nome La Corona di Cenere">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:300px;--ax:max(24px, 50% - 150px);--ay:40px;--ay-sm:16px">
+              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="tb__h">Nuova campagna</div><div class="field">La Corona di Cenere</div><div class="gold-btn">Crea (sarai il DM)</div></div></div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <h3>Manda l'invito</h3>
+          <p>Copi il link e lo giri al gruppo: chi lo apre entra come giocatore.</p>
+          <div class="panel" role="img" aria-label="Il link d'invito pronto da copiare">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:300px;--ax:max(24px, 50% - 150px);--ay:40px;--ay-sm:16px">
+              <div class="tb" aria-hidden="true"><div class="tb__side"><div class="tb__h">Invita un giocatore</div><div class="invite"><code>…/#/invito/7f3a9c</code><span>Copia</span></div></div></div>
+            </div></div>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
   <section class="section" id="domande" aria-labelledby="domande-h">
     <div class="wrap">
-      <div class="section-head"><h2 id="domande-h">Domande sul tavolo.</h2></div>
-      <div class="faq">
-        <div class="faq__item"><h3>Serve un account?</h3><p>Sì, con email e password. Ogni giocatore ha il proprio nome al tavolo e vede solo le campagne a cui è stato invitato.</p></div>
-        <div class="faq__item"><h3>Quanti giocatori può avere una campagna?</h3><p>Il tavolo è pensato per circa sei persone per campagna.</p></div>
-        <div class="faq__item"><h3>Funziona sul telefono?</h3><p>È pensato per computer e tablet. Le pagine si adattano anche al telefono, ma la mappa si legge meglio su uno schermo grande.</p></div>
-        <div class="faq__item"><h3>Cosa non c'è ancora?</h3><p>Una sola mappa per campagna, senza nebbia di guerra, iniziativa o chat vocale.</p></div>
+      <div class="grid">
+        <div class="section-head span-5"><h2 id="domande-h">Domande sul tavolo.</h2></div>
+        <div class="faq span-6 start-7">
+          <div class="faq__item"><h3>Serve un account?</h3><p>Sì, con email e password. Ogni giocatore ha il proprio nome al tavolo e vede solo le campagne a cui è stato invitato.</p></div>
+          <div class="faq__item"><h3>Quanti giocatori può avere una campagna?</h3><p>Il tavolo è pensato per circa sei persone per campagna, DM compreso.</p></div>
+          <div class="faq__item"><h3>Posso usare una mappa disegnata altrove?</h3><p>Sì: il DM carica un'immagine JPG, PNG o WebP fino a 5 MB, oppure disegna la mappa a celle e passa dall'una all'altra.</p></div>
+          <div class="faq__item"><h3>Funziona sul telefono?</h3><p>È pensato per computer e tablet. Le pagine si adattano anche al telefono, ma la mappa si legge meglio su uno schermo grande.</p></div>
+          <div class="faq__item"><h3>Cosa non c'è ancora?</h3><p>Una sola mappa per campagna, senza nebbia di guerra, schede dei personaggi o chat vocale.</p></div>
+        </div>
       </div>
     </div>
   </section>
@@ -279,21 +447,22 @@
 
 <footer class="footer closing footer--dark" id="contact" aria-labelledby="close-h">
   <div class="wrap">
-    <div class="closing__cta close--type">
-      <div class="section-head">
-        <h2 id="close-h">Crea il tuo tavolo.</h2>
-        <p>Registrati con email e password, crea la campagna e manda il primo invito.</p>
+    <div class="closing__cta close--word">
+      <div class="section-head--split">
+        <div><h2 id="close-h">Crea il tuo tavolo.</h2><p class="t-lead">Registrati, crea la campagna e manda il primo invito al gruppo.</p></div>
+        <a class="btn btn--primary" href="/#/accedi">Crea il tuo tavolo<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
       </div>
-      <a class="btn btn--primary btn--xl btn--wide" href="/#/accedi">Crea il tuo tavolo<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      <p class="close__word" aria-hidden="true" translate="no">DM Platform</p>
     </div>
     <div class="closing__links">
       <div class="grid">
-        <div class="span-4 stack-4">
-          <a class="nav__logo" href="#top"><span class="mark" data-mark="arc" aria-hidden="true"></span><span translate="no">DM Platform</span></a>
-          <p class="footer__lede">Tavolo virtuale per giocare di ruolo online.</p>
+        <div class="span-6 stack-4">
+          <a class="nav__logo" href="#top"><span class="mark mark--initial" aria-hidden="true">D</span><span translate="no">DM Platform</span></a>
+          <p class="footer__lede">Tavolo virtuale per giocare di ruolo online con il proprio gruppo.</p>
         </div>
-        <div class="span-2 footer__col"><h3>Prodotto</h3><ul><li><a href="#tavolo">Tavolo</a></li><li><a href="#funzioni">Funzioni</a></li><li><a href="#dadi">Dadi</a></li></ul></div>
-        <div class="span-2 footer__col"><h3>Aiuto</h3><ul><li><a href="#domande">Domande</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Il tavolo</h3><ul><li><a href="#tavolo">Mappa e token</a></li><li><a href="#dadi">Dadi</a></li><li><a href="#combattimento">Combattimento</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Il gruppo</h3><ul><li><a href="#funzioni">Chat e inviti</a></li><li><a href="#passi">Primi passi</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Aiuto</h3><ul><li><a href="#domande">Domande</a></li><li><a href="/#/accedi">Accedi</a></li></ul></div>
       </div>
       <div class="footer__legal">
         <span>&copy; 2026 <span translate="no">DM Platform</span></span>
@@ -305,6 +474,6 @@
 <script type="module" src="assets/system.js"></script>
 <script type="module" src="assets/motion/motion.js"></script>
 <script type="module" src="assets/layout/layout.js"></script>
-<script type="module" src="assets/diagrams/mount.js"></script>
+<script type="module" src="assets/moments/moments.js"></script>
 </body>
 </html>
