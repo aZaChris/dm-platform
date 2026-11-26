@@ -1,9 +1,10 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.0.1 (PATCH)
-- Modificato: Vincoli tecnici, frase sui dadi allineata al codice (dalla migrazione 0006 il tiro
-  lo fa il database con roll_d20; la feature 003 lo mostra nella chat)
-- Principi aggiunti/rimossi: nessuno
+- Version change: 1.0.1 → 2.0.0 (MAJOR)
+- Modificato: V. Funzioni core e riferimento v1, tolta la videochiamata dall'ambito del prodotto (2026-11-26):
+  il gruppo gioca già in chiamata su Discord, una chiamata incorporata sarebbe un doppione. La spec 008
+  è stata scritta e scartata prima del plan.
+- Principi aggiunti/rimossi: nessuno; ridefinito l'ambito del principio V
 - Template: plan-template.md ✅ (Constitution Check generico, nessuna modifica),
   spec-template.md ✅, tasks-template.md ✅
 - TODO rimandati: nessuno
@@ -37,9 +38,9 @@ Si scrive il minimo codice che soddisfa la spec. Le semplificazioni deliberate c
 limite noto sono marcate nel codice con un commento che indica quando rivederle.
 
 ### V. Funzioni core e riferimento v1
-L'ambito del prodotto è: chat, videochiamata (embed Jitsi o LiveKit/Daily, mai
-self-host), tiro dadi, mappa con griglia e token (react-konva), gestione turni e
-iniziativa, scheda 5e. Altro è fuori ambito finché non emendato. Il codice v1 (tag
+L'ambito del prodotto è: chat, tiro dadi, mappa con griglia e token (react-konva),
+gestione turni e iniziativa, scheda 5e. La voce e il video restano fuori dal tavolo: il
+gruppo usa Discord. Altro è fuori ambito finché non emendato. Il codice v1 (tag
 `legacy-v1`) è solo documentazione del modello di dominio, MUST NOT essere riusato come
 base di codice.
 
@@ -67,4 +68,4 @@ semantico: MAJOR per rimozione o ridefinizione di principi, MINOR per nuovi prin
 sezioni, PATCH per chiarimenti. Ogni plan verifica la conformità; le violazioni vanno
 giustificate nella tabella Complexity Tracking del plan.
 
-**Version**: 1.0.1 | **Ratified**: 2026-11-16 | **Last Amended**: 2026-11-25
+**Version**: 2.0.0 | **Ratified**: 2026-11-16 | **Last Amended**: 2026-11-26
