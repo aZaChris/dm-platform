@@ -36,8 +36,10 @@ Contrasto: testo su `--surface` ≥ 7:1; `--muted` solo per testo secondario ≥
 - Scala: 11 · 13 · 15 · 20 · 28 · 44 px. Niente altre misure.
 
 ## 4. Componenti
-- **Card**: `--surface`, bordo `--line`, raggio 14px, padding 20px. Hover: bordo `--gold` al 40%, sale di 2px.
-- **Pulsante primario**: fondo `--gold`, testo `--gold-ink`, raggio 8px. **Secondario**: trasparente con bordo `--line`.
+- **Card**: sfumatura da `--surface` leggermente più chiara in alto, bordo `--line`, raggio 14px, padding 20px.
+  Al passaggio un alone oro tenue segue il puntatore (`--mx/--my`, un solo ascoltatore in `main.tsx`); le card cliccabili salgono di 2-3px.
+- **Card campagna**: copertina a griglia da mappa, colorata con una tonalità ricavata dal nome (sempre la stessa per campagna).
+- **Pulsante primario**: fondo `--gold` (sfumato), testo `--gold-ink`, raggio 8px; al passaggio un riflesso lo attraversa, al clic si schiaccia (scala .97). **Secondario**: trasparente con bordo `--line`.
 - **Input**: fondo `--bg-side`, bordo `--line`, focus con anello `--gold` (mai rimuovere il focus).
 - **Badge**: pillola con bordo; DM in `--mint`, Giocatore in `--muted`.
 - **Token sulla mappa**: cerchio colorato con iniziali, bordo bianco 2px, ombra morbida.
@@ -45,6 +47,9 @@ Contrasto: testo su `--surface` ≥ 7:1; `--muted` solo per testo secondario ≥
 ## 5. Layout
 Barra laterale 240px + contenuto fluido; griglia a 12 colonne, spazi multipli di 4px (8 · 16 · 24 · 40).
 Sotto 800px la barra diventa una riga in alto. La mappa occupa sempre tutta la larghezza disponibile.
+**Tavolo**: mappa a sinistra, a destra un solo pannello fisso a schede (Scena · Chat · Combattimento · DM) con i dadi
+sempre in fondo. Pallino oro sulla scheda Chat se arriva qualcosa mentre guardi altro, menta su Combattimento se c'è un turno in corso.
+**Accesso**: schermo diviso, foto del tavolo a sinistra e modulo a destra (sotto 900px la foto va in alto).
 
 ## 6. Profondità
 Niente ombre pesanti: livelli dati da colore (`--bg` → `--surface` → `--surface-2`) e bordo.
@@ -57,7 +62,14 @@ Il movimento guida l'attenzione, non decora. Tutto passa da `prefers-reduced-mot
 | Entrata pagina | dissolvenza + salita di 8px, elementi a cascata | 450ms, ritardo 60ms |
 | Hover card/pulsante | salita 2px + bordo oro | 180ms |
 | Sfondo | bagliore radiale che respira lentamente (CSS) | 18s, infinito |
+| Cambio pagina | View Transitions API: il vecchio contenuto si dissolve, il nuovo sale; la barra resta ferma | 180 + 320ms |
+| Token sulla mappa | scivola nella nuova cella (tween di Konva), anche quando lo muove un altro | 350ms |
+| Turno attivo | anello menta tratteggiato che ruota; riga dell'iniziativa che «respira» | continuo |
+| Messaggi chat, righe del diario | entrano scivolando da sinistra | 300-350ms |
 | Lancio dadi | vedi §10 | 1.4s |
+
+**Movimento d'ambiente** (eccezione al limite dei 600ms, solo decorazione e mai su ciò che si legge):
+foto delle hero che si avvicina piano (24s), braci che salgono (`Embers.tsx`, 8-13s), grana fissa sopra la pagina.
 Curva standard: `cubic-bezier(.2, .8, .2, 1)`.
 
 ## 8. Responsive
@@ -68,7 +80,7 @@ Il canvas della mappa si adatta al contenitore; il trascinamento funziona anche 
 **Fai**: usa solo i token; un solo pulsante oro per schermata; titoli in Cinzel, tutto il resto DM Sans;
 stati di focus sempre visibili; testo in italiano.
 **Non fare**: colori in esadecimale dentro i componenti, nuove librerie UI, animazioni sopra 600ms
-(tranne i dadi), cornici decorative, testo `--muted` su sfondi chiari.
+(tranne i dadi e il movimento d'ambiente di §7), cornici decorative, testo `--muted` su sfondi chiari.
 Prima di chiudere un lavoro sull'interfaccia: `npm run build`, poi uno screenshot a 1440px e uno a 390px.
 
 ## 10. Lancio dei dadi (stile Baldur's Gate 3)

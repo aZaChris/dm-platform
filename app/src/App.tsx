@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { Login } from './pages/Login'
@@ -13,7 +14,12 @@ import { Table } from './pages/Table'
 function useHash() {
   const [hash, setHash] = useState(location.hash || '#/')
   useEffect(() => {
-    const on = () => setHash(location.hash || '#/')
+    // Cambio pagina con la View Transitions API del browser (dissolvenza in index.css); dove manca, cambio secco.
+    const on = () => {
+      const vai = () => flushSync(() => setHash(location.hash || '#/'))
+      if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(vai)
+      else vai()
+    }
     addEventListener('hashchange', on)
     return () => removeEventListener('hashchange', on)
   }, [])
@@ -36,7 +42,7 @@ export function App() {
     if (session === null && alla_radice) location.replace('/presentazione/')
   }, [session, alla_radice])
 
-  if (session === undefined) return <p>Caricamento…</p>
+  if (session === undefined) return <p className="boot">Caricamento…</p>
   if (!session) return <main className="auth"><Login /></main>
 
   const [, route, param] = hash.split('/')
