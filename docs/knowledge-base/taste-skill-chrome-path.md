@@ -18,6 +18,10 @@ Da fare una volta: esportare `CHROME_PATH` nell'ambiente in cui parte Claude Cod
 impostazioni), così lo vedono anche gli hook. Nel frattempo il report dichiara «GATE: ERROR» e che la pagina non è
 stata controllata dai test della skill.
 
+**Fatto il 2026-11-25:** `CHROME_PATH` è nella chiave `env` di `~/.claude/settings.json`, che Claude Code passa
+anche agli hook; da lì il gate ha girato davvero (24 → 7 → 1 FAIL in tre giri). Il percorso contiene la versione
+(`chromium-1255`): dopo un aggiornamento di Playwright va corretto lì.
+
 ## Lezione per il futuro
 - Una variabile impostata dentro un comando non arriva agli hook: va messa nell'ambiente del processo padre.
 - Con `file://` una pagina con moduli JavaScript resta bianca: servirla con un server locale (`python3 -m http.server`).

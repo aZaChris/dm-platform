@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import Konva from 'konva'
 import { Stage, Layer, Image as KImage, Line, Group, Circle, Text, Shape } from 'react-konva'
 import { CELL_PX, clampToMap, snapToCell } from '../lib/grid'
 import { CELL_TYPES, applyPatch, cellIndex, floodFill, lineCells, type CellType, type Patch } from '../lib/cells'
@@ -168,37 +169,72 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, url, cell
           <Line key={i} points={p} stroke={celle ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.35)'} strokeWidth={1 / scala} listening={false} />
         ))}
         {tokens.map((t) => (
-          <Group
+          <TokenNode
             key={t.id}
-            x={t.col * CELL_PX + CELL_PX / 2}
-            y={t.row * CELL_PX + CELL_PX / 2}
+            t={t}
+            raggio={raggio}
             draggable={!modifica && (isDm || t.owner_id === userId)}
-            onDragEnd={(e) => {
-              const g = e.target
-              const { col, row } = snapToCell(g.x(), g.y())
+            selezionato={t.id === selectedId}
+            diTurno={t.id === turnTokenId}
+            onDrop={(x, y, g) => {
+              const { col, row } = snapToCell(x, y)
               const c = clampToMap(col, row, cols, rows)
               // Aggancia subito il nodo alla cella, senza aspettare il ritorno dal server.
               g.position({ x: c.col * CELL_PX + CELL_PX / 2, y: c.row * CELL_PX + CELL_PX / 2 })
               if (c.col !== t.col || c.row !== t.row) onMove(t.id, c.col, c.row)
             }}
-          >
-            {t.id === turnTokenId && <Circle radius={raggio + 7} stroke="#8fd3b8" strokeWidth={3} dash={[6, 4]} listening={false} />}
-            <Circle radius={raggio} fill={t.color} stroke={t.id === selectedId ? '#dcb468' : '#fff'} strokeWidth={t.id === selectedId ? 5 : 2} />
-            <Text
-              text={t.name.slice(0, 2).toUpperCase()}
-              fill="#fff"
-              fontStyle="bold"
-              fontSize={raggio}
-              width={raggio * 2}
-              x={-raggio}
-              y={-raggio / 2}
-              align="center"
-              listening={false}
-            />
-          </Group>
+          />
         ))}
       </Layer>
     </Stage>
     </div>
+  )
+}
+
+const calmo = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+
+type NodoProps = {
+  t: Token
+  raggio: number
+  draggable: boolean
+  selezionato: boolean
+  diTurno: boolean
+  onDrop: (x: number, y: number, g: Konva.Group) => void
+}
+
+// Un token sulla mappa. Quando col/riga cambiano (anche da un altro giocatore) scivola nella nuova cella
+// invece di saltare: la posizione la muove la tween di Konva, non le prop, sennò React la reimposterebbe di colpo.
+function TokenNode({ t, raggio, draggable, selezionato, diTurno, onDrop }: NodoProps) {
+  const g = useRef<Konva.Group>(null)
+  const anello = useRef<Konva.Circle>(null)
+  const x = t.col * CELL_PX + CELL_PX / 2
+  const y = t.row * CELL_PX + CELL_PX / 2
+
+  useLayoutEffect(() => {
+    const n = g.current
+    if (!n || n.isDragging()) return
+    if (n.x() === 0 && n.y() === 0) return void n.position({ x, y }) // primo disegno: al suo posto, senza viaggio
+    if (calmo()) return void n.position({ x, y })
+    n.to({ x, y, duration: 0.35, easing: Konva.Easings.EaseOut })
+  }, [x, y])
+
+  // L'anello del turno gira piano: un'animazione sola, ferma con «riduci movimento».
+  useEffect(() => {
+    const a = anello.current
+    if (!diTurno || !a || calmo()) return
+    const anim = new Konva.Animation((f) => void a.rotation(((f?.time ?? 0) / 40) % 360), a.getLayer())
+    anim.start()
+    return () => void anim.stop()
+  }, [diTurno])
+
+  return (
+    <Group ref={g} draggable={draggable} onDragEnd={() => g.current && onDrop(g.current.x(), g.current.y(), g.current)}
+      onMouseEnter={(e) => { if (draggable) e.target.getStage()!.container().style.cursor = 'grab' }}
+      onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = '' }}>
+      {diTurno && <Circle ref={anello} radius={raggio + 7} stroke="#8fd3b8" strokeWidth={3} dash={[6, 4]} listening={false} />}
+      <Circle radius={raggio} fill={t.color} stroke={selezionato ? '#dcb468' : '#fff'} strokeWidth={selezionato ? 5 : 2}
+        shadowColor="#000" shadowBlur={10} shadowOpacity={0.55} shadowOffsetY={3} />
+      <Text text={t.name.slice(0, 2).toUpperCase()} fill="#fff" fontStyle="bold" fontSize={raggio} width={raggio * 2} x={-raggio} y={-raggio / 2} align="center" listening={false} />
+    </Group>
   )
 }

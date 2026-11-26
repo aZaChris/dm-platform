@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useCampaigns } from '../hooks/useCampaigns'
 import { CampaignCard } from '../components/CampaignCard'
 import { Icon } from '../components/Icon'
+import { Embers } from '../components/Embers'
 import { ultimaCampagna } from '../components/Shell'
 import type { Roll } from '../hooks/useTable'
 
@@ -31,6 +32,7 @@ export function Overview({ userId }: { userId: string }) {
       </header>
 
       <section className="hero">
+        <Embers />
         <p className="eyebrow muted-eyebrow">Il tavolo ti aspetta</p>
         <h2 className="hero-title">Le storie migliori si vivono insieme.</h2>
         <p>Riunisci il party, esplora la mappa e fai avanzare la tua avventura, una cella alla volta.</p>
@@ -48,8 +50,8 @@ export function Overview({ userId }: { userId: string }) {
         <p className="muted">Nessuna campagna ancora: creane una o usa un link d'invito.</p>
       ) : (
         <div className="grid3">
-          {righe.slice(0, 3).map((r) => (
-            <CampaignCard key={r.campaigns.id} riga={r} />
+          {righe.slice(0, 3).map((r, i) => (
+            <CampaignCard key={r.campaigns.id} riga={r} i={i} />
           ))}
         </div>
       )}
@@ -61,8 +63,8 @@ export function Overview({ userId }: { userId: string }) {
             <p className="muted">Nessun tiro ancora: al tavolo, prova il d20.</p>
           ) : (
             <ul className="dice-log">
-              {tiri.map((r) => (
-                <li key={r.id}>
+              {tiri.map((r, i) => (
+                <li key={r.id} style={{ '--i': i } as React.CSSProperties}>
                   <span><b>{r.display_name}</b> · {r.label}</span>
                   <span className={r.face === 20 ? 'crit-txt' : r.face === 1 ? 'fail-txt' : ''}>{r.total}</span>
                 </li>

@@ -33,8 +33,8 @@ export function Campaigns({ userId }: { userId: string }) {
         <p className="muted">Nessuna campagna: creane una o usa un link d'invito.</p>
       ) : (
         <div className="grid3">
-          {righe.map((r) => (
-            <CampaignCard key={r.campaigns.id} riga={r}>
+          {righe.map((r, i) => (
+            <CampaignCard key={r.campaigns.id} riga={r} i={i}>
               {r.role === 'dm' && <InviteBox campaignId={r.campaigns.id} />}
             </CampaignCard>
           ))}

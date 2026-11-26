@@ -12,3 +12,6 @@ supabase/.temp/
 .claude/skills/design-taste-frontend/
 .claude/skills/web-design-guidelines/
 .vitest/
+# output di tasteskill (profilo Chrome, storico delle estrazioni, screenshot)
+.taste-skill/
+app/public/presentazione/shots/
