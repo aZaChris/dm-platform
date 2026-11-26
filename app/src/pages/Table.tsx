@@ -56,6 +56,12 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const turno = enc.encounter?.started ? enc.encounter.turn_token_id : null
   // La scheda del token scelto sulla mappa, altrimenti la propria (feature 007).
   const [finestra, setFinestra] = useState(false)
+  const conScheda = new Set((chars.schede ?? []).flatMap((c) => (c.token_id ? [c.token_id] : [])))
+  // Dal token alla sua scheda: lo seleziona e apre la scheda «Scheda» del pannello (o la aggiorna se è in finestra).
+  const apriScheda = (tokenId: string) => {
+    setSelezionato(tokenId)
+    if (!finestra) apri('pg')
+  }
   const [vistaFin, setVistaFin] = useState<'pratica' | 'classica'>('pratica')
   const pg = chars.schede?.find((c) => c.token_id === selezionato) ?? chars.schede?.find((c) => c.owner_id === userId)
   const editorProps = {
@@ -120,7 +126,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} />
+              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} onOpen={(id) => conScheda.has(id) && apriScheda(id)} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite" key={eventi[0]} className="map-last">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>
@@ -152,7 +158,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
           <div className="tab-body">
             <div role="tabpanel" id="pan-scena" aria-labelledby="tab-scena" hidden={tab !== 'scena'}>
               <h2 className="side-h">Personaggi in scena</h2>
-              <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} />
+              <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} conScheda={conScheda} onOpen={apriScheda} />
               <h2 className="side-h">Registro del tavolo</h2>
               {eventi.length === 0 ? (
                 <p className="muted">Nessuna azione in questa sessione.</p>

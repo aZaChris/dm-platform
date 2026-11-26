@@ -12,7 +12,7 @@ import { classLabel } from '../lib/character'
 
 // Pagina Schede: elenco delle schede della campagna e la scheda scelta (feature 007).
 export function Characters({ campaignId, userId }: { campaignId: string; userId: string }) {
-  const { role, members, nome, nuovoTiro, chiudiTiro } = useTable(campaignId, userId)
+  const { role, members, nome, nuovoTiro, chiudiTiro, tokens } = useTable(campaignId, userId)
   const chars = useCharacters(campaignId)
   const [scelta, setScelta] = useState<string | null>(null)
   const [modo, setModo] = useState<'scheda' | 'nuova' | 'import'>('scheda')
@@ -116,6 +116,22 @@ export function Characters({ campaignId, userId }: { campaignId: string; userId:
                   <button type="button" aria-pressed={vista === 'classica'} onClick={() => scegliVista('classica')}>Classica</button>
                 </div>
               </div>
+              {isDm && (
+                <div className="sheet-links" role="group" aria-label="Collegamenti della scheda (solo DM)">
+                  <label className="sf"><span className="sf-label">Token sulla mappa</span>
+                    <select value={aperta.token_id ?? ''} onChange={(e) => void chars.link(aperta.id, { token_id: e.target.value || null })}>
+                      <option value="">Nessun token</option>
+                      {tokens.filter((t) => t.id === aperta.token_id || !schede.some((c) => c.token_id === t.id)).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </label>
+                  <label className="sf"><span className="sf-label">Proprietario</span>
+                    <select value={aperta.owner_id ?? ''} onChange={(e) => void chars.link(aperta.id, { owner_id: e.target.value || null })}>
+                      <option value="">Il DM</option>
+                      {members.map((m) => <option key={m.user_id} value={m.user_id}>{m.display_name}</option>)}
+                    </select>
+                  </label>
+                </div>
+              )}
               {vista === 'classica' ? (
                 <SheetClassic data={aperta.data} canEdit={canEdit} patch={(p, v) => void chars.patch(aperta.id, p, v)} />
               ) : (

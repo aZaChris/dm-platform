@@ -91,6 +91,16 @@ export function useCharacters(campaignId: string) {
     if (error || !data?.length) setErrore(error ? messaggioErrore(error.message) : 'Non puoi rinominare questa scheda.')
   }, [])
 
+  // Proprietario e token: solo il DM (il trigger characters_guard lo impone nel database).
+  const link = useCallback(async (id: string, campi: { owner_id?: string | null; token_id?: string | null }) => {
+    const { data, error } = await supabase.from('characters').update(campi).eq('id', id).select('id')
+    if (error || !data?.length) {
+      setErrore(error?.message.includes('not_allowed') || !error ? 'Solo il DM collega token e proprietario.' : messaggioErrore(error.message))
+      return
+    }
+    setErrore('')
+  }, [])
+
   const roll = useCallback(async (id: string, label: string, modifier: number) => {
     const { error } = await supabase.rpc('roll_character', { p_character: id, p_label: label, p_modifier: Math.max(-20, Math.min(20, modifier)) })
     if (error) setErrore(error.message.includes('not_allowed') ? 'Puoi tirare solo per i tuoi personaggi.' : error.message)
@@ -124,5 +134,5 @@ export function useCharacters(campaignId: string) {
     if (error || !data?.length) setErrore(error ? messaggioErrore(error.message) : 'Non puoi eliminare questa scheda.')
   }, [])
 
-  return { schede, errore, patch, rename, roll, create, replace, remove }
+  return { schede, errore, patch, rename, link, roll, create, replace, remove }
 }
