@@ -1,8 +1,8 @@
 import { supabase } from '../lib/supabase'
 import { Icon } from './Icon'
 
-export type Route = 'home' | 'campagne' | 'tavolo' | 'membri'
-const TITOLI: Record<Route, string> = { home: 'Panoramica', campagne: 'Campagne', tavolo: 'Tavolo di gioco', membri: 'Membri' }
+export type Route = 'home' | 'campagne' | 'tavolo' | 'schede' | 'membri'
+const TITOLI: Record<Route, string> = { home: 'Panoramica', campagne: 'Campagne', tavolo: 'Tavolo di gioco', schede: 'Schede', membri: 'Membri' }
 
 export const ULTIMA = 'dm.ultimaCampagna'
 export const ultimaCampagna = () => {
@@ -18,10 +18,11 @@ type Props = { route: Route; nome: string; corrente?: string; children: React.Re
 // Guscio dell'app: barra laterale + briciole di pane + contenuto.
 export function Shell({ route, nome, corrente, children }: Props) {
   const ultima = corrente ?? ultimaCampagna() // nel tavolo vale quella del percorso, prima che venga salvata
-  const voci: { r: Route; href: string | null; icona: 'grid' | 'scroll' | 'map' | 'users'; testo: string }[] = [
+  const voci: { r: Route; href: string | null; icona: 'grid' | 'scroll' | 'map' | 'sheet' | 'users'; testo: string }[] = [
     { r: 'home', href: '#/', icona: 'grid', testo: 'Panoramica' },
     { r: 'campagne', href: '#/campagne', icona: 'scroll', testo: 'Campagne' },
     { r: 'tavolo', href: ultima ? `#/tavolo/${ultima}` : null, icona: 'map', testo: 'Tavolo di gioco' },
+    { r: 'schede', href: ultima ? `#/schede/${ultima}` : null, icona: 'sheet', testo: 'Schede' },
     { r: 'membri', href: ultima ? `#/membri/${ultima}` : null, icona: 'users', testo: 'Membri' },
   ]
 

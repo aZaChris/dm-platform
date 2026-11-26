@@ -56,7 +56,9 @@ export function DiceOverlay({ roll, onClose }: { roll: Roll; onClose: () => void
           <svg viewBox="0 0 100 100" aria-hidden="true">
             <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" />
             <polygon points="50,3 93,73 7,73" className="facet" />
-            <polyline points="7,27 50,3 93,27 93,73 50,97 7,73 7,27 50,73 93,27 M50,3 50,73 M7,73 93,73" className="facet" />
+            <polyline points="7,27 50,3 93,27 93,73 50,97 7,73 7,27 50,73 93,27" className="facet" />
+            <polyline points="50,3 50,73" />
+            <polyline points="7,73 93,73" />
           </svg>
           <span className="d20-n">{shown || ''}</span>
         </div>

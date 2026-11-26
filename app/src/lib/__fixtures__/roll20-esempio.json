@@ -1,0 +1,404 @@
+{
+ "meta": {
+  "source": "Roll20 (app.roll20.net) - D&D 5e OGL character sheet",
+  "sheet_version": 4.21,
+  "exported_at": "2026-11-26",
+  "notes": "Snapshot of the sheet at export time. Roll templates and UI flags removed; duplicated rows merged by Roll20 row id."
+ },
+ "identity": {
+  "character_name": "Eroe di Prova",
+  "class": "Paladin",
+  "class_display": "Paladin 10",
+  "level": 10,
+  "race": "Mezzelfo",
+  "subrace": null,
+  "alignment": "Legale Neutrale",
+  "creature_type": "Umanoide",
+  "size": "Medium",
+  "age": 30,
+  "height": "1,86 m",
+  "weight": 92,
+  "eyes": "Brown",
+  "skin": "Pale",
+  "hair": "Dark",
+  "backstory": "Storia di prova."
+ },
+ "abilities": {
+  "strength": {
+   "score": 18,
+   "base": 18,
+   "modifier": 4,
+   "maximum": 20,
+   "save_bonus": 8,
+   "save_proficient": false
+  },
+  "dexterity": {
+   "score": 12,
+   "base": 12,
+   "modifier": 1,
+   "maximum": 20,
+   "save_bonus": 5,
+   "save_proficient": false
+  },
+  "constitution": {
+   "score": 16,
+   "base": 16,
+   "modifier": 3,
+   "maximum": 20,
+   "save_bonus": 7,
+   "save_proficient": false
+  },
+  "intelligence": {
+   "score": 11,
+   "base": 11,
+   "modifier": 0,
+   "maximum": 20,
+   "save_bonus": 4,
+   "save_proficient": false
+  },
+  "wisdom": {
+   "score": 10,
+   "base": 10,
+   "modifier": 0,
+   "maximum": 20,
+   "save_bonus": 8,
+   "save_proficient": true
+  },
+  "charisma": {
+   "score": 18,
+   "base": 18,
+   "modifier": 4,
+   "maximum": 20,
+   "save_bonus": 12,
+   "save_proficient": true
+  }
+ },
+ "skills": {
+  "acrobatics": 1,
+  "animal_handling": 0,
+  "arcana": 0,
+  "athletics": 8,
+  "deception": 4,
+  "history": 0,
+  "insight": 4,
+  "intimidation": 8,
+  "investigation": 0,
+  "medicine": 0,
+  "nature": 0,
+  "perception": 0,
+  "performance": 4,
+  "persuasion": 4,
+  "religion": 4,
+  "sleight_of_hand": 1,
+  "stealth": 1,
+  "survival": 0
+ },
+ "combat": {
+  "armor_class": 16,
+  "hit_points": {
+   "current": 52,
+   "max": 93,
+   "temporary": 0
+  },
+  "initiative_bonus": 1,
+  "proficiency_bonus": 4,
+  "passive_wisdom": 10,
+  "speed": "10,5 m",
+  "hit_dice": {
+   "current": 10,
+   "max": 10,
+   "type": "d10"
+  },
+  "death_saves": {
+   "successes": [
+    0,
+    0,
+    0
+   ],
+   "failures": [
+    null,
+    null,
+    null
+   ]
+  },
+  "extra_save_bonuses": {
+   "death": 4,
+   "honor": 4,
+   "sanity": 4
+  },
+  "global_save_bonus": 4,
+  "inspiration": 0,
+  "hero_points": 9
+ },
+ "spellcasting": {
+  "ability": "charisma",
+  "save_dc": 16,
+  "attack_bonus": 8,
+  "caster_level": 5,
+  "slots": {
+   "level_1": {
+    "total": 4,
+    "expended": 4
+   },
+   "level_2": {
+    "total": 3,
+    "expended": 3
+   },
+   "level_3": {
+    "total": 2,
+    "expended": 0
+   },
+   "level_4": {
+    "total": 0,
+    "expended": 0
+   },
+   "level_5": {
+    "total": 0,
+    "expended": 0
+   },
+   "level_6": {
+    "total": 0,
+    "expended": 0
+   },
+   "level_7": {
+    "total": 0,
+    "expended": 0
+   },
+   "level_8": {
+    "total": 0,
+    "expended": 0
+   },
+   "level_9": {
+    "total": 0,
+    "expended": 0
+   }
+  }
+ },
+ "resources": [
+  {
+   "name": "Risorsa 1",
+   "current": 30,
+   "max": 50,
+   "reset": "long",
+   "source": "class_resource"
+  },
+  {
+   "name": "Risorsa 2",
+   "current": 3,
+   "max": 4,
+   "reset": "long",
+   "source": "other_resource"
+  },
+  {
+   "name": "Risorsa 3",
+   "current": 50,
+   "max": 50,
+   "reset": "Disabilitato",
+   "source": "repeating_resource",
+   "row_id": "-O8sQ4tPzHu4fOCrmm4R"
+  }
+ ],
+ "currency": {
+  "pp": 6,
+  "gp": 1,
+  "ep": null,
+  "sp": 17
+ },
+ "attacks": [
+  {
+   "name": "Attacco 1",
+   "attack_bonus": "-",
+   "damage": "1d8+4 Healing",
+   "range": "Touch",
+   "crit_range": 20,
+   "attack_ability": "spell",
+   "proficient": true,
+   "damage_dice": "1d8",
+   "damage_ability": "spell",
+   "damage_type": "Healing",
+   "spell_level": 1,
+   "linked_spell_id": "-nxevclxona29ujdpdiz",
+   "row_id": "-NxEVcqf0MTKSK3wyw7w"
+  },
+  {
+   "name": "Attacco 2",
+   "attack_bonus": "+8",
+   "range": "Incantatore",
+   "crit_range": 20,
+   "attack_ability": "spell",
+   "proficient": true,
+   "damage_ability": "0",
+   "row_id": "-O3qpspUjS6yZXjqcDSy"
+  },
+  {
+   "name": "Attacco 3",
+   "attack_bonus": "+8",
+   "damage": "1d8+4",
+   "range": "1,5 m",
+   "crit_range": 20,
+   "attack_ability": "@{strength_mod}",
+   "proficient": true,
+   "damage_dice": "1d8",
+   "damage_ability": "@{strength_mod}",
+   "row_id": "-R8HOPVQLvWe55xqfpWJ"
+  },
+  {
+   "name": "Attacco 4",
+   "attack_bonus": "+8",
+   "damage": "1d6+4",
+   "range": "1,5",
+   "crit_range": 20,
+   "attack_ability": "@{strength_mod}",
+   "proficient": true,
+   "damage_dice": "1d6",
+   "damage_ability": "@{strength_mod}",
+   "row_id": "-iDRRGBed5BpYaiQ11D2"
+  }
+ ],
+ "spells": {
+  "level_1": [
+   {
+    "name": "Incantesimo 1",
+    "school": "Abiurazione",
+    "casting_time": "1 azione",
+    "range": "Contatto",
+    "target": "Una creatura",
+    "components": {
+     "verbal": true,
+     "somatic": true,
+     "material": true
+    },
+    "materials": "",
+    "duration": "Concentrazione, fino a 10 minuti",
+    "concentration": true,
+    "ritual": false,
+    "description": "Descrizione di prova.",
+    "row_id": "-NnyiHB-QVH-UVHs-gEf"
+   },
+   {
+    "name": "Incantesimo 2",
+    "school": "Ammaliamento",
+    "casting_time": "1 azione",
+    "range": "18 metri",
+    "target": "Una creatura",
+    "components": {
+     "verbal": true,
+     "somatic": false,
+     "material": false
+    },
+    "duration": "1 round",
+    "concentration": false,
+    "ritual": false,
+    "description": "Descrizione di prova.",
+    "at_higher_levels": "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 2° livello o superiore, può influenzare una creatura aggiuntiva per ogni slot di livello superiore al 1°. Le creature devono trovarsi a non più di 9 metri l'una dall'altra quando l'incantatore le bersaglia.",
+    "row_id": "-NnyiHB0TplWaSsicGBo",
+    "materials": ""
+   }
+  ]
+ },
+ "inventory": [
+  {
+   "name": "Oggetto 1",
+   "count": 1,
+   "weight": "20",
+   "equipped": false,
+   "row_id": "-6R0LtsO1QHubmHVVb1n"
+  },
+  {
+   "name": "Oggetto 2",
+   "count": 1,
+   "weight": "12",
+   "equipped": true,
+   "row_id": "-NnytX4i54LoB4SqV7S9"
+  },
+  {
+   "name": "Oggetto 3",
+   "count": 1,
+   "weight": "2",
+   "equipped": false,
+   "row_id": "-YlncCeenwJE4aZIi7Pb"
+  },
+  {
+   "name": "Oggetto 4",
+   "count": 1,
+   "weight": "0,20",
+   "equipped": false,
+   "row_id": "-cYaeyUgWo9bd5fVCe8o"
+  },
+  {
+   "name": "Oggetto 5",
+   "count": 1,
+   "weight": "2",
+   "equipped": true,
+   "row_id": "-riFwLC5olH5ArLAZRu0"
+  }
+ ],
+ "inventory_total_weight": 36.48,
+ "traits": [
+  {
+   "name": "Privilegio 1",
+   "source": "Classe",
+   "source_type": "Paladino 1° Lvl",
+   "description": "Testo di prova.",
+   "row_id": "-4J3JSLvliq6lxImOXb5"
+  },
+  {
+   "name": "Privilegio 2",
+   "source": "Razziale",
+   "source_type": "Mezzelfo dei Boschi",
+   "description": "Testo di prova.",
+   "row_id": "-De4YNAw4jcabnndTL9m"
+  },
+  {
+   "name": "Privilegio 3",
+   "source": "Razziale",
+   "source_type": "Mezzelfo",
+   "description": "Testo di prova.",
+   "row_id": "-KFSEqEEWwh2ObzZQCWJ"
+  }
+ ],
+ "proficiencies": [
+  {
+   "type": "ARMA",
+   "name": "Semplici, Marziali"
+  },
+  {
+   "type": "ARMATURA",
+   "name": "Leggera, Media, Pesante, Scudi"
+  },
+  {
+   "type": "LINGUAGGIO",
+   "name": "Comune"
+  },
+  {
+   "type": "LINGUAGGIO",
+   "name": "Elfico"
+  }
+ ],
+ "tools": [
+  {
+   "ability": "strength",
+   "bonus": 8,
+   "row_id": "-hr38l7tnBqCU2o139kN"
+  }
+ ],
+ "global_modifiers": {
+  "save": [
+   {
+    "name": "Modificatore TS",
+    "roll": "1d4",
+    "active": false,
+    "row_id": "-NqnYdPwT-YQYAy5qwf8"
+   }
+  ],
+  "damage": [
+   {
+    "name": "Modificatore danni",
+    "roll": "2d8",
+    "type": "Radianti",
+    "active": false,
+    "row_id": "-NnyiHAyF3JJgjjFgu5J"
+   }
+  ]
+ }
+}

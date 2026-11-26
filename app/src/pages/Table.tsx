@@ -14,14 +14,17 @@ import { DiceOverlay } from '../components/DiceOverlay'
 import { TokenList } from '../components/TokenList'
 import { Icon } from '../components/Icon'
 import { ULTIMA } from '../components/Shell'
+import { useCharacters } from '../hooks/useCharacters'
+import { SheetPractical } from '../components/SheetPractical'
 
-type Scheda = 'scena' | 'chat' | 'combattimento' | 'dm'
+type Scheda = 'scena' | 'chat' | 'combattimento' | 'pg' | 'dm'
 
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
   const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
   const cm = useCellMap(campaignId)
   const chat = useChat(campaignId)
   const enc = useEncounter(campaignId, role === 'dm')
+  const chars = useCharacters(campaignId)
   const [editing, setEditing] = useState(false)
   const [tool, setTool] = useState<Tool>('brush')
   const [cellType, setCellType] = useState<CellType>('w')
@@ -47,8 +50,10 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
     }
   }, [campaignId])
 
-  const schede: Scheda[] = role === 'dm' ? ['scena', 'chat', 'combattimento', 'dm'] : ['scena', 'chat', 'combattimento']
+  const schede: Scheda[] = role === 'dm' ? ['scena', 'chat', 'combattimento', 'pg', 'dm'] : ['scena', 'chat', 'combattimento', 'pg']
   const turno = enc.encounter?.started ? enc.encounter.turn_token_id : null
+  // La scheda del token scelto sulla mappa, altrimenti la propria (feature 007).
+  const pg = chars.schede?.find((c) => c.token_id === selezionato) ?? chars.schede?.find((c) => c.owner_id === userId)
   const editorProps = {
     map: cm.map, hasImage: !!mapUrl, editing, setEditing, tool, setTool, cellType, setCellType,
     canUndo: cm.canUndo, canRedo: cm.canRedo, onUndo: cm.undo, onRedo: cm.redo, onCreate: cm.create,
@@ -134,6 +139,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
             {scheda('scena', 'Scena')}
             {scheda('chat', <>Chat{nonLetti && <span className="tab-dot" aria-label="(nuovi messaggi)" />}</>)}
             {scheda('combattimento', <>Combattimento{turno && <span className="tab-dot mint" aria-label="(in corso)" />}</>)}
+            {scheda('pg', 'Scheda')}
             {role === 'dm' && scheda('dm', 'DM')}
           </div>
           <div className="tab-body">
@@ -152,6 +158,17 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
             </div>
             <div role="tabpanel" id="pan-combattimento" aria-labelledby="tab-combattimento" hidden={tab !== 'combattimento'}>
               <Initiative tokens={tokens} userId={userId} isDm={role === 'dm'} enc={enc} />
+            </div>
+            <div role="tabpanel" id="pan-pg" aria-labelledby="tab-pg" hidden={tab !== 'pg'}>
+              {pg ? (
+                <>
+                  <h2 className="side-h">{pg.name}</h2>
+                  <SheetPractical data={pg.data} canEdit={role === 'dm' || pg.owner_id === userId} patch={(p, v) => void chars.patch(pg.id, p, v)} roll={(l, n) => void chars.roll(pg.id, l, n)} />
+                </>
+              ) : (
+                <p className="muted">Nessuna scheda per te o per il token scelto. <a href={`#/schede/${campaignId}`}>Crea o importa la tua scheda</a></p>
+              )}
+              {chars.errore && <p className="error" role="alert">{chars.errore}</p>}
             </div>
             {role === 'dm' && (
               <div role="tabpanel" id="pan-dm" aria-labelledby="tab-dm" hidden={tab !== 'dm'}>

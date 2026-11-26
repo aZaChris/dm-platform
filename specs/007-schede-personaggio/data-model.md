@@ -35,27 +35,31 @@ type CharacterData = {
   // Identità
   classes: { name: string; subclass?: string; level: number }[] // multiclasse; livello totale = somma (1-20)
   race: string; background: string; alignment: string; xp: number
+  details: { age; height; weight; eyes; skin; hair; size: string }   // aspetto, testo libero
 
   // Caratteristiche: punteggi 1-30
   abilities: { str: number; dex: number; con: number; int: number; wis: number; cha: number }
   saves: Partial<Record<Ability, { prof: boolean; bonus: number }>>          // bonus = correzione manuale
   skills: Partial<Record<Skill, { prof: 0 | 1 | 2; bonus: number }>>         // 0 nessuna, 1 competenza, 2 maestria
+  save_bonus_all: number                                                     // bonus a tutti i TS (es. Aura di Protezione)
 
   // Combattimento
-  ac: number; speed: number; initiative_bonus: number
+  ac: number; speed: string; initiative_bonus: number; inspiration: number   // velocità come testo: «9 m», «30 ft»
   hp: { max: number; current: number; temp: number }
   hit_dice: { die: 6 | 8 | 10 | 12; total: number; used: number }[]
   death_saves: { success: 0 | 1 | 2 | 3; fail: 0 | 1 | 2 | 3 }
-  attacks: { id: string; name: string; ability: Ability | null; prof: boolean; bonus: number; damage: string; type: string }[]
+  attacks: { id: string; name: string; tohit: boolean; ability: Ability | null; prof: boolean; bonus: number; damage: string; range: string }[]  // tohit false = niente tiro per colpire (una cura)
+  resources: { id: string; name: string; current: number; max: number; reset: string }[]  // es. Imposizione delle mani 30/50
 
   // Incantesimi
   spellcasting: { ability: Ability | null; bonus: number }
   slots: Partial<Record<'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9', { max: number; used: number }>>
-  spells: { id: string; name: string; level: number; prepared: boolean; notes: string }[]   // level 0 = trucchetto
+  spells: { id: string; name: string; level: number; prepared: boolean; school: string; casting_time: string; range: string;
+            components: string; duration: string; concentration: boolean; ritual: boolean; description: string }[]  // level 0 = trucchetto
 
   // Equipaggiamento e privilegi
   coins: { cp: number; sp: number; ep: number; gp: number; pp: number }
-  items: { id: string; name: string; qty: number; notes: string }[]
+  items: { id: string; name: string; qty: number; weight: string; equipped: boolean; notes: string }[]
   features: { id: string; name: string; source: string; text: string }[]
   proficiencies: { armor: string; weapons: string; tools: string; languages: string }
 
@@ -74,6 +78,10 @@ Gli elementi delle liste hanno un `id` stabile (stringa breve generata nel clien
 puntare a un elemento senza dipendere dall'indice. Le liste si riscrivono intere quando cambia l'ordine o si
 aggiunge/toglie un elemento; i campi dentro un elemento si aggiornano con il loro percorso.
 
+Campi aggiunti dopo il primo export reale di Roll20 (2026-11-26): `details`, `save_bonus_all`, `inspiration`,
+`resources`, `tohit` e `range` degli attacchi, i dettagli degli incantesimi, peso ed equipaggiato degli oggetti;
+`speed` è diventata testo.
+
 ## Valori calcolati (non salvati)
 
 Funzioni pure in `app/src/lib/character.ts` (research, punto 3):
@@ -83,7 +91,7 @@ Funzioni pure in `app/src/lib/character.ts` (research, punto 3):
 | modificatore | `floor((punteggio − 10) / 2)` |
 | livello totale | somma dei livelli delle classi, minimo 1 |
 | bonus di competenza | `2 + floor((livello totale − 1) / 4)` → +2 ai livelli 1-4, +6 ai livelli 17-20 |
-| tiro salvezza | modificatore + (competenza se `prof`) + `bonus` |
+| tiro salvezza | modificatore + (competenza se `prof`) + `bonus` + `save_bonus_all` |
 | abilità | modificatore della sua caratteristica + competenza × `prof` (0, 1, 2) + `bonus` |
 | iniziativa | modificatore di Destrezza + `initiative_bonus` |
 | percezione passiva | 10 + abilità Percezione |
