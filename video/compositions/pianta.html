@@ -18,24 +18,25 @@
     <div id="pi-world">
       <div id="pi-grid" data-layout-ignore></div>
       <svg data-layout-ignore style="position:absolute;inset:0" width="1920" height="1080" fill="none">
-        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="#0d1a1f" stroke-width="54" stroke-linejoin="round" />
-        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="rgba(220,180,104,.25)" stroke-width="58" stroke-linejoin="round" stroke-dasharray="2 14" />
+        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1250 V515 H1600 V750" stroke="#0d1a1f" stroke-width="54" stroke-linejoin="round" />
+        <path d="M360 250 H1350 V420 H370 V640 H940 V680 H1250 V515 H1600 V750" stroke="rgba(220,180,104,.25)" stroke-width="58" stroke-linejoin="round" stroke-dasharray="2 14" />
       </svg>
       <div class="pi-room" id="pi-r1" style="left:180px;top:140px;width:360px;height:220px"><i class="pi-lit"></i><span>Presentazione</span></div>
       <div class="pi-room" id="pi-r2" style="left:700px;top:130px;width:300px;height:220px"><i class="pi-lit"></i><span>Accedi</span></div>
       <div class="pi-room" id="pi-r3" style="left:1160px;top:120px;width:380px;height:240px"><i class="pi-lit"></i><span>Panoramica</span></div>
       <div class="pi-room" id="pi-r4" style="left:180px;top:520px;width:380px;height:240px"><i class="pi-lit"></i><span>Campagne</span></div>
       <div class="pi-room" id="pi-r5" style="left:680px;top:470px;width:520px;height:420px"><i class="pi-lit"></i><span>Tavolo</span></div>
-      <div class="pi-room" id="pi-r6" style="left:1307px;top:653px;width:346px;height:194px"><i class="pi-lit"></i><span>Membri</span></div>
+      <div class="pi-room" id="pi-r6" style="left:1300px;top:420px;width:300px;height:190px"><i class="pi-lit"></i><span>Schede</span></div>
+      <div class="pi-room" id="pi-r7" style="left:1307px;top:660px;width:346px;height:194px"><i class="pi-lit"></i><span>Membri</span></div>
       <svg data-layout-ignore style="position:absolute;inset:0" width="1920" height="1080" fill="none">
-        <path id="pi-route" d="M360 250 H1350 V420 H370 V640 H940 V680 H1480 V750" stroke="#dcb468" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+        <path id="pi-route" d="M360 250 H1350 V420 H370 V640 H940 V680 H1250 V515 H1600 V750" stroke="#dcb468" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
       <div id="pi-fogs" data-layout-ignore>
         <div class="pi-fog" style="left:-200px;top:600px;width:1100px;height:700px;background:radial-gradient(closest-side,rgba(58,122,138,.18),transparent)"></div>
         <div class="pi-fog" style="left:1100px;top:-200px;width:1100px;height:700px;background:radial-gradient(closest-side,rgba(143,211,184,.10),transparent)"></div>
       </div>
     </div>
-    <h2 id="pi-line">Sei pagine, un solo <em>dungeon</em></h2>
+    <h2 id="pi-line">Sette pagine, un solo <em>dungeon</em></h2>
   </div>
   <script>
     (function () {
@@ -46,7 +47,7 @@
       // La linea d'oro ripercorre il giro, e ogni stanza si accende quando la linea ci arriva.
       const len = document.getElementById('pi-route').getTotalLength();
       tl.fromTo('#pi-route', { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.2, ease: 'power1.inOut' }, 0.4);
-      [0.45, 0.75, 1.05, 1.5, 1.95, 2.5].forEach(function (t, i) {
+      [0.45, 0.75, 1.05, 1.5, 1.95, 2.25, 2.55].forEach(function (t, i) {
         tl.fromTo('#pi-r' + (i + 1) + ' .pi-lit', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, t);
         tl.fromTo('#pi-r' + (i + 1), { borderColor: 'rgba(220,180,104,.55)' }, { borderColor: 'rgba(255,226,160,1)', duration: 0.3 }, t);
       });

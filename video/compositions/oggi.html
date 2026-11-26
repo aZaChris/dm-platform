@@ -7,29 +7,29 @@
     #oggi-sleep { position: absolute; inset: 0; background: rgba(10,18,21,.5); }
     #oggi-tag { position: absolute; left: 96px; top: 96px; padding: 10px 18px; border-radius: 8px; background: rgba(10,18,21,.85);
       border: 1px solid #2a3a41; color: #8a9ba0; font-size: 28px; font-weight: 600; }
-    .oggi-title { position: absolute; left: 0; right: 0; top: 860px; text-align: center; font-family: 'Cinzel'; font-weight: 700;
-      font-size: 96px; letter-spacing: .02em; color: #ece6d6; text-shadow: 0 6px 30px rgba(0,0,0,.8); }
+    .oggi-title { position: absolute; left: 320px; width: 640px; top: 580px; text-align: left; font-family: 'Cinzel'; font-weight: 700;
+      font-size: 84px; line-height: 1.05; letter-spacing: .02em; color: #ece6d6; text-shadow: 0 6px 30px rgba(0,0,0,.8); }
     .oggi-title em { font-style: normal; }
-    #oggi-t1 em { color: #8a9ba0; }
+    #oggi-t1 em { color: #dcb468; }
     #oggi-t2 { opacity: 0; }
     #oggi-t2 em { color: #dcb468; }
-    #oggi-iris { position: absolute; inset: 0; clip-path: circle(0px at 878px 425px);
-      background: radial-gradient(circle at 878px 425px, rgba(220,180,104,.55), rgba(220,180,104,.12) 40%, rgba(10,18,21,0) 70%); }
-    #oggi-ring { position: absolute; left: 878px; top: 425px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
+    #oggi-iris { position: absolute; inset: 0; clip-path: circle(0px at 418px 485px);
+      background: radial-gradient(circle at 418px 485px, rgba(220,180,104,.55), rgba(220,180,104,.12) 40%, rgba(10,18,21,0) 70%); }
+    #oggi-ring { position: absolute; left: 418px; top: 485px; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
       border: 3px solid #dcb468; opacity: 0; }
     #oggi-sweep { position: absolute; top: -200px; left: -900px; width: 500px; height: 1480px; transform: rotate(18deg);
       background: linear-gradient(90deg, transparent, rgba(255,214,140,.35), transparent); }
     #oggi-cursor { position: absolute; left: 0; top: 0; width: 64px; height: 64px; }
   </style>
   <div id="root" data-composition-id="oggi" data-width="1920" data-height="1080">
-    <img id="oggi-shot" src="assets/img/landing-oggi.png" alt="La landing di DM Platform oggi" />
+    <img id="oggi-shot" src="assets/img/landing-nuova.png" alt="La landing di DM Platform, rifatta il 26 novembre" />
     <div id="oggi-sleep"></div>
     <div id="oggi-tag">Oggi · dm-platform-steel.vercel.app</div>
     <div id="oggi-iris"></div>
     <div id="oggi-sweep"></div>
     <div id="oggi-ring"></div>
-    <h1 id="oggi-t1" class="oggi-title">Funziona. Ma <em>dorme</em></h1>
-    <h1 id="oggi-t2" class="oggi-title">E se il sito prendesse <em>vita</em>?</h1>
+    <h1 id="oggi-t1" class="oggi-title">Il sito si è <em>svegliato</em></h1>
+    <h1 id="oggi-t2" class="oggi-title">Ora entriamo al <em>tavolo</em></h1>
     <svg id="oggi-cursor" viewBox="0 0 24 24"><path d="M4 2l15 9-6.5 1.6L16 20l-3 1.4-3.4-7.4L4 18z" fill="#ece6d6" stroke="#0a1215" stroke-width="1.4" stroke-linejoin="round" /></svg>
   </div>
   <script>
@@ -38,12 +38,12 @@
       // Titolo 1: per parola, dal grigio all'avorio, senza spostarsi.
       tl.fromTo('#oggi-t1', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.2, ease: 'power2.out' }, 0.3);
       // Il cursore entra da destra e si ferma su «Crea il tuo tavolo».
-      tl.fromTo('#oggi-cursor', { x: 2000, y: 760 }, { x: 878, y: 430, duration: 1.1, ease: 'power3.out' }, 0.9);
+      tl.fromTo('#oggi-cursor', { x: 2000, y: 760 }, { x: 418, y: 490, duration: 1.1, ease: 'power3.out' }, 0.9);
       tl.to('#oggi-cursor', { scale: 0.85, duration: 0.08, ease: 'power2.in' }, 2.6);
       tl.to('#oggi-cursor', { scale: 1, duration: 0.15, ease: 'power2.out' }, 2.68);
       // Clic: anello, apertura circolare d'oro dal pulsante, la pagina si sveglia.
       tl.fromTo('#oggi-ring', { opacity: 1, scale: 1 }, { opacity: 0, scale: 7, duration: 0.6, ease: 'expo.out', immediateRender: false }, 2.66);
-      tl.fromTo('#oggi-iris', { clipPath: 'circle(0px at 878px 425px)' }, { clipPath: 'circle(2300px at 878px 425px)', duration: 0.9, ease: 'power3.in' }, 2.7);
+      tl.fromTo('#oggi-iris', { clipPath: 'circle(0px at 418px 485px)' }, { clipPath: 'circle(2300px at 418px 485px)', duration: 0.9, ease: 'power3.in' }, 2.7);
       tl.to('#oggi-sleep', { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, 2.8);
       tl.to('#oggi-tag', { opacity: 0, duration: 0.2 }, 2.7);
       tl.fromTo('#oggi-sweep', { x: 0 }, { x: 3000, duration: 1.0, ease: 'power2.inOut' }, 2.9);

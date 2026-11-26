@@ -90,7 +90,7 @@ valore; l'ordine si aggiorna e il turno resta a chi lo aveva.
 - [ ] T017 Controllo di tastiera e lettore di schermo su `Initiative.tsx`: ogni campo e pulsante ha un nome che cita il token, focus visibile, `aria-current` sulla riga di turno; eseguire lo scenario 21 di `quickstart.md`
 - [X] T018 Eseguire lo scenario 22: `npm run build` da `app/` **con le variabili `VITE_` presenti**, annotare la dimensione gzip reale in `specs/004-turni-iniziativa/quickstart.md`; se supera 500 KB, rivedere prima di proseguire
 - [X] T019 Aggiornare `README.md` con turni e iniziativa (comandi `npm test` compresi) e aggiungere le scelte nuove alla nota `Decisioni DM Platform.md` del vault, se ne sono emerse durante l'implementazione
-- [ ] T020 Deploy su Vercel (lo lancia Christian con `! cd app && vercel --prod --yes`) e ripetere sul dominio pubblico gli scenari 1, 10 e 11
+- [ ] T020 Deploy su Vercel (lo lancia Christian con `! vercel --prod --yes` dalla radice del repo: la Root Directory del progetto Vercel è `app`) e ripetere sul dominio pubblico gli scenari 1, 10 e 11
 
 ---
 

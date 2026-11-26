@@ -15,3 +15,5 @@ supabase/.temp/
 # output di tasteskill (profilo Chrome, storico delle estrazioni, screenshot)
 .taste-skill/
 app/public/presentazione/shots/
+# export Roll20 dei personaggi (dati dei giocatori, mai nel repo pubblico)
+import/

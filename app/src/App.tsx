@@ -9,6 +9,7 @@ import { Overview } from './pages/Overview'
 import { Members } from './pages/Members'
 import { Shell, type Route } from './components/Shell'
 import { Table } from './pages/Table'
+import { Characters } from './pages/Characters'
 
 // ponytail: routing a hash scritto a mano; se le schermate crescono, passare a react-router.
 function useHash() {
@@ -52,6 +53,9 @@ export function App() {
   if (route === 'tavolo') {
     attiva = 'tavolo'
     pagina = <Table key={param} campaignId={param} userId={session.user.id} />
+  } else if (route === 'schede') {
+    attiva = 'schede'
+    pagina = <Characters key={param} campaignId={param} userId={session.user.id} />
   } else if (route === 'membri') {
     attiva = 'membri'
     pagina = <Members key={param} campaignId={param} userId={session.user.id} />
@@ -63,5 +67,5 @@ export function App() {
   } else {
     pagina = <Overview userId={session.user.id} />
   }
-  return <Shell route={attiva} nome={nome} corrente={attiva === 'tavolo' || attiva === 'membri' ? param : undefined}>{pagina}</Shell>
+  return <Shell route={attiva} nome={nome} corrente={attiva === 'tavolo' || attiva === 'membri' || attiva === 'schede' ? param : undefined}>{pagina}</Shell>
 }
