@@ -11,17 +11,20 @@ const RIPETI_MS = 1000 // la propria misura ferma si rimanda ogni secondo, così
 
 // Righello condiviso (feature 005): Broadcast sul canale privato ruler:<campagna>, niente database.
 // Le policy di 0012_righello.sql fanno passare solo i membri della campagna.
-export function useRuler(campaignId: string, userId: string, name: string) {
+export function useRuler(campaignId: string, userId: string, name: string, condividi = true) {
   const [mia, setMia] = useState<{ from: Cell; to: Cell } | null>(null)
   const [altre, setAltre] = useState<Record<string, Altra>>({})
   const canale = useRef<RealtimeChannel | null>(null)
   const miaRef = useRef(mia)
+  const condividiRef = useRef(condividi) // in un ref: cambiando scena il canale non va riaperto
+  condividiRef.current = condividi
   miaRef.current = mia
 
   const manda = useCallback(
     (misura: { from: Cell; to: Cell } | null) => {
       const c = canale.current
       if (!c) return
+      if (misura && !condividiRef.current) return
       if (misura) void c.send({ type: 'broadcast', event: 'move', payload: { user_id: userId, name, ...misura } })
       else void c.send({ type: 'broadcast', event: 'end', payload: { user_id: userId } })
     },
@@ -78,7 +81,7 @@ export function useRuler(campaignId: string, userId: string, name: string) {
 
   const measures: Measure[] = [
     ...(mia ? [{ id: userId, name, from: mia.from, to: mia.to, mine: true }] : []),
-    ...Object.entries(altre).map(([id, x]) => ({ id, name: x.name, from: x.from, to: x.to, mine: false })),
+    ...Object.entries(condividi ? altre : {}).map(([id, x]) => ({ id, name: x.name, from: x.from, to: x.to, mine: false })),
   ]
   return { measures, mia, measure }
 }

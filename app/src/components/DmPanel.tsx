@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Grid, Member, Token } from '../hooks/useTable'
+import type { Member, Token } from '../hooks/useTable'
+import type { Grid, Scene } from '../hooks/useScenes'
 
 const TIPI = ['image/jpeg', 'image/png', 'image/webp']
 const MAX = 5 * 1024 * 1024
 
-type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[]; grid: Grid; cellActive: boolean; onGrid: (g: Grid) => void }
+type Props = {
+  campaignId: string
+  scena: Scene
+  tokens: Token[] // quelli della scena
+  altri: { token: Token; scena: string }[] // token delle altre scene, da portare qui
+  members: Member[]
+  onScena: (campi: Partial<Scene>) => Promise<boolean>
+  onPorta: (t: Token) => void
+  onGrid: (g: Grid) => void
+}
 
-export function DmPanel({ campaignId, mapPath, tokens, members, grid, cellActive, onGrid }: Props) {
+export function DmPanel({ campaignId, scena, tokens, altri, members, onScena, onPorta, onGrid }: Props) {
+  const { image_path: mapPath, grid, cells_active: cellActive } = scena
   const [errore, setErrore] = useState('')
   const [carico, setCarico] = useState(false)
   const [nome, setNome] = useState('')
@@ -27,19 +38,15 @@ export function DmPanel({ campaignId, mapPath, tokens, members, grid, cellActive
       setCarico(false)
       return setErrore(su.error.message)
     }
-    const db = await supabase
-      .from('maps')
-      .upsert({ campaign_id: campaignId, image_path: path, updated_at: new Date().toISOString() })
+    const salvata = await onScena({ image_path: path })
     setCarico(false)
-    if (db.error) return setErrore(db.error.message)
+    if (!salvata) return
     if (mapPath) await supabase.storage.from('maps').remove([mapPath]) // ripulisce la vecchia, se fallisce pazienza
   }
 
   async function cambiaGriglia(g: Grid) {
     setErrore('')
-    const { error } = await supabase.from('maps').update({ grid: g }).eq('campaign_id', campaignId)
-    if (error) setErrore(error.message)
-    else onGrid(g)
+    if (await onScena({ grid: g })) onGrid(g)
   }
 
   // Il token compare a tutti via Realtime; il DM lo trascina poi dove serve.
@@ -48,7 +55,7 @@ export function DmPanel({ campaignId, mapPath, tokens, members, grid, cellActive
     setErrore('')
     const { error } = await supabase
       .from('tokens')
-      .insert({ campaign_id: campaignId, name: nome, color: colore, col: 0, row: 0, owner_id: owner || null })
+      .insert({ campaign_id: campaignId, scene_id: scena.id, name: nome, color: colore, col: 0, row: 0, owner_id: owner || null })
     if (error) setErrore(error.message)
     else setNome('')
   }
@@ -126,6 +133,17 @@ export function DmPanel({ campaignId, mapPath, tokens, members, grid, cellActive
           <button onClick={() => elimina(t.id)}>Elimina</button>
         </div>
       ))}
+      {altri.length > 0 && (
+        <div className="row">
+          <label>
+            Porta qui un token:{' '}
+            <select value="" onChange={(e) => { const a = altri.find((x) => x.token.id === e.target.value); if (a) onPorta(a.token) }}>
+              <option value="">Scegli…</option>
+              {altri.map((a) => <option key={a.token.id} value={a.token.id}>{a.token.name} ({a.scena})</option>)}
+            </select>
+          </label>
+        </div>
+      )}
       {errore && <p className="error" role="alert">{errore}</p>}
     </div>
   )
