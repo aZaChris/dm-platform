@@ -44,6 +44,14 @@ Contrasto: testo su `--surface` ≥ 7:1; `--muted` solo per testo secondario ≥
 - **Badge**: pillola con bordo; DM in `--mint`, Giocatore in `--muted`.
 - **Token sulla mappa**: cerchio colorato con iniziali, bordo bianco 2px, ombra morbida.
 
+- **Scheda personaggio** (007): due viste della stessa scheda con un interruttore Pratica / Classica (pillola oro
+  sull'opzione attiva). *Pratica*: in alto PF (numero grande in Cinzel, barra menta, oro sotto metà, rosso a zero), CA,
+  iniziativa, velocità; i tiri sono pulsanti `roll-btn` con il modificatore in oro. *Classica*: la disposizione della
+  scheda su carta in tre colonne di riquadri `cl-box` (bordo `--line`, titoli piccoli in `--gold`), punteggi grandi in
+  Cinzel; nessuna immagine o cornice della scheda ufficiale WotC.
+- **Finestra mobile**: sopra la mappa, bordo `--gold` al 40%, barra trascinabile, si ridimensiona dall'angolo, si
+  riduce alla sola barra; non blocca la mappa sotto.
+
 ## 5. Layout
 Barra laterale 240px + contenuto fluido; griglia a 12 colonne, spazi multipli di 4px (8 · 16 · 24 · 40).
 Sotto 800px la barra diventa una riga in alto. La mappa occupa sempre tutta la larghezza disponibile.

@@ -13,6 +13,7 @@ type Props = {
   selectedId: string | null
   turnTokenId?: string | null // token di turno nel combattimento (feature 004)
   onDims: (cols: number, rows: number) => void
+  onOpen?: (tokenId: string) => void // doppio clic o doppio tocco su un token: apre la sua scheda (007, US4)
   url: string | null
   cellMap?: CellMap | null
   tokens: Token[]
@@ -28,7 +29,7 @@ type Props = {
 
 const COLORE = Object.fromEntries(CELL_TYPES.map((t) => [t.type, t.color]))
 
-export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint }: Props) {
+export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, url, cellMap, tokens, userId, isDm, onMove, editing, tool, cellType, onPaint }: Props) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [vista, setVista] = useState({ w: 600, h: innerHeight * 0.75 })
@@ -176,6 +177,7 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, url, cell
             draggable={!modifica && (isDm || t.owner_id === userId)}
             selezionato={t.id === selectedId}
             diTurno={t.id === turnTokenId}
+            onOpen={onOpen ? () => onOpen(t.id) : undefined}
             onDrop={(x, y, g) => {
               const { col, row } = snapToCell(x, y)
               const c = clampToMap(col, row, cols, rows)
@@ -199,12 +201,13 @@ type NodoProps = {
   draggable: boolean
   selezionato: boolean
   diTurno: boolean
+  onOpen?: () => void
   onDrop: (x: number, y: number, g: Konva.Group) => void
 }
 
 // Un token sulla mappa. Quando col/riga cambiano (anche da un altro giocatore) scivola nella nuova cella
 // invece di saltare: la posizione la muove la tween di Konva, non le prop, sennò React la reimposterebbe di colpo.
-function TokenNode({ t, raggio, draggable, selezionato, diTurno, onDrop }: NodoProps) {
+function TokenNode({ t, raggio, draggable, selezionato, diTurno, onOpen, onDrop }: NodoProps) {
   const g = useRef<Konva.Group>(null)
   const anello = useRef<Konva.Circle>(null)
   const x = t.col * CELL_PX + CELL_PX / 2
@@ -228,7 +231,7 @@ function TokenNode({ t, raggio, draggable, selezionato, diTurno, onDrop }: NodoP
   }, [diTurno])
 
   return (
-    <Group ref={g} draggable={draggable} onDragEnd={() => g.current && onDrop(g.current.x(), g.current.y(), g.current)}
+    <Group ref={g} draggable={draggable} onDblClick={onOpen} onDblTap={onOpen} onDragEnd={() => g.current && onDrop(g.current.x(), g.current.y(), g.current)}
       onMouseEnter={(e) => { if (draggable) e.target.getStage()!.container().style.cursor = 'grab' }}
       onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = '' }}>
       {diTurno && <Circle ref={anello} radius={raggio + 7} stroke="#8fd3b8" strokeWidth={3} dash={[6, 4]} listening={false} />}

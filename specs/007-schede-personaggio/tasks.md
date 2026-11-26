@@ -59,7 +59,7 @@ clicca Furtività e vede in chat un tiro con +5.
 - [X] T009 [US1] In `app/src/App.tsx` aggiungere la rotta `#/schede/<id>`; in `app/src/components/Shell.tsx` la voce «Schede» (icona nuova `sheet` in `app/src/components/Icon.tsx`) tra «Tavolo di gioco» e «Membri», spenta finché non c'è un'ultima campagna come le altre due
 - [X] T010 [US1] In `app/src/pages/Table.tsx` aggiungere la scheda «Scheda» al pannello (dopo «Combattimento»): mostra in `SheetPractical` la scheda collegata al token selezionato, altrimenti la prima scheda dell'utente, altrimenti un collegamento a «Crea la tua scheda» verso `#/schede/<campagna>`; il tavolo usa `useCharacters(campaignId)`
 - [X] T011 [US1] Stili della vista pratica in `app/src/index.css` con i token di `DESIGN.md`: riga in alto a riquadri (PF in evidenza, barra PF che cambia colore sotto metà e a zero), griglia dei punteggi 3×2, abilità in due colonne che diventano una sotto i 640px, pulsanti di tiro con hover e pressione come gli altri, caselle degli slot; il pannello del tavolo a 23rem MUST restare leggibile (una colonna)
-- [ ] T012 [US1] Eseguire gli scenari 1-6 e 11-14 di `quickstart.md`
+- [X] T012 [US1] (provato da Christian in produzione il 2026-11-26) Eseguire gli scenari 1-6 e 11-14 di `quickstart.md`
 
 **Checkpoint**: si gioca una sessione con le schede create a mano.
 
@@ -73,7 +73,7 @@ modificatore, tiro salvezza e Atletica, anche tornando alla vista pratica.
 - [X] T013 [US2] Creare `app/src/components/SheetClassic.tsx` con `SheetField` per ogni campo di FR-002, nella disposizione della scheda su carta: intestazione (nome, classi e livelli con «Aggiungi classe», razza, background, allineamento, PE); colonna sinistra caratteristiche (punteggio grande, modificatore), bonus di competenza, tiri salvezza e abilità con caselle competenza/maestria e bonus manuale, percezione passiva, competenze e lingue; colonna centrale CA, iniziativa, velocità, PF, dadi vita, tiri contro la morte, attacchi (tabella con aggiungi/elimina), equipaggiamento e monete; colonna destra tratti, ideali, legami, difetti, privilegi (elenco con aggiungi/elimina); in fondo incantesimi (caratteristica da incantatore, CD, bonus d'attacco, slot e incantesimi per livello con aggiungi/elimina), aspetto, storia e note; le liste si scrivono con `patch` del percorso della lista intera, i campi semplici con il loro percorso
 - [X] T014 [US2] In `app/src/pages/Characters.tsx` aggiungere l'interruttore «Pratica / Classica» (`role="switch"` o due pulsanti con `aria-pressed`); la scelta si legge da `session.user.user_metadata.vista_scheda` e si salva con `supabase.auth.updateUser({ data: { vista_scheda } })`; default «pratica»
 - [X] T015 [US2] Stili della vista classica in `app/src/index.css`: griglia a tre colonne che diventa una sotto i 900px, riquadri con bordo `--line` e titoli piccoli in `--gold` come le etichette di `DESIGN.md`, punteggi grandi in Cinzel; nessuna immagine o cornice della scheda ufficiale (research, punto 9); nessuno scorrimento laterale a 390px
-- [ ] T016 [US2] Eseguire gli scenari 7-10 di `quickstart.md`
+- [X] T016 [US2] (provato da Christian in produzione il 2026-11-26) Eseguire gli scenari 7-10 di `quickstart.md`
 
 **Checkpoint**: una scheda si crea e si aggiorna per intero senza lasciare l'app.
 
@@ -89,7 +89,7 @@ competenze, attacchi e incantesimi uguali a Roll20.
 - [X] T019 [US3] Creare `app/src/lib/roll20.ts` con `fromRoll20(json)` come in `contracts/roll20-import.md`: raggruppa i campi `repeating_<sezione>_<id>_<campo>` per sezione e id, converte le stringhe in numeri, scarta i valori calcolati da Roll20 (salvo quelli che non coincidono con `character.ts`, che vanno in `notes_import`), genera `id` nuovi per le liste; T018 verde
 - [X] T020 [US3] Creare `app/src/components/Roll20Import.tsx`: `<input type="file" accept="application/json" multiple>` con etichetta visibile; legge i file con `File.text()` e `fromRoll20`; mostra il riepilogo (nome, classi e livello, PF) di ogni personaggio con una casella per sceglierlo e, per il DM, il proprietario da un `<select>` dei membri; se una scheda ha lo stesso nome chiede «Nuova scheda» o «Sostituisci»; «Importa» crea tutto con un solo `insert` (o l'`update` delle sostituite) e mostra quante schede sono state create; in errore nessuna scheda creata e il messaggio sotto il campo (FR-013)
 - [X] T021 [US3] In `app/src/pages/Characters.tsx` aggiungere il pulsante «Importa da Roll20» che apre `Roll20Import`; il giocatore importa solo per sé (FR-012); in `SheetClassic.tsx` la sezione «Note importate» elenca `notes_import` (nome, valore, massimo), solo in lettura, con «Svuota» per il proprietario
-- [ ] T022 [US3] Eseguire gli scenari 15-19 di `quickstart.md`
+- [X] T022 [US3] (provato da Christian in produzione il 2026-11-26, con il suo export reale) Eseguire gli scenari 15-19 di `quickstart.md`
 
 **Checkpoint**: le schede di Roll20 del gruppo sono nel tavolo.
 
@@ -100,8 +100,8 @@ competenze, attacchi e incantesimi uguali a Roll20.
 **Independent Test**: il DM collega la scheda di Aria al suo token; un altro giocatore apre il token dalla mappa e
 legge la scheda senza poterla modificare.
 
-- [ ] T023 [US4] In `app/src/pages/Characters.tsx` per il DM: `<select>` «Token» con i token della campagna senza scheda (più «Nessuno») e `<select>` «Proprietario» con i membri, con `update` diretto (`contracts/db-api.md`); per tutti «Elimina scheda» solo al proprietario e al DM, con conferma (FR-015)
-- [ ] T024 [US4] Aprire la scheda dal token: in `app/src/components/TokenList.tsx` e con un doppio clic sul token in `app/src/components/MapCanvas.tsx`, se il token ha una scheda la scheda «Scheda» del pannello del tavolo si apre su quella (`Table.tsx` riceve l'id); in `TokenList` un'icona indica i token con scheda
+- [X] T023 [US4] In `app/src/pages/Characters.tsx` per il DM: `<select>` «Token» con i token della campagna senza scheda (più «Nessuno») e `<select>` «Proprietario» con i membri, con `update` diretto (`contracts/db-api.md`); per tutti «Elimina scheda» solo al proprietario e al DM, con conferma (FR-015)
+- [X] T024 [US4] Aprire la scheda dal token: in `app/src/components/TokenList.tsx` e con un doppio clic sul token in `app/src/components/MapCanvas.tsx`, se il token ha una scheda la scheda «Scheda» del pannello del tavolo si apre su quella (`Table.tsx` riceve l'id); in `TokenList` un'icona indica i token con scheda
 - [ ] T025 [US4] Eseguire gli scenari 20-22 di `quickstart.md`
 
 **Checkpoint**: tutte e quattro le storie funzionano insieme.
@@ -110,7 +110,7 @@ legge la scheda senza poterla modificare.
 
 - [ ] T026 Controllo di tastiera e lettore di schermo sulle due viste e sull'import: ogni campo ha un nome, i pulsanti di tiro dicono abilità e modificatore, focus visibile, l'interruttore dice lo stato; eseguire lo scenario 23 di `quickstart.md`
 - [ ] T027 Eseguire lo scenario 24: `npm run build` da `app/` con le variabili `VITE_` presenti, annotare la dimensione gzip reale in `specs/007-schede-personaggio/quickstart.md`; se la crescita supera 10 KB, caricare `Characters.tsx` con `import()` dinamico (plan, Constitution Check I)
-- [ ] T028 Aggiornare `README.md` con le schede e l'import da Roll20 (come esportare con VTT Enhancement Suite, dove mettere i file); aggiungere le scelte nuove emerse durante l'implementazione alla nota `Decisioni DM Platform.md` del vault; aggiornare `DESIGN.md` con le due viste della scheda
+- [X] T028 Aggiornare `README.md` con le schede e l'import da Roll20 (come esportare con VTT Enhancement Suite, dove mettere i file); aggiungere le scelte nuove emerse durante l'implementazione alla nota `Decisioni DM Platform.md` del vault; aggiornare `DESIGN.md` con le due viste della scheda
 
 ---
 
