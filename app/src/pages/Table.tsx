@@ -16,6 +16,8 @@ import { Icon } from '../components/Icon'
 import { ULTIMA } from '../components/Shell'
 import { useCharacters } from '../hooks/useCharacters'
 import { SheetPractical } from '../components/SheetPractical'
+import { SheetClassic } from '../components/SheetClassic'
+import { SheetWindow } from '../components/SheetWindow'
 
 type Scheda = 'scena' | 'chat' | 'combattimento' | 'pg' | 'dm'
 
@@ -53,6 +55,8 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const schede: Scheda[] = role === 'dm' ? ['scena', 'chat', 'combattimento', 'pg', 'dm'] : ['scena', 'chat', 'combattimento', 'pg']
   const turno = enc.encounter?.started ? enc.encounter.turn_token_id : null
   // La scheda del token scelto sulla mappa, altrimenti la propria (feature 007).
+  const [finestra, setFinestra] = useState(false)
+  const [vistaFin, setVistaFin] = useState<'pratica' | 'classica'>('pratica')
   const pg = chars.schede?.find((c) => c.token_id === selezionato) ?? chars.schede?.find((c) => c.owner_id === userId)
   const editorProps = {
     map: cm.map, hasImage: !!mapUrl, editing, setEditing, tool, setTool, cellType, setCellType,
@@ -109,6 +113,9 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
               <div className="map-toolbar">
                 <b>{cm.map?.active ? 'Mappa a celle' : 'Mappa'}</b>
                 <span className="map-hint muted">Trascina un token, o sceglilo in «Scena» e usa le frecce</span>
+                <button className="icon-btn" aria-pressed={finestra} aria-label="Scheda in una finestra sopra la mappa" title="Scheda in una finestra sopra la mappa" onClick={() => setFinestra(!finestra)}>
+                  <Icon name="sheet" />
+                </button>
                 <button className="icon-btn" aria-pressed={showGrid} aria-label="Mostra o nascondi la griglia" title="Mostra o nascondi la griglia" onClick={() => setShowGrid(!showGrid)}>
                   <Icon name="grid" />
                 </button>
@@ -162,7 +169,10 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
             <div role="tabpanel" id="pan-pg" aria-labelledby="tab-pg" hidden={tab !== 'pg'}>
               {pg ? (
                 <>
-                  <h2 className="side-h">{pg.name}</h2>
+                  <div className="pg-head">
+                    <h2 className="side-h">{pg.name}</h2>
+                    <button type="button" className="link-btn" onClick={() => setFinestra(true)}>Apri in finestra</button>
+                  </div>
                   <SheetPractical data={pg.data} canEdit={role === 'dm' || pg.owner_id === userId} patch={(p, v) => void chars.patch(pg.id, p, v)} roll={(l, n) => void chars.roll(pg.id, l, n)} />
                 </>
               ) : (
@@ -186,6 +196,26 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
           <div className="side-dice"><DiceRoller onRoll={tiraD20} /></div>
         </aside>
       </div>
+      {finestra && (
+        <SheetWindow
+          title={pg ? pg.name : 'Scheda'}
+          onClose={() => setFinestra(false)}
+          actions={pg && (
+            <div className="view-toggle" role="group" aria-label="Vista della scheda">
+              <button type="button" aria-pressed={vistaFin === 'pratica'} onClick={() => setVistaFin('pratica')}>Pratica</button>
+              <button type="button" aria-pressed={vistaFin === 'classica'} onClick={() => setVistaFin('classica')}>Classica</button>
+            </div>
+          )}
+        >
+          {!pg ? (
+            <p className="muted">Nessuna scheda per te o per il token scelto. <a href={`#/schede/${campaignId}`}>Crea o importa la tua scheda</a></p>
+          ) : vistaFin === 'classica' ? (
+            <SheetClassic data={pg.data} canEdit={role === 'dm' || pg.owner_id === userId} patch={(p, v) => void chars.patch(pg.id, p, v)} />
+          ) : (
+            <SheetPractical data={pg.data} canEdit={role === 'dm' || pg.owner_id === userId} patch={(p, v) => void chars.patch(pg.id, p, v)} roll={(l, n) => void chars.roll(pg.id, l, n)} />
+          )}
+        </SheetWindow>
+      )}
       {nuovoTiro && <DiceOverlay key={nuovoTiro.id} roll={nuovoTiro} onClose={chiudiTiro} />}
     </>
   )

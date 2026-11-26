@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useTable } from '../hooks/useTable'
 import { useCharacters } from '../hooks/useCharacters'
 import { SheetPractical } from '../components/SheetPractical'
+import { SheetClassic } from '../components/SheetClassic'
 import { SheetField } from '../components/SheetField'
 import { Roll20Import } from '../components/Roll20Import'
 import { Icon } from '../components/Icon'
@@ -15,6 +17,18 @@ export function Characters({ campaignId, userId }: { campaignId: string; userId:
   const [scelta, setScelta] = useState<string | null>(null)
   const [modo, setModo] = useState<'scheda' | 'nuova' | 'import'>('scheda')
   const [nuovoNome, setNuovoNome] = useState('')
+  const [vista, setVista] = useState<'pratica' | 'classica'>('pratica')
+
+  // La vista scelta resta nel profilo dell'utente (user_metadata), uguale su ogni dispositivo (research, punto 7).
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user.user_metadata?.vista_scheda === 'classica') setVista('classica')
+    })
+  }, [])
+  function scegliVista(v: 'pratica' | 'classica') {
+    setVista(v)
+    void supabase.auth.updateUser({ data: { vista_scheda: v } })
+  }
 
   if (role === undefined || chars.schede === null) return <p className="muted">Caricamento…</p>
   if (role === null) {
@@ -97,8 +111,16 @@ export function Characters({ campaignId, userId }: { campaignId: string; userId:
                   <SheetField label="Nome" hideLabel value={aperta.name} onSave={(v) => void chars.rename(aperta.id, String(v).slice(0, 60))} className="sf-title" />
                 ) : <h2>{aperta.name}</h2>}
                 {!canEdit && <span className="badge">Sola lettura</span>}
+                <div className="view-toggle" role="group" aria-label="Vista della scheda">
+                  <button type="button" aria-pressed={vista === 'pratica'} onClick={() => scegliVista('pratica')}>Pratica</button>
+                  <button type="button" aria-pressed={vista === 'classica'} onClick={() => scegliVista('classica')}>Classica</button>
+                </div>
               </div>
-              <SheetPractical data={aperta.data} canEdit={canEdit} patch={(p, v) => void chars.patch(aperta.id, p, v)} roll={(l, n) => void chars.roll(aperta.id, l, n)} />
+              {vista === 'classica' ? (
+                <SheetClassic data={aperta.data} canEdit={canEdit} patch={(p, v) => void chars.patch(aperta.id, p, v)} />
+              ) : (
+                <SheetPractical data={aperta.data} canEdit={canEdit} patch={(p, v) => void chars.patch(aperta.id, p, v)} roll={(l, n) => void chars.roll(aperta.id, l, n)} />
+              )}
               {canEdit && (
                 <div className="sheet-foot">
                   <button type="button" className="link-btn" onClick={() => confirm(`Eliminare la scheda di ${aperta.name}?`) && void chars.remove(aperta.id)}>Elimina scheda</button>
