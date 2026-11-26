@@ -72,5 +72,6 @@ Feature 007 «schede personaggio»: migrazione 0011 applicata; vista pratica e c
 import da Roll20 e collegamento ai token in produzione, provati sul dominio pubblico. Restano il formato di VTT
 Enhancement Suite e le prove con lettore di schermo.
 Feature 005 «misura delle distanze»: migrazione 0012 applicata (policy del canale privato), righello condiviso.
+Feature 009 «recupero password»: codice scritto, da provare (servono gli indirizzi di ritorno in Supabase Auth).
 Feature 006 «griglia esagonale»: migrazione 0013 applicata, codice scritto, scenari di
 `specs/006-griglia-esagonale/quickstart.md` ancora da provare.
