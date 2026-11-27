@@ -231,7 +231,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
           <div className="tab-body">
             <div role="tabpanel" id="pan-scena" aria-labelledby="tab-scena" hidden={tab !== 'scena'}>
               <h2 className="side-h">Personaggi in scena</h2>
-              <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} conScheda={conScheda} onOpen={apriScheda} />
+              <TokenList righello={righello} tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} conScheda={conScheda} onOpen={apriScheda} />
               <h2 className="side-h">Registro del tavolo</h2>
               {eventi.length === 0 ? (
                 <p className="muted">Nessuna azione in questa sessione.</p>
