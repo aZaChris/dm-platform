@@ -108,10 +108,12 @@ export function MapCanvas({ showGrid, selectedId, turnTokenId, onDims, onOpen, u
     return [c.col, c.row]
   }
 
-  function giu(e: Parameters<typeof cellaSotto>[0]) {
+  function giu(e: Konva.KonvaEventObject<PointerEvent>) {
     if (ruler) {
       const c = cellaDentro(e)
       if (!c) return
+      // Il puntatore resta «catturato»: uscendo dalla mappa la misura non si chiude, si ferma al bordo.
+      ;(e.evt.target as Element).setPointerCapture(e.evt.pointerId)
       inizio.current = c
       onMeasure?.(c, c)
       return
