@@ -23,6 +23,7 @@ export type Roll = {
   dc: number | null
   created_at: string
 }
+export type Grid = 'square' | 'hex'
 export type Member = { user_id: string; role: Role; display_name: string }
 
 // Carica ruolo, mappa, membri e token della campagna e resta abbonato ai cambi.
@@ -30,6 +31,7 @@ export function useTable(campaignId: string, userId: string) {
   const [role, setRole] = useState<Role | null | undefined>(undefined) // undefined = in caricamento
   const [mapPath, setMapPath] = useState<string | null>(null)
   const [mapUrl, setMapUrl] = useState<string | null>(null)
+  const [grid, setGrid] = useState<Grid>('square')
   const [tokens, setTokens] = useState<Token[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [errore, setErrore] = useState('')
@@ -47,7 +49,7 @@ export function useTable(campaignId: string, userId: string) {
     let vivo = true
 
     async function caricaMappa() {
-      const { data } = await supabase.from('maps').select('image_path').eq('campaign_id', campaignId).maybeSingle()
+      const { data } = await supabase.from('maps').select('image_path, grid').eq('campaign_id', campaignId).maybeSingle()
       if (!vivo) return
       if (!data) {
         setMapPath(null)
@@ -57,6 +59,7 @@ export function useTable(campaignId: string, userId: string) {
       const { data: firmato } = await supabase.storage.from('maps').createSignedUrl(data.image_path, 3600)
       if (!vivo) return
       setMapPath(data.image_path)
+      setGrid(data.grid as Grid)
       setMapUrl(firmato?.signedUrl ?? null)
     }
 
@@ -155,5 +158,5 @@ export function useTable(campaignId: string, userId: string) {
     [campaignId],
   )
 
-  return { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
+  return { nome, eventi, role, mapUrl, mapPath, grid, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
 }

@@ -16,7 +16,7 @@ import { Icon } from '../components/Icon'
 import { ULTIMA } from '../components/Shell'
 import { useCharacters } from '../hooks/useCharacters'
 import { useRuler } from '../hooks/useRuler'
-import { clampToMap } from '../lib/grid'
+import { clampToMap, gridDims, type Dims } from '../lib/grid'
 import { SheetPractical } from '../components/SheetPractical'
 import { SheetClassic } from '../components/SheetClassic'
 import { SheetWindow } from '../components/SheetWindow'
@@ -24,7 +24,7 @@ import { SheetWindow } from '../components/SheetWindow'
 type Scheda = 'scena' | 'chat' | 'combattimento' | 'pg' | 'dm'
 
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
-  const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
+  const { nome, eventi, role, mapUrl, mapPath, grid, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
   const cm = useCellMap(campaignId)
   const chat = useChat(campaignId)
   const enc = useEncounter(campaignId, role === 'dm')
@@ -34,7 +34,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const [cellType, setCellType] = useState<CellType>('w')
   const [showGrid, setShowGrid] = useState(true)
   const [selezionato, setSelezionato] = useState<string | null>(null)
-  const [dims, setDims] = useState<{ cols: number; rows: number } | null>(null)
+  const [dims, setDims] = useState<Dims | null>(null)
   const [tab, setTab] = useState<Scheda>('scena')
   // Pallino «nuovi messaggi» sulla scheda Chat: acceso se c'è qualcosa di più recente dell'ultima volta che l'hai guardata.
   // ponytail: confronta l'orario del server con quello del browser; con orologi sfasati di secondi il pallino può sbagliare di poco.
@@ -93,12 +93,23 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
       e.preventDefault()
       const da: [number, number] = [tok.col, tok.row]
       const ora = rul.mia?.to ?? da
-      const c = clampToMap(ora[0] + d[0], ora[1] + d[1], dims.cols, dims.rows)
+      const c = clampToMap(ora[0] + d[0], ora[1] + d[1], dims.cols, dims.rows, dims.oddCols)
       rul.measure(da, [c.col, c.row])
     }
     addEventListener('keydown', tasto)
     return () => removeEventListener('keydown', tasto)
   }, [righello, rul, tokens, selezionato, dims])
+
+  const hex = grid === 'hex' && !cm.map?.active
+  // Al cambio di griglia (006) i token tengono colonna e riga; il browser del DM salva solo quelli finiti fuori.
+  function rientra(g: 'square' | 'hex') {
+    if (!dims) return
+    const d = gridDims(dims.w, dims.h, g === 'hex')
+    for (const t of tokens) {
+      const c = clampToMap(t.col, t.row, d.cols, d.rows, d.oddCols)
+      if (c.col !== t.col || c.row !== t.row) void moveToken(t.id, c.col, c.row)
+    }
+  }
 
   if (role === undefined) return <p className="muted">Caricamento…</p>
   if (role === null) {
@@ -159,7 +170,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} onOpen={(id) => conScheda.has(id) && apriScheda(id)} ruler={righello} measures={rul.measures} onMeasure={rul.measure} />
+              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} hex={hex} onDims={setDims} onOpen={(id) => conScheda.has(id) && apriScheda(id)} ruler={righello} measures={rul.measures} onMeasure={rul.measure} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite" key={eventi[0]} className="map-last">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>
@@ -228,7 +239,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   </>
                 )}
                 <h2 className="side-h">Mappa e token</h2>
-                <DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} />
+                <DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} grid={grid} cellActive={!!cm.map?.active} onGrid={rientra} />
               </div>
             )}
           </div>

@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Member, Token } from '../hooks/useTable'
+import type { Grid, Member, Token } from '../hooks/useTable'
 
 const TIPI = ['image/jpeg', 'image/png', 'image/webp']
 const MAX = 5 * 1024 * 1024
 
-type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[] }
+type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[]; grid: Grid; cellActive: boolean; onGrid: (g: Grid) => void }
 
-export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
+export function DmPanel({ campaignId, mapPath, tokens, members, grid, cellActive, onGrid }: Props) {
   const [errore, setErrore] = useState('')
   const [carico, setCarico] = useState(false)
   const [nome, setNome] = useState('')
@@ -33,6 +33,13 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
     setCarico(false)
     if (db.error) return setErrore(db.error.message)
     if (mapPath) await supabase.storage.from('maps').remove([mapPath]) // ripulisce la vecchia, se fallisce pazienza
+  }
+
+  async function cambiaGriglia(g: Grid) {
+    setErrore('')
+    const { error } = await supabase.from('maps').update({ grid: g }).eq('campaign_id', campaignId)
+    if (error) setErrore(error.message)
+    else onGrid(g)
   }
 
   // Il token compare a tutti via Realtime; il DM lo trascina poi dove serve.
@@ -73,6 +80,19 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
         </label>
         {carico && <span>Caricamento…</span>}
       </div>
+
+      {mapPath && (
+        <div className="row">
+          <label>
+            Griglia:{' '}
+            <select value={grid} disabled={cellActive} onChange={(e) => cambiaGriglia(e.target.value as Grid)}>
+              <option value="square">Quadrata</option>
+              <option value="hex">Esagonale</option>
+            </select>
+          </label>
+          {cellActive && <span className="muted small">Gli esagoni valgono solo sulla mappa a immagine: quella a celle è quadrata.</span>}
+        </div>
+      )}
 
       <form className="row" onSubmit={creaToken} style={{ flexDirection: 'row', maxWidth: 'none' }}>
         <input name="token" autoComplete="off" aria-label="Nome del token" placeholder="Nome token…" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} required />
