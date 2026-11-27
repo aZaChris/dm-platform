@@ -38,55 +38,59 @@ Nessun branch è mai stato provato nel browser per la 006 e la 009. Per la 005 r
 
 ## Prove
 
+**Esiti del 2026-11-27**: prove 6-22 eseguite in browser automatico (build di produzione di `009`, account di prova
+`collaudo-dm-…` e `collaudo-pl-…@example.com`, campagne «Collaudo» e «Collaudo celle»). La 8 e la 11 fallivano:
+corrette sul branch `005-misura-distanze` e riportate sopra con un merge. Restano 1-5 e 23.
+
 Segna l'esito: ✅ passa, ❌ fallisce (con cosa si vede), ⏭ saltata (con il motivo).
 
 ### A. Accesso: recupero password (009)
 
 | # | Passi | Risultato atteso | Esito |
 |---|---|---|---|
-| 1 | «Password dimenticata?» con un’email registrata | Messaggio neutro e arriva l’email | |
-| 2 | La stessa cosa con un’email non registrata | Stesso messaggio, nessuna email | |
-| 3 | Apri il link e salva una nuova password | Entri nell’app | |
-| 4 | Esci, prova la vecchia password, poi la nuova | La vecchia è rifiutata, la nuova entra | |
-| 5 | Riapri lo stesso link | «Il link non vale più», e puoi chiederne un altro | |
+| 1 | «Password dimenticata?» con un’email registrata | Messaggio neutro e arriva l’email  ⏭ serve un’email vera: da fare a mano |
+| 2 | La stessa cosa con un’email non registrata | Stesso messaggio, nessuna email  ⏭ serve un’email vera: da fare a mano |
+| 3 | Apri il link e salva una nuova password | Entri nell’app  ⏭ serve un’email vera: da fare a mano |
+| 4 | Esci, prova la vecchia password, poi la nuova | La vecchia è rifiutata, la nuova entra  ⏭ serve un’email vera: da fare a mano |
+| 5 | Riapri lo stesso link | «Il link non vale più», e puoi chiederne un altro  ⏭ serve un’email vera: da fare a mano |
 
 ### B. Righello su griglia quadrata (005)
 
 | # | Passi | Risultato atteso | Esito |
 |---|---|---|---|
-| 6 | Misura 3 celle in diagonale e 2 in orizzontale | «5 celle · 25 ft · 7,5 m» | |
-| 7 | Parti e arrivi nella stessa cella | «0 celle · 0 ft · 0 m» | |
-| 8 | Trascina oltre il bordo della mappa | La misura si ferma sull’ultima cella | |
-| 9 | DM e Player misurano insieme | Ognuno vede entrambe, con i nomi | |
-| 10 | Il Player chiude la scheda del browser a metà misura | Al DM sparisce entro 3-4 secondi | |
-| 11 | Solo tastiera: R, token scelto in «Scena», frecce, Esc | La misura parte dal token, segue le frecce, Esc la chiude | |
+| 6 | Misura 3 celle in diagonale e 2 in orizzontale | «5 celle · 25 ft · 7,5 m»  ✅ |
+| 7 | Parti e arrivi nella stessa cella | «0 celle · 0 ft · 0 m»  ✅ |
+| 8 | Trascina oltre il bordo della mappa | La misura si ferma sull’ultima cella  ✅ dopo correzione |
+| 9 | DM e Player misurano insieme | Ognuno vede entrambe, con i nomi  ✅ |
+| 10 | Il Player chiude la scheda del browser a metà misura | Al DM sparisce entro 3-4 secondi  ✅ |
+| 11 | Solo tastiera: R, token scelto in «Scena», frecce, Esc | La misura parte dal token, segue le frecce, Esc la chiude  ✅ dopo correzione |
 
 ### C. Mappa a celle (005 e 006)
 
 | # | Passi | Risultato atteso | Esito |
 |---|---|---|---|
-| 12 | Il DM, con «Modifica mappa» accesa, usa il righello | Non dipinge celle | |
-| 13 | Il DM guarda la scelta «Griglia» nella scheda DM (serve anche un’immagine caricata) | Disabilitata, con la spiegazione | |
+| 12 | Il DM, con «Modifica mappa» accesa, usa il righello | Non dipinge celle  ✅ |
+| 13 | Il DM guarda la scelta «Griglia» nella scheda DM (serve anche un’immagine caricata) | Disabilitata, con la spiegazione  ✅ |
 
 ### D. Griglia esagonale su immagine (006)
 
 | # | Passi | Risultato atteso | Esito |
 |---|---|---|---|
-| 14 | Apri una campagna mai toccata | La griglia è quadrata | |
-| 15 | Il DM sceglie «Esagonale» | Il Player vede gli esagoni senza ricaricare | |
-| 16 | Il Player cerca il menu «Griglia» | Non c’è | |
-| 17 | Il Player lascia un token tra due esagoni | Va al più vicino, uguale per il DM | |
-| 18 | Frecce nelle quattro direzioni, anche sul bordo | Un esagono vicino alla volta (su/giù a zig-zag); sul bordo resta fermo | |
-| 19 | Righello tra esagoni vicini, poi lontani in tutte le direzioni | «1 esagono · 5 ft · 1,5 m», poi il numero di passi | |
-| 20 | Avvia un combattimento e tira un dado | Anello del turno e tiri come prima | |
-| 21 | Il DM carica un’altra immagine | La griglia resta esagonale | |
-| 22 | Token nelle ultime righe, poi il DM torna a «Quadrata» | Tutti vedono i quadrati; il token resta dentro la mappa | |
+| 14 | Apri una campagna mai toccata | La griglia è quadrata  ✅ |
+| 15 | Il DM sceglie «Esagonale» | Il Player vede gli esagoni senza ricaricare  ✅ |
+| 16 | Il Player cerca il menu «Griglia» | Non c’è  ✅ |
+| 17 | Il Player lascia un token tra due esagoni | Va al più vicino, uguale per il DM  ✅ |
+| 18 | Frecce nelle quattro direzioni, anche sul bordo | Un esagono vicino alla volta (su/giù a zig-zag); sul bordo resta fermo  ✅ |
+| 19 | Righello tra esagoni vicini, poi lontani in tutte le direzioni | «1 esagono · 5 ft · 1,5 m», poi il numero di passi  ✅ |
+| 20 | Avvia un combattimento e tira un dado | Anello del turno e tiri come prima  ✅ |
+| 21 | Il DM carica un’altra immagine | La griglia resta esagonale  ✅ |
+| 22 | Token nelle ultime righe, poi il DM torna a «Quadrata» | Tutti vedono i quadrati; il token resta dentro la mappa  ✅ |
 
 ### E. Tablet
 
 | # | Passi | Risultato atteso | Esito |
 |---|---|---|---|
-| 23 | Col dito misura su quadrati ed esagoni | La pagina non scorre | |
+| 23 | Col dito misura su quadrati ed esagoni | La pagina non scorre  ⏭ serve un tablet: da fare a mano |
 
 ## Se una prova fallisce
 
