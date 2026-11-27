@@ -8,7 +8,8 @@ tra il DM e un giocatore. Per i combattimenti c'è l'iniziativa: tiri o valori a
 turni e round con il token di turno evidenziato sulla mappa.
 Ogni personaggio ha la sua scheda D&D 5e, in vista pratica (per giocare, con i tiri a un clic) o classica (la
 disposizione della scheda su carta), anche in una finestra mobile sopra la mappa; le schede scritte su Roll20 si
-importano dal loro file JSON.
+importano dal loro file JSON. Il righello misura le distanze sulla mappa (celle, piedi e metri) e la misura in
+corso si vede anche agli altri.
 
 **In produzione**: https://dm-platform-steel.vercel.app
 
@@ -34,7 +35,7 @@ Lo schema si applica con `npx supabase link --project-ref <ref>` e `npx supabase
 (migrazioni in `supabase/migrations/`, in ordine di numero).
 
 Altri comandi: `npm test` (griglia, riempimento, linea tra celle, annulla, ordine d'iniziativa e turni, calcoli della
-scheda e import da Roll20), `npm run build`.
+scheda, import da Roll20 e distanze del righello), `npm run build`.
 
 Il deploy è automatico: ogni push su `master` va in produzione (progetto Vercel con Root Directory `app`), ogni
 branch ha un'anteprima.
@@ -70,4 +71,5 @@ Feature 004 «turni e iniziativa»: migrazione 0010 applicata e in produzione.
 Feature 007 «schede personaggio»: migrazione 0011 applicata; vista pratica e classica, finestra sopra la mappa,
 import da Roll20 e collegamento ai token in produzione, provati sul dominio pubblico. Restano il formato di VTT
 Enhancement Suite e le prove con lettore di schermo.
-Feature 005 «misura delle distanze» e 006 «griglia esagonale»: solo la specifica.
+Feature 005 «misura delle distanze»: migrazione 0012 applicata (policy del canale privato), righello condiviso.
+Feature 006 «griglia esagonale»: solo la specifica.
