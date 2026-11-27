@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import type { Session } from '@supabase/supabase-js'
-import { supabase } from './lib/supabase'
+import { daRecupero, supabase } from './lib/supabase'
 import { Login } from './pages/Login'
 import { Join } from './pages/Join'
 import { Campaigns } from './pages/Campaigns'
@@ -30,6 +30,7 @@ function useHash() {
 export function App() {
   const hash = useHash()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const [recupero, setRecupero] = useState(daRecupero)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -45,6 +46,7 @@ export function App() {
 
   if (session === undefined) return <p className="boot">Caricamento…</p>
   if (!session) return <main className="auth"><Login /></main>
+  if (recupero) return <main className="auth"><Login nuovaPassword onFatto={() => { setRecupero(false); location.hash = '#/' }} /></main>
 
   const [, route, param] = hash.split('/')
   const nome = (session.user.user_metadata?.name as string) || session.user.email || 'Giocatore'

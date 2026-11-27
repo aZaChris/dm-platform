@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Member, Token } from '../hooks/useTable'
+import type { Grid, Scene } from '../hooks/useScenes'
 
 const TIPI = ['image/jpeg', 'image/png', 'image/webp']
 const MAX = 5 * 1024 * 1024
 
-type Props = { campaignId: string; mapPath: string | null; tokens: Token[]; members: Member[] }
+type Props = {
+  campaignId: string
+  scena: Scene
+  tokens: Token[] // quelli della scena
+  altri: { token: Token; scena: string }[] // token delle altre scene, da portare qui
+  members: Member[]
+  onScena: (campi: Partial<Scene>) => Promise<boolean>
+  onPorta: (t: Token) => void
+  onGrid: (g: Grid) => void
+}
 
-export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
+export function DmPanel({ campaignId, scena, tokens, altri, members, onScena, onPorta, onGrid }: Props) {
+  const { image_path: mapPath, grid, cells_active: cellActive } = scena
   const [errore, setErrore] = useState('')
   const [carico, setCarico] = useState(false)
   const [nome, setNome] = useState('')
@@ -27,12 +38,15 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
       setCarico(false)
       return setErrore(su.error.message)
     }
-    const db = await supabase
-      .from('maps')
-      .upsert({ campaign_id: campaignId, image_path: path, updated_at: new Date().toISOString() })
+    const salvata = await onScena({ image_path: path })
     setCarico(false)
-    if (db.error) return setErrore(db.error.message)
+    if (!salvata) return
     if (mapPath) await supabase.storage.from('maps').remove([mapPath]) // ripulisce la vecchia, se fallisce pazienza
+  }
+
+  async function cambiaGriglia(g: Grid) {
+    setErrore('')
+    if (await onScena({ grid: g })) onGrid(g)
   }
 
   // Il token compare a tutti via Realtime; il DM lo trascina poi dove serve.
@@ -41,7 +55,7 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
     setErrore('')
     const { error } = await supabase
       .from('tokens')
-      .insert({ campaign_id: campaignId, name: nome, color: colore, col: 0, row: 0, owner_id: owner || null })
+      .insert({ campaign_id: campaignId, scene_id: scena.id, name: nome, color: colore, col: 0, row: 0, owner_id: owner || null })
     if (error) setErrore(error.message)
     else setNome('')
   }
@@ -73,6 +87,19 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
         </label>
         {carico && <span>Caricamento…</span>}
       </div>
+
+      {mapPath && (
+        <div className="row">
+          <label>
+            Griglia:{' '}
+            <select value={grid} disabled={cellActive} onChange={(e) => cambiaGriglia(e.target.value as Grid)}>
+              <option value="square">Quadrata</option>
+              <option value="hex">Esagonale</option>
+            </select>
+          </label>
+          {cellActive && <span className="muted small">Gli esagoni valgono solo sulla mappa a immagine: quella a celle è quadrata.</span>}
+        </div>
+      )}
 
       <form className="row" onSubmit={creaToken} style={{ flexDirection: 'row', maxWidth: 'none' }}>
         <input name="token" autoComplete="off" aria-label="Nome del token" placeholder="Nome token…" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} required />
@@ -106,6 +133,17 @@ export function DmPanel({ campaignId, mapPath, tokens, members }: Props) {
           <button onClick={() => elimina(t.id)}>Elimina</button>
         </div>
       ))}
+      {altri.length > 0 && (
+        <div className="row">
+          <label>
+            Porta qui un token:{' '}
+            <select value="" onChange={(e) => { const a = altri.find((x) => x.token.id === e.target.value); if (a) onPorta(a.token) }}>
+              <option value="">Scegli…</option>
+              {altri.map((a) => <option key={a.token.id} value={a.token.id}>{a.token.name} ({a.scena})</option>)}
+            </select>
+          </label>
+        </div>
+      )}
       {errore && <p className="error" role="alert">{errore}</p>}
     </div>
   )

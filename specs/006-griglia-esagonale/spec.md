@@ -96,7 +96,7 @@ Con la griglia esagonale il righello conta gli esagoni attraversati e mostra la 
 
 ## Assumptions
 
-- Esagoni con un lato in alto (righe orizzontali sfalsate), della stessa larghezza delle celle quadrate attuali; l'orientamento con un vertice in alto e la regolazione della dimensione sono rimandati.
+- Esagoni con un vertice in alto (righe orizzontali sfalsate), della stessa larghezza delle celle quadrate attuali; l'orientamento con un lato in alto e la regolazione della dimensione sono rimandati.
 - L'editor di mappe a celle (feature 002) resta a celle quadrate: dipingere esagoni è rimandato.
 - La scelta della griglia vale per tutta la campagna, non per singola mappa (oggi la campagna ha una sola mappa).
 - La conversione delle distanze in piedi segue la feature 005 (5 piedi per passo).

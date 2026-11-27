@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTable } from '../hooks/useTable'
 import { useCellMap } from '../hooks/useCellMap'
+import { useScenes } from '../hooks/useScenes'
+import { Scenes } from '../components/Scenes'
+import { supabase } from '../lib/supabase'
 import { useChat } from '../hooks/useChat'
 import { useEncounter } from '../hooks/useEncounter'
 import type { CellType, Patch } from '../lib/cells'
@@ -15,6 +18,8 @@ import { TokenList } from '../components/TokenList'
 import { Icon } from '../components/Icon'
 import { ULTIMA } from '../components/Shell'
 import { useCharacters } from '../hooks/useCharacters'
+import { useRuler } from '../hooks/useRuler'
+import { clampToMap, gridDims, type Dims } from '../lib/grid'
 import { SheetPractical } from '../components/SheetPractical'
 import { SheetClassic } from '../components/SheetClassic'
 import { SheetWindow } from '../components/SheetWindow'
@@ -22,8 +27,17 @@ import { SheetWindow } from '../components/SheetWindow'
 type Scheda = 'scena' | 'chat' | 'combattimento' | 'pg' | 'dm'
 
 export function Table({ campaignId, userId }: { campaignId: string; userId: string }) {
-  const { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
-  const cm = useCellMap(campaignId)
+  const { nome, eventi, role, tokens: tuttiToken, caricaToken, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro, tiraD20 } = useTable(campaignId, userId)
+  const sc = useScenes(campaignId)
+  const cm = useCellMap(sc)
+  const { scena, attiva, mapUrl } = sc
+  // Token della scena guardata (mappa ed elenco) e di quella in gioco (combattimento).
+  const tokens = tuttiToken.filter((t) => t.scene_id === scena?.id)
+  const inGioco = tuttiToken.filter((t) => t.scene_id === attiva?.id)
+  // Cambiata la scena in gioco, o toltone un token, si rileggono: ciò che diventa invisibile non manda eventi.
+  useEffect(() => {
+    void caricaToken()
+  }, [attiva?.id, attiva?.tokens_moved_at, caricaToken])
   const chat = useChat(campaignId)
   const enc = useEncounter(campaignId, role === 'dm')
   const chars = useCharacters(campaignId)
@@ -32,7 +46,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const [cellType, setCellType] = useState<CellType>('w')
   const [showGrid, setShowGrid] = useState(true)
   const [selezionato, setSelezionato] = useState<string | null>(null)
-  const [dims, setDims] = useState<{ cols: number; rows: number } | null>(null)
+  const [dims, setDims] = useState<Dims | null>(null)
   const [tab, setTab] = useState<Scheda>('scena')
   // Pallino «nuovi messaggi» sulla scheda Chat: acceso se c'è qualcosa di più recente dell'ultima volta che l'hai guardata.
   // ponytail: confronta l'orario del server con quello del browser; con orologi sfasati di secondi il pallino può sbagliare di poco.
@@ -56,6 +70,14 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
   const turno = enc.encounter?.started ? enc.encounter.turn_token_id : null
   // La scheda del token scelto sulla mappa, altrimenti la propria (feature 007).
   const [finestra, setFinestra] = useState(false)
+  const [righello, setRighello] = useState(false)
+  const io = members.find((m) => m.user_id === userId)?.display_name ?? 'Io'
+  const rul = useRuler(campaignId, userId, io, scena?.id === attiva?.id)
+  useEffect(() => {
+    rul.measure([0, 0], null)
+    setSelezionato(null)
+    setEditing(false)
+  }, [scena?.id])
   const conScheda = new Set((chars.schede ?? []).flatMap((c) => (c.token_id ? [c.token_id] : [])))
   // Dal token alla sua scheda: lo seleziona e apre la scheda «Scheda» del pannello (o la aggiorna se è in finestra).
   const apriScheda = (tokenId: string) => {
@@ -68,6 +90,51 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
     map: cm.map, hasImage: !!mapUrl, editing, setEditing, tool, setTool, cellType, setCellType,
     canUndo: cm.canUndo, canRedo: cm.canRedo, onUndo: cm.undo, onRedo: cm.redo, onCreate: cm.create,
     onClear: cm.clear, onResize: cm.resize, onSetActive: cm.setActive, onRemove: cm.remove,
+  }
+
+  // Righello da tastiera (005): R lo accende e lo spegne, con un token scelto le frecce allungano la misura, Esc la chiude.
+  useEffect(() => {
+    function tasto(e: KeyboardEvent) {
+      const el = e.target as HTMLElement
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable || e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key === 'r' || e.key === 'R') {
+        if (righello) rul.measure([0, 0], null)
+        setRighello(!righello)
+        return
+      }
+      if (!righello) return
+      if (e.key === 'Escape') return rul.measure([0, 0], null)
+      const d = ({ ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] } as Record<string, [number, number]>)[e.key]
+      const tok = tokens.find((t) => t.id === selezionato)
+      if (!d || !tok || !dims) return
+      e.preventDefault()
+      const da: [number, number] = [tok.col, tok.row]
+      const ora = rul.mia?.to ?? da
+      const c = clampToMap(ora[0] + d[0], ora[1] + d[1], dims.cols, dims.rows, dims.oddCols)
+      rul.measure(da, [c.col, c.row])
+    }
+    addEventListener('keydown', tasto)
+    return () => removeEventListener('keydown', tasto)
+  }, [righello, rul, tuttiToken, scena?.id, selezionato, dims])
+
+  const hex = scena?.grid === 'hex' && !cm.map?.active
+  // Al cambio di griglia (006) i token tengono colonna e riga; il browser del DM salva solo quelli finiti fuori.
+  function rientra(g: 'square' | 'hex') {
+    if (!dims) return
+    const d = gridDims(dims.w, dims.h, g === 'hex')
+    for (const t of tokens) {
+      const c = clampToMap(t.col, t.row, d.cols, d.rows, d.oddCols)
+      if (c.col !== t.col || c.row !== t.row) void moveToken(t.id, c.col, c.row)
+    }
+  }
+
+  // Il DM porta nella scena guardata un token di un'altra (stesso id: scheda e proprietario restano).
+  async function porta(tokenId: string, da: string) {
+    if (!scena) return
+    const { error } = await supabase.from('tokens').update({ scene_id: scena.id, col: 0, row: 0 }).eq('id', tokenId)
+    if (error) return
+    if (da === attiva?.id) await sc.aggiorna(attiva.id, { tokens_moved_at: new Date().toISOString() })
+    await caricaToken()
   }
 
   if (role === undefined) return <p className="muted">Caricamento…</p>
@@ -111,7 +178,10 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
         </div>
         <span className={`badge ${role === 'dm' ? 'dm' : ''}`}>{role === 'dm' ? 'Dungeon Master' : 'Giocatore'}</span>
       </header>
-      {(errore || cm.errore) && <p className="error" role="alert">{errore || cm.errore}</p>}
+      {(errore || cm.errore || sc.errore) && <p className="error" role="alert">{errore || cm.errore || sc.errore}</p>}
+      {scena && attiva && scena.id !== attiva.id && (
+        <p role="status">Stai preparando «{scena.name}»: i giocatori vedono «{attiva.name}». <button type="button" className="link-btn" onClick={() => sc.vedi(null)}>Torna alla scena in gioco</button></p>
+      )}
       <div className="table-layout">
         <div className="table-main">
           {mapUrl || cm.map?.active ? (
@@ -119,6 +189,9 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
               <div className="map-toolbar">
                 <b>{cm.map?.active ? 'Mappa a celle' : 'Mappa'}</b>
                 <span className="map-hint muted">Trascina un token, o sceglilo in «Scena» e usa le frecce</span>
+                <button className="icon-btn" aria-pressed={righello} aria-label="Righello: misura una distanza (R)" title="Righello: misura una distanza (R)" onClick={() => { if (righello) rul.measure([0, 0], null); setRighello(!righello) }}>
+                  <Icon name="ruler" />
+                </button>
                 <button className="icon-btn" aria-pressed={finestra} aria-label="Scheda in una finestra sopra la mappa" title="Scheda in una finestra sopra la mappa" onClick={() => setFinestra(!finestra)}>
                   <Icon name="sheet" />
                 </button>
@@ -126,7 +199,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   <Icon name="grid" />
                 </button>
               </div>
-              <MapCanvas url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} onDims={(cols, rows) => setDims({ cols, rows })} onOpen={(id) => conScheda.has(id) && apriScheda(id)} />
+              <MapCanvas key={scena?.id} url={mapUrl} cellMap={cm.map} editing={editing} tool={tool} cellType={cellType} onPaint={(p: Patch) => void cm.paint(p)} tokens={tokens} userId={userId} isDm={role === 'dm'} onMove={moveToken} showGrid={showGrid} selectedId={selezionato} turnTokenId={turno} hex={hex} onDims={setDims} onOpen={(id) => conScheda.has(id) && apriScheda(id)} ruler={righello} measures={rul.measures} onMeasure={rul.measure} />
               <div className="map-caption">
                 <span>Posizioni in celle: col, riga</span>
                 <span aria-live="polite" key={eventi[0]} className="map-last">{eventi[0] ?? 'Nessuna modifica in questa sessione'}</span>
@@ -158,7 +231,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
           <div className="tab-body">
             <div role="tabpanel" id="pan-scena" aria-labelledby="tab-scena" hidden={tab !== 'scena'}>
               <h2 className="side-h">Personaggi in scena</h2>
-              <TokenList tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} conScheda={conScheda} onOpen={apriScheda} />
+              <TokenList righello={righello} tokens={tokens} userId={userId} isDm={role === 'dm'} selezionato={selezionato} onSelect={setSelezionato} onMove={moveToken} dims={dims} conScheda={conScheda} onOpen={apriScheda} />
               <h2 className="side-h">Registro del tavolo</h2>
               {eventi.length === 0 ? (
                 <p className="muted">Nessuna azione in questa sessione.</p>
@@ -170,7 +243,7 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
               <Chat userId={userId} isDm={role === 'dm'} messages={chat.messages} rolls={rolls} members={members} errore={chat.errore} onSend={chat.send} onRemove={chat.remove} />
             </div>
             <div role="tabpanel" id="pan-combattimento" aria-labelledby="tab-combattimento" hidden={tab !== 'combattimento'}>
-              <Initiative tokens={tokens} userId={userId} isDm={role === 'dm'} enc={enc} />
+              <Initiative tokens={inGioco} userId={userId} isDm={role === 'dm'} enc={enc} />
             </div>
             <div role="tabpanel" id="pan-pg" aria-labelledby="tab-pg" hidden={tab !== 'pg'}>
               {pg ? (
@@ -188,6 +261,8 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
             </div>
             {role === 'dm' && (
               <div role="tabpanel" id="pan-dm" aria-labelledby="tab-dm" hidden={tab !== 'dm'}>
+                <h2 className="side-h">Scene</h2>
+                <Scenes sc={sc} />
                 {cm.map && (
                   <>
                     <h2 className="side-h">Mappa a celle</h2>
@@ -195,7 +270,11 @@ export function Table({ campaignId, userId }: { campaignId: string; userId: stri
                   </>
                 )}
                 <h2 className="side-h">Mappa e token</h2>
-                <DmPanel campaignId={campaignId} mapPath={mapPath} tokens={tokens} members={members} />
+                {scena && (
+                  <DmPanel campaignId={campaignId} scena={scena} tokens={tokens} members={members} onGrid={rientra}
+                    altri={tuttiToken.filter((t) => t.scene_id !== scena.id).map((t) => ({ token: t, scena: sc.scenes.find((s) => s.id === t.scene_id)?.name ?? '?' }))}
+                    onScena={(campi) => sc.aggiorna(scena.id, campi)} onPorta={(t) => void porta(t.id, t.scene_id)} />
+                )}
               </div>
             )}
           </div>

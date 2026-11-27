@@ -10,6 +10,7 @@ export type Token = {
   col: number
   row: number
   owner_id: string | null
+  scene_id: string
 }
 export type Roll = {
   id: string
@@ -25,11 +26,9 @@ export type Roll = {
 }
 export type Member = { user_id: string; role: Role; display_name: string }
 
-// Carica ruolo, mappa, membri e token della campagna e resta abbonato ai cambi.
+// Carica ruolo, membri e token della campagna (le mappe sono in useScenes) e resta abbonato ai cambi.
 export function useTable(campaignId: string, userId: string) {
   const [role, setRole] = useState<Role | null | undefined>(undefined) // undefined = in caricamento
-  const [mapPath, setMapPath] = useState<string | null>(null)
-  const [mapUrl, setMapUrl] = useState<string | null>(null)
   const [tokens, setTokens] = useState<Token[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [errore, setErrore] = useState('')
@@ -45,20 +44,6 @@ export function useTable(campaignId: string, userId: string) {
 
   useEffect(() => {
     let vivo = true
-
-    async function caricaMappa() {
-      const { data } = await supabase.from('maps').select('image_path').eq('campaign_id', campaignId).maybeSingle()
-      if (!vivo) return
-      if (!data) {
-        setMapPath(null)
-        setMapUrl(null)
-        return
-      }
-      const { data: firmato } = await supabase.storage.from('maps').createSignedUrl(data.image_path, 3600)
-      if (!vivo) return
-      setMapPath(data.image_path)
-      setMapUrl(firmato?.signedUrl ?? null)
-    }
 
     async function caricaMembri() {
       const { data } = await supabase
@@ -91,7 +76,6 @@ export function useTable(campaignId: string, userId: string) {
     const filtro = `campaign_id=eq.${campaignId}`
     const canale = supabase
       .channel(`table:${campaignId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'maps', filter: filtro }, caricaMappa)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tokens', filter: filtro }, (p) => {
         // Gli eventi sostituiscono per id, quindi sono idempotenti rispetto alla select iniziale.
         if (p.eventType === 'DELETE') {
@@ -122,7 +106,6 @@ export function useTable(campaignId: string, userId: string) {
         if (stato === 'SUBSCRIBED') {
           caricaMembri()
           caricaTiri()
-          caricaMappa()
           caricaToken()
         }
       })
@@ -155,5 +138,5 @@ export function useTable(campaignId: string, userId: string) {
     [campaignId],
   )
 
-  return { nome, eventi, role, mapUrl, mapPath, tokens, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
+  return { nome, eventi, role, tokens, caricaToken, members, moveToken, errore, rolls, nuovoTiro, chiudiTiro: () => setNuovoTiro(null), tiraD20 }
 }
